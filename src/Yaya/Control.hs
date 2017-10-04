@@ -4,19 +4,12 @@ import Control.Applicative
 import Control.Arrow
 import Control.Comonad
 import Control.Comonad.Env
+import Control.Monad
 import Data.Distributive
 import Data.Functor.Identity
 
 import Yaya
 
--- TODO: This is an 'Iso * (f t) t'. The question is whether we use that
---       directly.
--- TODO: Can we make Base an associated type again
---         class Cursive t where
---           type Base t :: * -> *
---         class (Cursive t, Iso * (Base t t) t) => Recursive t where
---           ...
---       or should it be a type family?
 class Cursive t f | t -> f where
   embed :: Algebra f t
   project :: Coalgebra f t
@@ -36,6 +29,17 @@ gcata
   -> t
   -> a
 gcata k φ = extract . cata (fmap φ . k . fmap duplicate)
+
+cataM :: (Monad m, Recursive t f, Traversable f) => AlgebraM m f a -> t -> m a
+cataM φ = cata $ φ <=< sequenceA
+
+gcataM
+  :: (Monad m, Recursive t f, Traversable f, Comonad w, Traversable w)
+  => DistributiveLaw f w
+  -> GAlgebraM m w f a
+  -> t
+  -> m a
+gcataM w φ = fmap extract . cataM (traverse φ . w . fmap duplicate)
 
 lambek :: (Recursive t f, Functor f) => Coalgebra f t
 lambek = cata $ fmap embed
