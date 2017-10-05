@@ -12,13 +12,20 @@ import Yaya
 import Yaya.Control
 import Yaya.Data
 
--- ganaM
---   :: (Monad m, Corecursive t f, Traversable f, Monad n)
---   => DistributiveLaw n f
---   -> GCoalgebraM m n f a
---   -> a
---   -> m t
--- ganaM k = ghyloM distCata k $ pure . embed
+anaM
+  :: (Monad m, Corecursive t f, Traversable f)
+  => CoalgebraM m f a
+  -> a
+  -> m t
+anaM = hyloM $ pure . embed
+
+ganaM
+  :: (Monad m, Monad n, Traversable n, Corecursive t f, Traversable f)
+  => DistributiveLaw n f
+  -> GCoalgebraM m n f a
+  -> a
+  -> m t
+ganaM k ψ = anaM (fmap (fmap join . k) . traverse ψ) . pure
 
 mutu
   :: (Recursive t f, Functor f)
