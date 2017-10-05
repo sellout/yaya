@@ -6,11 +6,19 @@ import Control.Comonad
 import Control.Comonad.Cofree
 import Control.Comonad.Env
 import Control.Monad
-import Control.Monad.Free
+import Data.Functor.Compose
 
 import Yaya
 import Yaya.Control
 import Yaya.Data
+
+-- ganaM
+--   :: (Monad m, Corecursive t f, Traversable f, Monad n)
+--   => DistributiveLaw n f
+--   -> GCoalgebraM m n f a
+--   -> a
+--   -> m t
+-- ganaM k = ghyloM distCata k $ pure . embed
 
 mutu
   :: (Recursive t f, Functor f)
@@ -60,4 +68,25 @@ ghylo w m φ ψ =
   extract
     . hylo (fmap φ . w . fmap duplicate)
            (fmap join . m . fmap ψ)
+    . pure
+
+hyloM
+  :: (Monad m, Traversable f)
+  => AlgebraM m f b
+  -> CoalgebraM m f a
+  -> a
+  -> m b
+hyloM φ ψ = hylo (φ <=< join . fmap sequenceA . getCompose) (Compose . ψ)
+
+ghyloM
+  :: (Comonad w, Traversable w, Monad m, Traversable f, Monad n, Traversable n)
+  => DistributiveLaw f w
+  -> DistributiveLaw n f
+  -> GAlgebraM m w f b
+  -> GCoalgebraM m n f a
+  -> a
+  -> m b
+ghyloM w n φ ψ =
+  fmap extract
+    . hyloM (traverse φ . w . fmap duplicate) (fmap (fmap join . n) . traverse ψ)
     . pure
