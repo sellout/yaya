@@ -6,10 +6,10 @@ import Control.Comonad.Cofree (Cofree(..))
 import Yaya
 import Yaya.Control
 
-apo :: (Corecursive t f, Functor f) => GCoalgebra (Either t) f a -> a -> t
+apo :: (Cursive t f, Corecursive t f, Functor f) => GCoalgebra (Either t) f a -> a -> t
 apo = gana $ distGApo project
 
-para :: (Recursive t f, Functor f) => GAlgebra ((,) t) f a -> t -> a
+para :: (Cursive t f, Recursive t f, Functor f) => GAlgebra ((,) t) f a -> t -> a
 para = gcata $ distZygo embed
 
 zygo

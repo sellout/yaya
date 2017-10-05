@@ -13,14 +13,14 @@ import Yaya.Control
 import Yaya.Data
 
 anaM
-  :: (Monad m, Corecursive t f, Traversable f)
+  :: (Monad m, Cursive t f, Corecursive t f, Traversable f)
   => CoalgebraM m f a
   -> a
   -> m t
 anaM = hyloM $ pure . embed
 
 ganaM
-  :: (Monad m, Monad n, Traversable n, Corecursive t f, Traversable f)
+  :: (Monad m, Monad n, Traversable n, Cursive t f, Corecursive t f, Traversable f)
   => DistributiveLaw n f
   -> GCoalgebraM m n f a
   -> a
@@ -28,7 +28,7 @@ ganaM
 ganaM k ψ = anaM (fmap (fmap join . k) . traverse ψ) . pure
 
 mutu
-  :: (Recursive t f, Functor f)
+  :: (Cursive t f, Recursive t f, Functor f)
   => GAlgebra ((,) a) f b
   -> GAlgebra ((,) b) f a
   -> t
@@ -36,7 +36,7 @@ mutu
 mutu φ' φ = φ . fmap (mutu φ φ' &&& mutu φ' φ) . project
 
 gprepro
-  :: (Recursive t f, Functor f, Comonad w)
+  :: (Cursive t f, Recursive t f, Functor f, Comonad w)
   => DistributiveLaw f w
   -> (forall a. f a -> f a)
   -> GAlgebra w f a
@@ -47,7 +47,7 @@ gprepro k e φ = extract . go
     go = fmap φ . k . fmap (duplicate . go . cata (embed . e)) . project
 
 gpostpro
-  :: (Corecursive t f, Functor f, Monad m)
+  :: (Cursive t f, Corecursive t f, Functor f, Monad m)
   => DistributiveLaw m f
   -> GCoalgebra m f a
   -> (forall a. f a -> f a)

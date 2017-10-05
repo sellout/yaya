@@ -15,10 +15,10 @@ class Cursive t f | t -> f where
   embed :: Algebra f t
   project :: Coalgebra f t
 
-class Cursive t f => Recursive t f where
+class Recursive t f | t -> f where
   cata :: Algebra f a -> t -> a
 
-class Cursive t f => Corecursive t f where
+class Corecursive t f | t -> f where
   ana :: Coalgebra f a -> a -> t
 
 type Birecursive t f = (Recursive t f, Corecursive t f)
@@ -62,10 +62,10 @@ gana
   -> t
 gana k ψ = ana (fmap join . k . fmap ψ) . pure
 
-lambek :: (Recursive t f, Functor f) => Coalgebra f t
+lambek :: (Cursive t f, Recursive t f, Functor f) => Coalgebra f t
 lambek = cata $ fmap embed
 
-colambek :: (Corecursive t f, Functor f) => Algebra f t
+colambek :: (Cursive t f, Corecursive t f, Functor f) => Algebra f t
 colambek = ana $ fmap project
 
 constEmbed :: Algebra (Const a) a
