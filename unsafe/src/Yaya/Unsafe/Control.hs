@@ -1,10 +1,12 @@
 -- | Definitions and instances that use direct recursion.
-module Yaya.Unsafe where
+module Yaya.Unsafe.Control where
 
 import Control.Arrow
 import Control.Comonad
+import Control.Comonad.Cofree
+import Control.Comonad.Env
 import Control.Monad
-import Data.Functor.Yoneda
+import Control.Monad.Free
 
 import Yaya
 import Yaya.Control
@@ -59,41 +61,3 @@ ghylo w m φ ψ =
     . hylo (fmap φ . w . fmap duplicate)
            (fmap join . m . fmap ψ)
     . pure
-
-data Fix f = Fix { unFix :: f (Fix f) }
-
-instance Cursive (Fix f) f where
-  embed = Fix
-  project = unFix
-
-instance Functor f => Recursive (Fix f) f where
-  cata φ = hylo φ project
-
-instance Functor f => Corecursive (Fix f) f where
-  ana ψ = hylo embed ψ
-
-instance Functor f => Corecursive (Mu f) f where
-  ana ψ = hylo embed ψ
-
-instance Functor f => Recursive (Nu f) f where
-  cata φ = hylo φ project
-
--- List instance
-
-data XNor a b = None | Both a b
-
-instance Functor (XNor a) where
-  fmap _ None = None
-  fmap f (Both a b) = Both a (f b)
-
-instance Cursive [a] (XNor a) where
-  embed None = []
-  embed (Both h t) = h : t
-  project [] = None
-  project (h : t) = Both h t
-
-instance Recursive [a] (XNor a) where
-  cata φ = hylo φ project
-
-instance Corecursive [a] (XNor a) where
-  ana ψ = hylo embed ψ

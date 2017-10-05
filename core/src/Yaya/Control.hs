@@ -41,6 +41,14 @@ gcataM
   -> m a
 gcataM w φ = fmap extract . cataM (traverse φ . w . fmap duplicate)
 
+gana
+  :: (Corecursive t f, Functor f, Monad m)
+  => DistributiveLaw m f
+  -> GCoalgebra m f a
+  -> a
+  -> t
+gana k ψ = ana (fmap join . k . fmap ψ) . pure
+
 lambek :: (Recursive t f, Functor f) => Coalgebra f t
 lambek = cata $ fmap embed
 
@@ -93,9 +101,6 @@ distCata = Identity . fmap runIdentity
 distAna :: Functor f => DistributiveLaw Identity f
 distAna = fmap Identity . runIdentity
 
-distPara :: (Cursive t f, Functor f) => DistributiveLaw f ((,) t)
-distPara = distZygo embed
-
 distZygo :: Functor f => Algebra f a -> DistributiveLaw f ((,) a)
 distZygo φ = φ . fmap fst &&& fmap snd
 
@@ -105,9 +110,6 @@ distZygoT
   -> DistributiveLaw f w
   -> DistributiveLaw f (EnvT a w)
 distZygoT φ k = uncurry EnvT . (φ . fmap ask &&& k . fmap lower)
-
-distApo :: (Cursive t f, Functor f) => DistributiveLaw (Either t) f
-distApo = distGApo project
 
 distGApo :: Functor f => Coalgebra f a -> DistributiveLaw (Either a) f
 distGApo ψ = fmap Left . ψ ||| fmap Right

@@ -1,4 +1,4 @@
-name:                yaya
+name:                yaya-unsafe
 version:             0.1.0.0
 -- synopsis:
 -- description:
@@ -13,15 +13,13 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Yaya
-                     , Yaya.Control
-                     , Yaya.Data
-                     , Yaya.Example
-                     , Yaya.Zoo
+  exposed-modules:     Yaya.Unsafe.Control
+                     , Yaya.Unsafe.Data
+                     , Yaya.Unsafe.Zoo
   build-depends:       base >= 4.7 && < 5
                      , comonad
-                     , distributive
                      , free
+                     , yaya
   default-extensions:  ConstraintKinds
                      , DeriveFoldable
                      , DeriveFunctor
@@ -29,6 +27,7 @@ library
                      , FlexibleContexts
                      , FlexibleInstances
                      , FunctionalDependencies
+                     , LambdaCase
                      , MultiParamTypeClasses
                      , RankNTypes
                      , ScopedTypeVariables
