@@ -9,6 +9,7 @@ import Data.Distributive
 import Data.Functor.Identity
 
 import Yaya
+import Data.Tuple
 
 class Cursive t f | t -> f where
   embed :: Algebra f t
@@ -40,6 +41,18 @@ gcataM
   -> t
   -> m a
 gcataM w φ = fmap extract . cataM (traverse φ . w . fmap duplicate)
+
+-- | This definition is different from the one given by 'gcataM $ distZygo φ''
+--   because it has a monadic “helper” algebra.
+zygoM
+  :: (Monad m, Recursive t f, Traversable f)
+  => AlgebraM m f b
+  -> GAlgebraM m ((,) b) f a
+  -> t
+  -> m a
+zygoM φ' φ =
+  gcataM (distZygo (φ' <=< sequenceA))
+         (φ <=< traverse (fmap swap . sequenceA . swap))
 
 gana
   :: (Corecursive t f, Functor f, Monad m)
