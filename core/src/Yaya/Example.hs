@@ -1,13 +1,55 @@
 module Yaya.Example where
 
+import Control.Monad.Trans.Free
+
 import Yaya
 import Yaya.Control
+import Yaya.Data
 
 unarySequence :: (a -> a) -> Coalgebra ((,) a) a
 unarySequence f a = (a, f a)
 
--- naturals :: (Corecursive n Maybe, Corecursive t ((,) n)) => t
--- naturals = unarySequence succ zero
+zeroN :: (Cursive t Maybe) => t
+zeroN = embed Nothing
+
+succN :: (Cursive t Maybe) => t -> t
+succN = embed . Just
+
+naturals :: (Cursive n Maybe, Corecursive t ((,) n)) => t
+naturals = flip ana zeroN $ unarySequence succN
+
+takeAnother
+  :: (Cursive t ((,) a), Cursive u (XNor a))
+  => Algebra Maybe (t -> u)
+takeAnother Nothing = embed . const None
+takeAnother (Just f) = embed . uncurry Both . fmap f . project
+
+takeAvailable
+  :: (Cursive t (XNor a), Cursive u (XNor a))
+  => Algebra Maybe (t -> u)
+takeAvailable Nothing = embed . const None
+takeAvailable (Just f) = embed . fmap f . project
+
+takeUpTo
+  :: (Recursive n Maybe, Cursive s (XNor a), Cursive l (XNor a))
+  => n -> s -> l
+takeUpTo = cata takeAvailable
+
+take
+  :: (Recursive n Maybe, Cursive s ((,) a), Cursive l (XNor a))
+  => n -> s -> l
+take = cata takeAnother
+
+maybeReify
+  :: (Cursive s f, Cursive l (FreeF f s), Functor f)
+  => Algebra Maybe (s -> l)
+maybeReify Nothing = embed . Pure
+maybeReify (Just f) = embed . Free . fmap f . project
+
+reifyUpTo
+  :: (Recursive n Maybe, Cursive s f, Cursive l (FreeF f s), Functor f)
+  => n -> s -> l
+reifyUpTo = cata maybeReify
 
 binarySequence :: (a -> a -> a) -> Coalgebra ((,) a) (a, a)
 binarySequence f (a, b) = (a, (b, f a b))
@@ -47,13 +89,3 @@ duplicate i = (i, i)
 
 constantly :: Corecursive t ((,) a) => a -> t
 constantly = ana duplicate
-
--- | Lops off the branches of the tree below a certain depth, turning a
---   potentially-infinite structure into a finite one. Like a generalized
---  'take'.
--- truncate :: (Corecursive t f, Recursive u (CoEnv t f)) => Int -> t -> u
--- truncate i = ana (\(i, nu) ->
---                      if i <= 0
---                        then CoEnv $ Left nu
---                        else CoEnv . Right . fmap (i - 1,) $ project nu)
---                  . (i,)
