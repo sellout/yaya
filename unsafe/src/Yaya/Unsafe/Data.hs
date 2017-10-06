@@ -1,3 +1,5 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+
 -- | Definitions and instances that use direct recursion.
 module Yaya.Unsafe.Data where
 
@@ -31,39 +33,17 @@ instance Functor f => Corecursive (Mu f) f where
 instance Functor f => Recursive (Nu f) f where
   cata = flip hylo project
 
--- List instance
-
-data XNor a b = None | Both a b deriving (Functor, Foldable, Traversable)
-
-instance Cursive [a] (XNor a) where
-  embed None = []
-  embed (Both h t) = h : t
-  project [] = None
-  project (h : t) = Both h t
-
 instance Recursive [a] (XNor a) where
   cata = flip hylo project
 
 instance Corecursive [a] (XNor a) where
   ana = hylo embed
 
--- Cofree instance
-
-instance Cursive (Cofree f a) (EnvT a f) where
-  embed (EnvT a ft) = a :< ft
-  project (a :< ft) = EnvT a ft
-
 instance Functor f => Recursive (Cofree f a) (EnvT a f) where
   cata = flip hylo project
 
 instance Functor f => Corecursive (Cofree f a) (EnvT a f) where
   ana = hylo embed
-
--- Free instance
-
-instance Cursive (Free f a) (FreeF f a) where
-  embed = free
-  project = runFree
 
 instance Functor f => Recursive (Free f a) (FreeF f a) where
   cata = flip hylo project

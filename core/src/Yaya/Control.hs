@@ -1,6 +1,5 @@
 module Yaya.Control where
 
-import Control.Applicative
 import Control.Arrow
 import Control.Comonad
 import Control.Comonad.Env
@@ -67,38 +66,6 @@ lambek = cata $ fmap embed
 
 colambek :: (Cursive t f, Corecursive t f, Functor f) => Algebra f t
 colambek = ana $ fmap project
-
-constEmbed :: Algebra (Const a) a
-constEmbed = getConst
-
-constProject :: Coalgebra (Const a) a
-constProject = Const
-
-constCata :: Algebra (Const b) a -> b -> a
-constCata φ = φ . Const
-
-constAna :: Coalgebra (Const b) a -> a -> b
-constAna ψ = getConst . ψ
-
-instance Cursive (Either a b) (Const (Either a b)) where
-  embed = constEmbed
-  project = constProject
-
-instance Recursive (Either a b) (Const (Either a b)) where
-  cata = constCata
-
-instance Corecursive (Either a b) (Const (Either a b)) where
-  ana = constAna
-
-instance Cursive (Maybe a) (Const (Maybe a)) where
-  embed = constEmbed
-  project = constProject
-
-instance Recursive (Maybe a) (Const (Maybe a)) where
-  cata = constCata
-
-instance Corecursive (Maybe a) (Const (Maybe a)) where
-  ana = constAna
 
 type DistributiveLaw f g = forall a. f (g a) -> g (f a)
 

@@ -20,6 +20,7 @@ library
                      , Yaya.Zoo
   build-depends:       base >= 4.7 && < 5
                      , comonad
+                     , constraints
                      , distributive
                      , free
   default-extensions:  ConstraintKinds
@@ -29,6 +30,7 @@ library
                      , FlexibleContexts
                      , FlexibleInstances
                      , FunctionalDependencies
+                     , LambdaCase
                      , MultiParamTypeClasses
                      , RankNTypes
                      , ScopedTypeVariables
