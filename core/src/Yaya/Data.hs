@@ -6,10 +6,12 @@ import Control.Applicative
 import Control.Comonad.Cofree
 import Control.Comonad.Env
 import Control.Monad.Trans.Free
+import Numeric.Natural
 
 import Yaya
 import Yaya.Control
 
+-- | A fixed-point operator for inductive / finite data structures.
 data Mu f = Mu (forall a. Algebra f a -> a)
 
 instance Functor f => Cursive (Mu f) f where
@@ -19,6 +21,8 @@ instance Functor f => Cursive (Mu f) f where
 instance Functor f => Recursive (Mu f) f where
   cata φ (Mu f) = f φ
 
+-- | A fixed-point operator for coinductive / potentially-infinite data
+--   structures.
 data Nu f where Nu :: Coalgebra f a -> a -> Nu f
 
 instance Functor f => Cursive (Nu f) f where
@@ -28,6 +32,7 @@ instance Functor f => Cursive (Nu f) f where
 instance Functor f => Corecursive (Nu f) f where
   ana = Nu
 
+-- | Isomorphic to 'Maybe (a, b)', it’s also the pattern functor for lists.
 data XNor a b = None | Both a b deriving (Functor, Foldable, Traversable)
 
 instance Cursive [a] (XNor a) where
@@ -35,6 +40,14 @@ instance Cursive [a] (XNor a) where
   embed (Both h t) = h : t
   project [] = None
   project (h : t) = Both h t
+
+-- | Isomorphic to '(a, Maybe b)', it’s also the pattern functor for non-empty lists.
+data AndMaybe a b = Only a | Indeed a b deriving (Functor, Foldable, Traversable)
+
+instance Cursive Natural Maybe where
+  embed = maybe 0 (+ 1)
+  project 0 = Nothing
+  project n = Just (n - 1)
 
 instance Cursive (Cofree f a) (EnvT a f) where
   embed (EnvT a ft) = a :< ft

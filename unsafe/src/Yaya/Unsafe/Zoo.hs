@@ -1,6 +1,7 @@
 module Yaya.Unsafe.Zoo where
 
 import Control.Comonad.Cofree
+import Control.Comonad.Env
 import Control.Monad.Trans.Free
 import Data.Functor.Identity
 
@@ -24,3 +25,13 @@ futu = gana $ distGFutu id
 
 histo :: (Recursive t f, Functor f) => GAlgebra (Cofree f) f a -> t -> a
 histo = gcata $ distGHisto id
+
+-- | Zygohistomorphic prepromorphism – everyone’s favorite recursion scheme joke.
+zygoHistoPrepro
+  :: (Cursive t f, Recursive t f, Functor f)
+  => (f b -> b)
+  -> (forall c. f c -> f c)
+  -> (f (EnvT b (Cofree f) a) -> a)
+  -> t
+  -> a
+zygoHistoPrepro φ' e φ = gprepro (distZygoT φ' $ distGHisto id) e φ

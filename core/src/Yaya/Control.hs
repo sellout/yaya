@@ -10,17 +10,20 @@ import Data.Functor.Identity
 import Yaya
 import Data.Tuple
 
+-- | Structures you can walk through step-by-step.
 class Cursive t f | t -> f where
   embed :: Algebra f t
   project :: Coalgebra f t
 
+-- | Inductive structures that can be reasoned about in the way we usually do –
+--   with pattern matching.
 class Recursive t f | t -> f where
   cata :: Algebra f a -> t -> a
 
+-- | Coinductive (potentially-infinite) structures that guarantee _productivity_
+--   rather than termination.
 class Corecursive t f | t -> f where
   ana :: Coalgebra f a -> a -> t
-
-type Birecursive t f = (Recursive t f, Corecursive t f)
 
 gcata
   :: (Recursive t f, Functor f, Comonad w)

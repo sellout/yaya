@@ -5,15 +5,8 @@ import Control.Monad.Trans.Free
 import Yaya
 import Yaya.Control
 import Yaya.Data
-
-unarySequence :: (a -> a) -> Coalgebra ((,) a) a
-unarySequence f a = (a, f a)
-
-zeroN :: (Cursive t Maybe) => t
-zeroN = embed Nothing
-
-succN :: (Cursive t Maybe) => t -> t
-succN = embed . Just
+import Yaya.Maybe
+import Yaya.Tuple
 
 naturals :: (Cursive n Maybe, Corecursive t ((,) n)) => t
 naturals = flip ana zeroN $ unarySequence succN
@@ -40,6 +33,8 @@ take
   => n -> s -> l
 take = cata takeAnother
 
+-- | Turns part of a structure inductive, so it can be analyzed, without forcing
+--   the entire tree.
 maybeReify
   :: (Cursive s f, Cursive l (FreeF f s), Functor f)
   => Algebra Maybe (s -> l)
@@ -50,12 +45,6 @@ reifyUpTo
   :: (Recursive n Maybe, Cursive s f, Cursive l (FreeF f s), Functor f)
   => n -> s -> l
 reifyUpTo = cata maybeReify
-
-binarySequence :: (a -> a -> a) -> Coalgebra ((,) a) (a, a)
-binarySequence f (a, b) = (a, (b, f a b))
-
-ternarySequence :: (a -> a -> a -> a) -> Coalgebra ((,) a) (a, a, a)
-ternarySequence f (a, b, c) = (a, (b, c, f a b c))
 
 fibonacciPolynomials :: (Integral i, Corecursive t ((,) i)) => i -> t
 fibonacciPolynomials x = lucasSequenceU x (-1)

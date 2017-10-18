@@ -13,8 +13,14 @@ type CoalgebraPrism f a = Prism' a (f a)
 cursiveIso :: Cursive t f => BialgebraIso f t
 cursiveIso = iso embed project
 
-birecursiveIso :: Birecursive t f => BialgebraIso f a -> Iso' t a
+birecursiveIso
+  :: (Recursive t f, Corecursive t f)
+  => BialgebraIso f a
+  -> Iso' t a
 birecursiveIso alg = iso (cata (view alg)) (ana (review alg))
 
-recursivePrism :: (Birecursive t f, Traversable f) => AlgebraPrism f a -> Prism' t a
+recursivePrism
+  :: (Recursive t f, Corecursive t f, Traversable f)
+  => AlgebraPrism f a
+  -> Prism' t a
 recursivePrism alg = prism (ana (review alg)) (\t -> mapLeft (const t) $ cataM (matching alg) t)

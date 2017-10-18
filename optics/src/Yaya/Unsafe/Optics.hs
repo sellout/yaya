@@ -9,7 +9,7 @@ import Yaya.Optics
 import Yaya.Unsafe.Control
 
 corecursivePrism
-  :: (Cursive t f, Birecursive t f, Traversable f)
+  :: (Cursive t f, Recursive t f, Corecursive t f, Traversable f)
   => CoalgebraPrism f a
   -> Prism' a t
 corecursivePrism alg = prism (cata (review alg)) (anaM (matching alg))

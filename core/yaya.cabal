@@ -8,7 +8,7 @@ maintainer:          greg@technomadic.org
 copyright:           2017 Greg Pfeil
 category:            Recursion
 build-type:          Simple
-extra-source-files:  README.md
+extra-source-files:  ../README.md
 cabal-version:       >=1.10
 
 library
@@ -17,6 +17,9 @@ library
                      , Yaya.Control
                      , Yaya.Data
                      , Yaya.Example
+                     , Yaya.Example.Foldable
+                     , Yaya.Maybe
+                     , Yaya.Tuple
                      , Yaya.Zoo
   build-depends:       base >= 4.7 && < 5
                      , comonad
