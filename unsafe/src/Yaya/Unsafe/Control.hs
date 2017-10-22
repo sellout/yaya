@@ -39,24 +39,23 @@ mutu φ' φ = φ . fmap (mutu φ φ' &&& mutu φ' φ) . project
 gprepro
   :: (Cursive t f, Recursive t f, Functor f, Comonad w)
   => DistributiveLaw f w
-  -> (forall a. f a -> f a)
   -> GAlgebra w f a
+  -> (forall a. f a -> f a)
   -> t
   -> a
-gprepro k e φ = extract . go
-  where
-    go = fmap φ . k . fmap (duplicate . go . cata (embed . e)) . project
+gprepro k φ e =
+  extract
+  . hylo (degeneralizeAlgebra k φ) (fmap (cata (embed . e)) . project)
 
 gpostpro
   :: (Cursive t f, Corecursive t f, Functor f, Monad m)
   => DistributiveLaw m f
-  -> GCoalgebra m f a
   -> (forall a. f a -> f a)
+  -> GCoalgebra m f a
   -> a
   -> t
-gpostpro k ψ e = go . pure
-  where
-    go = embed . fmap (ana (e . project) . go . join) . k . liftM ψ
+gpostpro k e ψ =
+  hylo (embed . fmap (ana (e . project))) (degeneralizeCoalgebra k ψ) . pure
 
 -- | Fusion of an 'ana' and 'cata'.
 hylo :: Functor f => Algebra f b -> Coalgebra f a -> a -> b
@@ -74,8 +73,7 @@ ghylo
   -> b
 ghylo w m φ ψ =
   extract
-    . hylo (fmap φ . w . fmap duplicate)
-           (fmap join . m . fmap ψ)
+    . hylo (degeneralizeAlgebra w φ) (degeneralizeCoalgebra m ψ)
     . pure
 
 hyloM

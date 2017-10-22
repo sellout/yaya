@@ -72,8 +72,8 @@ cotraverse f = anaM $ bitraverse f pure . project
 zygoHistoPrepro
   :: (Cursive t f, Recursive t f, Functor f)
   => (f b -> b)
-  -> (forall c. f c -> f c)
   -> (f (EnvT b (Cofree f) a) -> a)
+  -> (forall c. f c -> f c)
   -> t
   -> a
-zygoHistoPrepro φ' e φ = gprepro (distZygoT φ' $ distGHisto id) e φ
+zygoHistoPrepro φ' φ e = gprepro (distZygoT φ' $ distGHisto id) φ e

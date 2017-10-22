@@ -25,13 +25,29 @@ class Recursive t f | t -> f where
 class Corecursive t f | t -> f where
   ana :: Coalgebra f a -> a -> t
 
+-- | Makes it possible to provide a 'GAlgebra' to 'cata'.
+degeneralizeAlgebra
+  :: (Functor f, Comonad w)
+  => DistributiveLaw f w
+  -> GAlgebra w f a
+  -> Algebra f (w a)
+degeneralizeAlgebra k φ = fmap φ . k . fmap duplicate
+
+-- | Makes it possible to provide a 'GCoalgebra' to 'ana'.
+degeneralizeCoalgebra
+  :: (Functor f, Monad m)
+  => DistributiveLaw m f
+  -> GCoalgebra m f a
+  -> Coalgebra f (m a)
+degeneralizeCoalgebra k ψ = fmap join . k . fmap ψ
+
 gcata
   :: (Recursive t f, Functor f, Comonad w)
   => DistributiveLaw f w
   -> GAlgebra w f a
   -> t
   -> a
-gcata k φ = extract . cata (fmap φ . k . fmap duplicate)
+gcata k φ = extract . cata (degeneralizeAlgebra k φ)
 
 elgotCata
   :: (Recursive t f, Functor f, Comonad w)
@@ -70,7 +86,7 @@ gana
   -> GCoalgebra m f a
   -> a
   -> t
-gana k ψ = ana (fmap join . k . fmap ψ) . pure
+gana k ψ = ana (degeneralizeCoalgebra k ψ) . pure
 
 elgotAna
   :: (Corecursive t f, Functor f, Monad m)
