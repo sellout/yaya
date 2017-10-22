@@ -4,6 +4,7 @@ import Control.Arrow
 import Control.Comonad
 import Control.Comonad.Env
 import Control.Monad
+import Data.Bitraversable
 import Data.Distributive
 import Data.Functor.Identity
 
@@ -26,20 +27,36 @@ class Corecursive t f | t -> f where
   ana :: Coalgebra f a -> a -> t
 
 -- | Makes it possible to provide a 'GAlgebra' to 'cata'.
-degeneralizeAlgebra
+lowerAlgebra
   :: (Functor f, Comonad w)
   => DistributiveLaw f w
   -> GAlgebra w f a
   -> Algebra f (w a)
-degeneralizeAlgebra k φ = fmap φ . k . fmap duplicate
+lowerAlgebra k φ = fmap φ . k . fmap duplicate
+
+-- | Makes it possible to provide a 'GAlgebraM' to 'cataM'.
+lowerAlgebraM
+  :: (Applicative m, Traversable f, Comonad w, Traversable w)
+  => DistributiveLaw f w
+  -> GAlgebraM m w f a
+  -> AlgebraM m f (w a)
+lowerAlgebraM k φ = traverse φ . k . fmap duplicate
 
 -- | Makes it possible to provide a 'GCoalgebra' to 'ana'.
-degeneralizeCoalgebra
+lowerCoalgebra
   :: (Functor f, Monad m)
   => DistributiveLaw m f
   -> GCoalgebra m f a
   -> Coalgebra f (m a)
-degeneralizeCoalgebra k ψ = fmap join . k . fmap ψ
+lowerCoalgebra k ψ = fmap join . k . fmap ψ
+
+-- | Makes it possible to provide a 'GCoalgebraM' to 'anaM'.
+lowerCoalgebraM
+  :: (Applicative m, Traversable f, Monad n, Traversable n)
+  => DistributiveLaw n f
+  -> GCoalgebraM m n f a
+  -> CoalgebraM m f (n a)
+lowerCoalgebraM k ψ = fmap (fmap join . k) . traverse ψ
 
 gcata
   :: (Recursive t f, Functor f, Comonad w)
@@ -47,7 +64,7 @@ gcata
   -> GAlgebra w f a
   -> t
   -> a
-gcata k φ = extract . cata (degeneralizeAlgebra k φ)
+gcata k φ = extract . cata (lowerAlgebra k φ)
 
 elgotCata
   :: (Recursive t f, Functor f, Comonad w)
@@ -66,7 +83,25 @@ gcataM
   -> GAlgebraM m w f a
   -> t
   -> m a
-gcataM w φ = fmap extract . cataM (traverse φ . w . fmap duplicate)
+gcataM w φ = fmap extract . cataM (lowerAlgebraM w φ)
+
+-- | A recursion scheme that allows to algebras to see each others’ results. (A
+--   generalization of 'zygo'.)
+mutu
+  :: (Recursive t f, Functor f)
+  => (f (b, a) -> b) -- TODO: Should this be 'GAlgebra ((,) a) f b'?
+  -> GAlgebra ((,) b) f a
+  -> t
+  -> a
+mutu φ' φ = snd . cata (φ' &&& φ)
+
+mutuM
+  :: (Monad m, Recursive t f, Traversable f)
+  => (f (b, a) -> m b) -- TODO: Should this be 'GAlgebraM m ((,) a) f b'?
+  -> GAlgebraM m ((,) b) f a
+  -> t
+  -> m a
+mutuM φ' φ = fmap snd . cataM (bisequence . (φ' &&& φ))
 
 -- | This definition is different from the one given by 'gcataM $ distZygo φ''
 --   because it has a monadic “helper” algebra.
@@ -86,7 +121,7 @@ gana
   -> GCoalgebra m f a
   -> a
   -> t
-gana k ψ = ana (degeneralizeCoalgebra k ψ) . pure
+gana k ψ = ana (lowerCoalgebra k ψ) . pure
 
 elgotAna
   :: (Corecursive t f, Functor f, Monad m)

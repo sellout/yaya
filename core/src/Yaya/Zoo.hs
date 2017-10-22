@@ -24,7 +24,7 @@ apo
 apo = gana $ distGApo project
 
 -- | A recursion scheme that gives you access to the original structure as you
---   fold. (A specialization of 'zygo'.
+--   fold. (A specialization of 'zygo'.)
 para
   :: (Cursive t f, Recursive t f, Functor f)
   => GAlgebra ((,) t) f a
@@ -97,8 +97,8 @@ comap
   -> u
 comap f = ana $ first f . project
 
--- | A more general implementation of 'fmap', because it can also work to, from,
---   or within monomorphic structures, obviating the need for classes like
+-- | A more general implementation of 'traverse', because it can also work to,
+--   from, or within monomorphic structures, obviating the need for classes like
 --  'MonoTraversable'.
 -- TODO: Weaken the 'Monad' constraint to 'Applicative'.
 traverse

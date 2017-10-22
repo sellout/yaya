@@ -26,15 +26,7 @@ ganaM
   -> GCoalgebraM m n f a
   -> a
   -> m t
-ganaM k ψ = anaM (fmap (fmap join . k) . traverse ψ) . pure
-
-mutu
-  :: (Cursive t f, Recursive t f, Functor f)
-  => GAlgebra ((,) a) f b
-  -> GAlgebra ((,) b) f a
-  -> t
-  -> a
-mutu φ' φ = φ . fmap (mutu φ φ' &&& mutu φ' φ) . project
+ganaM k ψ = anaM (lowerCoalgebraM k ψ) . pure
 
 gprepro
   :: (Cursive t f, Recursive t f, Functor f, Comonad w)
@@ -44,8 +36,7 @@ gprepro
   -> t
   -> a
 gprepro k φ e =
-  extract
-  . hylo (degeneralizeAlgebra k φ) (fmap (cata (embed . e)) . project)
+  extract . hylo (lowerAlgebra k φ) (fmap (cata (embed . e)) . project)
 
 gpostpro
   :: (Cursive t f, Corecursive t f, Functor f, Monad m)
@@ -55,7 +46,7 @@ gpostpro
   -> a
   -> t
 gpostpro k e ψ =
-  hylo (embed . fmap (ana (e . project))) (degeneralizeCoalgebra k ψ) . pure
+  hylo (embed . fmap (ana (e . project))) (lowerCoalgebra k ψ) . pure
 
 -- | Fusion of an 'ana' and 'cata'.
 hylo :: Functor f => Algebra f b -> Coalgebra f a -> a -> b
@@ -72,9 +63,7 @@ ghylo
   -> a
   -> b
 ghylo w m φ ψ =
-  extract
-    . hylo (degeneralizeAlgebra w φ) (degeneralizeCoalgebra m ψ)
-    . pure
+  extract . hylo (lowerAlgebra w φ) (lowerCoalgebra m ψ) . pure
 
 hyloM
   :: (Monad m, Traversable f)
@@ -93,9 +82,7 @@ ghyloM
   -> a
   -> m b
 ghyloM w n φ ψ =
-  fmap extract
-    . hyloM (traverse φ . w . fmap duplicate) (fmap (fmap join . n) . traverse ψ)
-    . pure
+  fmap extract . hyloM (lowerAlgebraM w φ) (lowerCoalgebraM n ψ) . pure
 
 stream'
   :: (Cursive t e, Cursive u f, Functor f)
