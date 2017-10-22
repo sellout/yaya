@@ -22,10 +22,12 @@ library
                      , Yaya.Tuple
                      , Yaya.Zoo
   build-depends:       base >= 4.7 && < 5
+                     , bifunctors
                      , comonad
                      , constraints
                      , distributive
                      , free
+                     , profunctors
   default-extensions:  ConstraintKinds
                      , DeriveFoldable
                      , DeriveFunctor

@@ -17,6 +17,7 @@ library
                      , Yaya.Unsafe.Data
                      , Yaya.Unsafe.Zoo
   build-depends:       base >= 4.7 && < 5
+                     , bifunctors
                      , comonad
                      , free
                      , yaya

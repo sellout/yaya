@@ -6,6 +6,7 @@ import Control.Comonad
 import Control.Comonad.Cofree
 import Control.Comonad.Env
 import Control.Monad
+import Data.Function
 import Data.Functor.Compose
 
 import Yaya
@@ -97,3 +98,41 @@ ghyloM w n φ ψ =
   fmap extract
     . hyloM (traverse φ . w . fmap duplicate) (fmap (fmap join . n) . traverse ψ)
     . pure
+
+stream'
+  :: (Cursive t e, Cursive u f, Functor f)
+  => CoalgebraM Maybe f b
+  -> (b -> ((b -> b, t) -> u) -> e t -> u)
+  -> b
+  -> t
+  -> u
+stream' ψ f = go
+  where
+    go c x =
+      maybe (f c (uncurry go . ((&) c *** id)) $ project x)
+            (embed . fmap (flip go x))
+            $ ψ c
+
+-- | Gibbons’ metamorphism. It lazily folds a (necessarily infinite) value,
+--   incrementally re-expanding that value into some new representation.
+streamAna
+  :: (Cursive t e, Cursive u f, Functor f)
+  => CoalgebraM Maybe f b
+  -> AlgebraM ((,) (b -> b)) e t
+  -> b
+  -> t
+  -> u
+streamAna ψ φ = stream' ψ $ \c f -> f . φ
+
+-- | Another form of Gibbons’ metamorphism. This one can be applied to non-
+--   infinite inputs and takes an additional “flushing” coalgebra to be applied
+--   after all the input has been consumed.
+streamGApo
+  :: (Cursive t e, Cursive u f, Corecursive u f, Functor f)
+  => Coalgebra f b
+  -> CoalgebraM Maybe f b
+  -> (e t -> Maybe (b -> b, t))
+  -> b
+  -> t
+  -> u
+streamGApo ψ' ψ φ = stream' ψ $ \c f -> maybe (ana ψ' c) f . φ

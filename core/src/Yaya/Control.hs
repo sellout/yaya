@@ -33,6 +33,14 @@ gcata
   -> a
 gcata k φ = extract . cata (fmap φ . k . fmap duplicate)
 
+elgotCata
+  :: (Recursive t f, Functor f, Comonad w)
+  => DistributiveLaw f w
+  -> ElgotAlgebra w f a
+  -> t
+  -> a
+elgotCata k φ = φ . cata (k . fmap (extend φ))
+
 cataM :: (Monad m, Recursive t f, Traversable f) => AlgebraM m f a -> t -> m a
 cataM φ = cata $ φ <=< sequenceA
 
@@ -63,6 +71,14 @@ gana
   -> a
   -> t
 gana k ψ = ana (fmap join . k . fmap ψ) . pure
+
+elgotAna
+  :: (Corecursive t f, Functor f, Monad m)
+  => DistributiveLaw m f
+  -> ElgotCoalgebra m f a
+  -> a
+  -> t
+elgotAna k ψ = ana (fmap (>>= ψ) . k) . ψ
 
 lambek :: (Cursive t f, Recursive t f, Functor f) => Coalgebra f t
 lambek = cata $ fmap embed
