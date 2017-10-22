@@ -89,19 +89,19 @@ gcataM w φ = fmap extract . cataM (lowerAlgebraM w φ)
 --   generalization of 'zygo'.)
 mutu
   :: (Recursive t f, Functor f)
-  => (f (b, a) -> b) -- TODO: Should this be 'GAlgebra ((,) a) f b'?
+  => GAlgebra ((,) a) f b
   -> GAlgebra ((,) b) f a
   -> t
   -> a
-mutu φ' φ = snd . cata (φ' &&& φ)
+mutu φ' φ = snd . cata (φ' . fmap swap &&& φ)
 
 mutuM
   :: (Monad m, Recursive t f, Traversable f)
-  => (f (b, a) -> m b) -- TODO: Should this be 'GAlgebraM m ((,) a) f b'?
+  => GAlgebraM m ((,) a) f b
   -> GAlgebraM m ((,) b) f a
   -> t
   -> m a
-mutuM φ' φ = fmap snd . cataM (bisequence . (φ' &&& φ))
+mutuM φ' φ = fmap snd . cataM (bisequence . (φ' . fmap swap &&& φ))
 
 -- | This definition is different from the one given by 'gcataM $ distZygo φ''
 --   because it has a monadic “helper” algebra.
