@@ -1,4 +1,5 @@
--- | Definitions and instances that use direct recursion.
+-- | Definitions and instances that use direct recursion, which (because of
+--   laziness) can lead to non-termination.
 module Yaya.Unsafe.Control where
 
 import Control.Arrow
@@ -8,45 +9,22 @@ import Control.Comonad.Env
 import Control.Monad
 import Data.Function
 import Data.Functor.Compose
+import Data.Functor.Identity
 
 import Yaya
 import Yaya.Control
 import Yaya.Data
 
-anaM
-  :: (Monad m, Cursive t f, Corecursive t f, Traversable f)
-  => CoalgebraM m f a
-  -> a
-  -> m t
+anaM :: (Monad m, Cursive t f, Traversable f) => CoalgebraM m f a -> a -> m t
 anaM = hyloM $ pure . embed
 
 ganaM
-  :: (Monad m, Monad n, Traversable n, Cursive t f, Corecursive t f, Traversable f)
+  :: (Monad m, Monad n, Traversable n, Cursive t f, Traversable f)
   => DistributiveLaw n f
   -> GCoalgebraM m n f a
   -> a
   -> m t
 ganaM k ψ = anaM (lowerCoalgebraM k ψ) . pure
-
-gprepro
-  :: (Cursive t f, Recursive t f, Functor f, Comonad w)
-  => DistributiveLaw f w
-  -> GAlgebra w f a
-  -> (forall a. f a -> f a)
-  -> t
-  -> a
-gprepro k φ e =
-  extract . hylo (lowerAlgebra k φ) (fmap (cata (embed . e)) . project)
-
-gpostpro
-  :: (Cursive t f, Corecursive t f, Functor f, Monad m)
-  => DistributiveLaw m f
-  -> (forall a. f a -> f a)
-  -> GCoalgebra m f a
-  -> a
-  -> t
-gpostpro k e ψ =
-  hylo (embed . fmap (ana (e . project))) (lowerCoalgebra k ψ) . pure
 
 -- | Fusion of an 'ana' and 'cata'.
 hylo :: Functor f => Algebra f b -> Coalgebra f a -> a -> b

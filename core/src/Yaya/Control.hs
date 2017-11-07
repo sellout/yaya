@@ -9,7 +9,6 @@ import Data.Distributive
 import Data.Functor.Identity
 
 import Yaya
-import Data.Tuple
 
 -- | Structures you can walk through step-by-step.
 class Cursive t f | t -> f where
@@ -84,36 +83,6 @@ gcataM
   -> t
   -> m a
 gcataM w φ = fmap extract . cataM (lowerAlgebraM w φ)
-
--- | A recursion scheme that allows to algebras to see each others’ results. (A
---   generalization of 'zygo'.)
-mutu
-  :: (Recursive t f, Functor f)
-  => GAlgebra ((,) a) f b
-  -> GAlgebra ((,) b) f a
-  -> t
-  -> a
-mutu φ' φ = snd . cata (φ' . fmap swap &&& φ)
-
-mutuM
-  :: (Monad m, Recursive t f, Traversable f)
-  => GAlgebraM m ((,) a) f b
-  -> GAlgebraM m ((,) b) f a
-  -> t
-  -> m a
-mutuM φ' φ = fmap snd . cataM (bisequence . (φ' . fmap swap &&& φ))
-
--- | This definition is different from the one given by 'gcataM $ distZygo φ''
---   because it has a monadic “helper” algebra.
-zygoM
-  :: (Monad m, Recursive t f, Traversable f)
-  => AlgebraM m f b
-  -> GAlgebraM m ((,) b) f a
-  -> t
-  -> m a
-zygoM φ' φ =
-  gcataM (distZygo (φ' <=< sequenceA))
-         (φ <=< traverse (fmap swap . sequenceA . swap))
 
 gana
   :: (Corecursive t f, Functor f, Monad m)

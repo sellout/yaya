@@ -15,7 +15,7 @@ import Yaya.Control
 import Yaya.Data
 import Yaya.Unsafe.Control
 
-data Fix f = Fix { unFix :: f (Fix f) }
+newtype Fix f = Fix { unFix :: f (Fix f) }
 
 instance Cursive (Fix f) f where
   embed = Fix
