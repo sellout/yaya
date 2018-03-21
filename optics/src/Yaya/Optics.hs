@@ -10,7 +10,7 @@ type BialgebraIso f a = Iso' (f a) a
 type AlgebraPrism f a = Prism' (f a) a
 type CoalgebraPrism f a = Prism' a (f a)
 
-cursiveIso :: Cursive t f => BialgebraIso f t
+cursiveIso :: Steppable t f => BialgebraIso f t
 cursiveIso = iso embed project
 
 birecursiveIso

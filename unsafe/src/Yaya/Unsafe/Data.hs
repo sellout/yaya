@@ -1,6 +1,11 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 
 -- | Definitions and instances that use direct recursion.
+-- | This contains instances that you might _expect_ to see, but which aren’t
+--   actually total. For example, folding a lazy list `[a]` is _not_ guaranteed
+--   to terminate. It also currently contains any instance which uses “native”
+--   recursion, even if it is safe. These should probably be pulled into a
+--   separate madule.
 module Yaya.Unsafe.Data where
 
 import Control.Arrow
@@ -17,15 +22,23 @@ import Yaya.Unsafe.Control
 
 newtype Fix f = Fix { unFix :: f (Fix f) }
 
-instance Cursive (Fix f) f where
+instance Embeddable (Fix f) f where
   embed = Fix
+
+instance Projectable (Fix f) f where
   project = unFix
+
+instance Functor f => Corecursive (Fix f) f where
+  ana φ = embed . fmap (ana φ) . φ
+
+-- TODO: reimplement without `hylo`.
+instance Corecursive [a] (XNor a) where
+  ana = hylo embed
+
+-- TODO: Above here – move to `Yaya.Native` module.
 
 instance Functor f => Recursive (Fix f) f where
   cata = flip hylo project
-
-instance Functor f => Corecursive (Fix f) f where
-  ana = hylo embed
 
 instance Functor f => Corecursive (Mu f) f where
   ana = hylo embed
@@ -35,9 +48,6 @@ instance Functor f => Recursive (Nu f) f where
 
 instance Recursive [a] (XNor a) where
   cata = flip hylo project
-
-instance Corecursive [a] (XNor a) where
-  ana = hylo embed
 
 instance Functor f => Recursive (Cofree f a) (EnvT a f) where
   cata = flip hylo project

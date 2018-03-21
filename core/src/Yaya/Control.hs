@@ -10,10 +10,14 @@ import Data.Functor.Identity
 
 import Yaya
 
--- | Structures you can walk through step-by-step.
-class Cursive t f | t -> f where
+class Embeddable t f | t -> f where
   embed :: Algebra f t
+
+class Projectable t f | t -> f where
   project :: Coalgebra f t
+
+-- | Structures you can walk through step-by-step.
+type Steppable t f = (Embeddable t f, Projectable t f)
 
 -- | Inductive structures that can be reasoned about in the way we usually do –
 --   with pattern matching.
@@ -74,7 +78,7 @@ elgotCata
 elgotCata k φ = φ . cata (k . fmap (extend φ))
 
 cataM :: (Monad m, Recursive t f, Traversable f) => AlgebraM m f a -> t -> m a
-cataM φ = cata $ φ <=< sequenceA
+cataM φ = cata (φ <=< sequenceA)
 
 gcataM
   :: (Monad m, Recursive t f, Traversable f, Comonad w, Traversable w)
@@ -100,19 +104,17 @@ elgotAna
   -> t
 elgotAna k ψ = ana (fmap (>>= ψ) . k) . ψ
 
-lambek :: (Cursive t f, Recursive t f, Functor f) => Coalgebra f t
+lambek :: (Embeddable t f, Recursive t f, Functor f) => Coalgebra f t
 lambek = cata $ fmap embed
 
-colambek :: (Cursive t f, Corecursive t f, Functor f) => Algebra f t
+colambek :: (Projectable t f, Corecursive t f, Functor f) => Algebra f t
 colambek = ana $ fmap project
 
+-- | There are a number of distributive laws, including
+--  `Data.Traversable.sequenceA`, `Data.Distributive.distribute`, and
+--  `Data.Align.sequenceL`. Yaya also provides others for specific recursion
+--   schemes.
 type DistributiveLaw f g = forall a. f (g a) -> g (f a)
-
-distTraversable :: (Traversable f, Applicative g) => DistributiveLaw f g
-distTraversable = sequenceA
-
-distDistributive :: (Functor f, Distributive g) => DistributiveLaw f g
-distDistributive = distribute
 
 distCata :: Functor f => DistributiveLaw f Identity
 distCata = Identity . fmap runIdentity
@@ -132,3 +134,10 @@ distZygoT φ k = uncurry EnvT . (φ . fmap ask &&& k . fmap lower)
 
 distGApo :: Functor f => Coalgebra f a -> DistributiveLaw (Either a) f
 distGApo ψ = fmap Left . ψ ||| fmap Right
+
+-- | Converts an `Algebra` to one that annotates the tree with the result for
+--   each node.
+attributeAlgebra
+  :: (Steppable t (EnvT a f), Functor f)
+  => Algebra f a -> Algebra f t
+attributeAlgebra φ ft = embed $ EnvT (φ (fmap (fst . runEnvT . project) ft)) ft

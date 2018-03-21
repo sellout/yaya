@@ -37,18 +37,19 @@ Yaya is a sister library to Turtles – the same approach, but implemented in Sc
 * uses multi-parameter type classes rather than a type family for the `Base` functor, because the latter frequently requires constraints in the form of `Recursive t, Base t ~ f`, so we prefer `Recursive t f`.
 * total operations, with anything potentially partial relegated to the `yaya-unsafe` package, which has consequences:
   * `Recursive (Mu f) f` and `Corecursive (Nu f) f` are the only “safe” instances of recursive data types
-* a separate `Cursive` class with `project` and `embed`, increasing the number of operations that can be defined without needing unsafe instances.
+* a separate `Steppable` class with `project` and `embed`, increasing the number of operations that can be defined without needing unsafe instances.
 * relatively few operations are defined, with the intent being that `g{cata|ana}` be used directly instead. The more commonly known operations are provided in the `Zoo` modules, with the intent that they provide a mapping from names you may have heard to how Yaya expects you to accomplish them.
 * pattern functors tend to be named independently of their fixed-points. E.g., we use `Maybe` directly instead of some `NatF`, `XNor a b` instead of `ListF`, and ``a `AndMaybe` b`` instead of `NonEmptyF`.
 
 **NB**: There are a number of instances (e.g., `Corecursive [a] (XNor a)`) that _are_ actually safe, but they rely on Haskell’s own recursion. We could potentially add a module/package in between the safe and unsafe ones, containing `Corecursive` instances for types that are lazy in their recursive parameters and `Recursive` instances for ones that are strict.
 
 Non-philosophical differences:
-* no TH yet
+* no TH yet – this _might_ be a philosophical difference, actually. On the one hand, it useful to be able to migrate existing code by quickly creating a pattern functor, but on the other, this stuff is generally unsafe. So, it should at least be relegated to `yaya-unsafe`.
+* Yaya has productive metamorphisms (`stream`, etc.). The naïve composition of `cata` and `ana` has no benefits, but it has been difficult to generalize Gibbons’ streaming transformers to data structures other than lists.
 
 ## Differences from [compdata](https://github.com/pa-ba/compdata)
 
 I’m not as familiar with compdata, so I’ll have to look at it more before fleshing this out.
 
 Non-philosophical differences
-* no type-indexed recursion schemes
+* no type-indexed recursion schemes – ideally Yaya would achieve this via PolyKinds.

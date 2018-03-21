@@ -44,23 +44,22 @@ futu :: (Corecursive t f, Functor f) => GCoalgebra (Free f) f a -> a -> t
 futu = gana $ distGFutu id
 
 gprepro
-  :: (Cursive t f, Recursive t f, Functor f, Comonad w)
+  :: (Steppable t f, Recursive t f, Functor f, Comonad w)
   => DistributiveLaw f w
   -> GAlgebra w f a
   -> (forall a. f a -> f a)
   -> t
   -> a
-gprepro k φ e = ghylo k distAna φ (fmap (Identity . cata (embed . e)) . project)
+gprepro k φ e = ghylo k distAna φ $ fmap (Identity . cata (embed . e)) . project
 
 gpostpro
-  :: (Cursive t f, Corecursive t f, Functor f, Monad m)
+  :: (Steppable t f, Corecursive t f, Functor f, Monad m)
   => DistributiveLaw m f
   -> (forall a. f a -> f a)
   -> GCoalgebra m f a
   -> a
   -> t
-gpostpro k e ψ =
-  ghylo distCata k (embed . fmap (ana (e . project) . runIdentity)) ψ
+gpostpro k e = ghylo distCata k (embed . fmap (ana (e . project) . runIdentity))
 
 histo :: (Recursive t f, Functor f) => GAlgebra (Cofree f) f a -> t -> a
 histo = gcata $ distGHisto id
@@ -94,8 +93,8 @@ fstream f g h = streamGApo h
 
 -- TODO: Weaken 'Monad' constraint to 'Applicative'.
 cotraverse
-  :: ( Cursive t (f a)
-     , Cursive u (f b)
+  :: ( Projectable t (f a)
+     , Embeddable u (f b)
      , Corecursive u (f b)
      , Bitraversable f
      , Traversable (f b)
@@ -107,10 +106,10 @@ cotraverse f = anaM $ bitraverse f pure . project
 
 -- | Zygohistomorphic prepromorphism – everyone’s favorite recursion scheme joke.
 zygoHistoPrepro
-  :: (Cursive t f, Recursive t f, Functor f)
+  :: (Steppable t f, Recursive t f, Functor f)
   => (f b -> b)
   -> (f (EnvT b (Cofree f) a) -> a)
   -> (forall c. f c -> f c)
   -> t
   -> a
-zygoHistoPrepro φ' φ e = gprepro (distZygoT φ' $ distGHisto id) φ e
+zygoHistoPrepro φ' = gprepro $ distZygoT φ' $ distGHisto id

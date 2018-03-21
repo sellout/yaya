@@ -15,11 +15,15 @@ import Yaya
 import Yaya.Control
 import Yaya.Data
 
-anaM :: (Monad m, Cursive t f, Traversable f) => CoalgebraM m f a -> a -> m t
-anaM = hyloM $ pure . embed
+-- | This can’t be implemented in a total fashion. There is a _similar_ approach
+--   that can be total – with `ψ :: CoalgebraM m f a`, `ana (Compose . ψ)`
+--   results in something like `Nu (Compose m f)` which is akin to an effectful
+--   stream.
+anaM :: (Monad m, Embeddable t f, Traversable f) => CoalgebraM m f a -> a -> m t
+anaM = hyloM (pure . embed)
 
 ganaM
-  :: (Monad m, Monad n, Traversable n, Cursive t f, Traversable f)
+  :: (Monad m, Monad n, Traversable n, Embeddable t f, Traversable f)
   => DistributiveLaw n f
   -> GCoalgebraM m n f a
   -> a
@@ -63,7 +67,7 @@ ghyloM w n φ ψ =
   fmap extract . hyloM (lowerAlgebraM w φ) (lowerCoalgebraM n ψ) . pure
 
 stream'
-  :: (Cursive t e, Cursive u f, Functor f)
+  :: (Projectable t e, Embeddable u f, Functor f)
   => CoalgebraM Maybe f b
   -> (b -> ((b -> b, t) -> u) -> e t -> u)
   -> b
@@ -79,7 +83,7 @@ stream' ψ f = go
 -- | Gibbons’ metamorphism. It lazily folds a (necessarily infinite) value,
 --   incrementally re-expanding that value into some new representation.
 streamAna
-  :: (Cursive t e, Cursive u f, Functor f)
+  :: (Projectable t e, Embeddable u f, Functor f)
   => CoalgebraM Maybe f b
   -> AlgebraM ((,) (b -> b)) e t
   -> b
@@ -91,7 +95,7 @@ streamAna ψ φ = stream' ψ $ \c f -> f . φ
 --   infinite inputs and takes an additional “flushing” coalgebra to be applied
 --   after all the input has been consumed.
 streamGApo
-  :: (Cursive t e, Cursive u f, Corecursive u f, Functor f)
+  :: (Projectable t e, Embeddable u f, Corecursive u f, Functor f)
   => Coalgebra f b
   -> CoalgebraM Maybe f b
   -> (e t -> Maybe (b -> b, t))

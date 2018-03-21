@@ -8,41 +8,41 @@ import Yaya.Data
 import Yaya.Maybe
 import Yaya.Tuple
 
-naturals :: (Cursive n Maybe, Corecursive t ((,) n)) => t
+naturals :: (Embeddable n Maybe, Corecursive t ((,) n)) => t
 naturals = flip ana zeroN $ unarySequence succN
 
 takeAnother
-  :: (Cursive t ((,) a), Cursive u (XNor a))
+  :: (Projectable t ((,) a), Embeddable u (XNor a))
   => Algebra Maybe (t -> u)
 takeAnother Nothing = embed . const None
 takeAnother (Just f) = embed . uncurry Both . fmap f . project
 
 takeAvailable
-  :: (Cursive t (XNor a), Cursive u (XNor a))
+  :: (Projectable t (XNor a), Embeddable u (XNor a))
   => Algebra Maybe (t -> u)
 takeAvailable Nothing = embed . const None
 takeAvailable (Just f) = embed . fmap f . project
 
 takeUpTo
-  :: (Recursive n Maybe, Cursive s (XNor a), Cursive l (XNor a))
+  :: (Recursive n Maybe, Projectable s (XNor a), Embeddable l (XNor a))
   => n -> s -> l
 takeUpTo = cata takeAvailable
 
 take
-  :: (Recursive n Maybe, Cursive s ((,) a), Cursive l (XNor a))
+  :: (Recursive n Maybe, Projectable s ((,) a), Embeddable l (XNor a))
   => n -> s -> l
 take = cata takeAnother
 
 -- | Turns part of a structure inductive, so it can be analyzed, without forcing
 --   the entire tree.
 maybeReify
-  :: (Cursive s f, Cursive l (FreeF f s), Functor f)
+  :: (Projectable s f, Embeddable l (FreeF f s), Functor f)
   => Algebra Maybe (s -> l)
 maybeReify Nothing = embed . Pure
 maybeReify (Just f) = embed . Free . fmap f . project
 
 reifyUpTo
-  :: (Recursive n Maybe, Cursive s f, Cursive l (FreeF f s), Functor f)
+  :: (Recursive n Maybe, Projectable s f, Embeddable l (FreeF f s), Functor f)
   => n -> s -> l
 reifyUpTo = cata maybeReify
 

@@ -25,9 +25,14 @@ library
                      , bifunctors
                      , comonad
                      , constraints
+                     , containers
                      , distributive
+                     , either
+                     , errors
                      , free
                      , profunctors
+                     , template-haskell
+                     , transformers
   default-extensions:  ConstraintKinds
                      , DeriveFoldable
                      , DeriveFunctor
