@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE UndecidableInstances #-} -- DecidableInstances
 
 module Yaya.Data where
 
@@ -7,6 +8,7 @@ import Control.Comonad.Cofree
 import Control.Comonad.Env
 import Control.Monad.Trans.Free
 import Numeric.Natural
+import Data.Functor.Classes
 
 import Yaya
 import Yaya.Control
@@ -22,6 +24,13 @@ instance Functor f => Projectable (Mu f) f where
 
 instance Recursive (Mu f) f where
   cata φ (Mu f) = f φ
+
+instance Show (f String) => Show (Mu f) where
+  show = cata show
+
+-- FIXME: Relies on primitive recursion.
+instance (Functor f, Eq1 f) => Eq (Mu f) where
+  a == b = liftEq (==) (project a) (project b)
 
 -- | A fixed-point operator for coinductive / potentially-infinite data
 --   structures.
