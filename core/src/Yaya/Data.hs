@@ -27,9 +27,8 @@ instance Recursive (Mu f) f where
 instance Show1 f => Show (Mu f) where
   showsPrec = recursiveShowsPrec
 
--- FIXME: Relies on primitive recursion.
 instance (Functor f, Eq1 f) => Eq (Mu f) where
-  a == b = liftEq (==) (project a) (project b)
+  (==) = projectableEq
 
 -- | A fixed-point operator for coinductive / potentially-infinite data
 --   structures.

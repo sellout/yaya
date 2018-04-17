@@ -26,6 +26,10 @@ type Steppable t f = (Embeddable t f, Projectable t f)
 class Recursive t f | t -> f where
   cata :: Algebra f a -> t -> a
 
+-- FIXME: Relies on primitive recursion.
+projectableEq :: (Projectable t f, Eq1 f) => t -> t -> Bool
+projectableEq a b = liftEq projectableEq (project a) (project b)
+
 -- | An implementation of `Show` for any `Recursive` instance.
 recursiveShowsPrec :: (Recursive t f, Show1 f) => Int -> t -> ShowS
 recursiveShowsPrec prec = cata (showParen True . liftShowsPrec (const id) (foldMap id) prec)
