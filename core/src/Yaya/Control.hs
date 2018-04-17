@@ -24,6 +24,10 @@ type Steppable t f = (Embeddable t f, Projectable t f)
 class Recursive t f | t -> f where
   cata :: Algebra f a -> t -> a
 
+-- | An implementation of `Show` for any `Recursive` instance.
+recursiveShowsPrec :: (Recursive t f, Show1 f) => Int -> t -> ShowS
+recursiveShowsPrec prec = cata (showParen True . liftShowsPrec (const id) (foldMap id) prec)
+
 -- | Coinductive (potentially-infinite) structures that guarantee _productivity_
 --   rather than termination.
 class Corecursive t f | t -> f where

@@ -25,10 +25,6 @@ instance Functor f => Projectable (Mu f) f where
 instance Recursive (Mu f) f where
   cata φ (Mu f) = f φ
 
--- | An implementation of `Show` for any `Recursive` instance.
-recursiveShowsPrec :: (Recursive t f, Show1 f) => Int -> t -> ShowS
-recursiveShowsPrec prec = cata (showParen True . liftShowsPrec (const id) (foldMap id) prec)
-
 instance Show1 f => Show (Mu f) where
   showsPrec = recursiveShowsPrec
 
@@ -60,7 +56,7 @@ instance Projectable [a] (XNor a) where
   project [] = None
   project (h : t) = Both h t
 
--- | Isomorphic to '(a, Maybe b)', it’s also the pattern functor for non-empty lists.
+-- | Isomorphic to `(a, Maybe b)`, it’s also the pattern functor for non-empty lists.
 data AndMaybe a b = Only a | Indeed a b deriving (Functor, Foldable, Traversable)
 
 instance Embeddable Natural Maybe where
