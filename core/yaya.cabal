@@ -51,6 +51,10 @@ test-suite yaya-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             test.hs
+  other-modules:       Test.Expr
+                     , Test.Yaya
+                     , Test.Yaya.Control
+                     , Test.Yaya.Data
   build-depends:       base
                      , deriving-compat
                      , hedgehog

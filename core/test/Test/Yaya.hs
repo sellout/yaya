@@ -26,13 +26,5 @@ prop_heightLtSize =
     --     . uncurry (<) $ cata (height `zip` size) expr
     assert $ cata height expr < fromIntegral (cata size expr)
 
-law_cataRefl :: (Eq t, Show t, Embeddable t f, Recursive t f, MonadTest m) => t -> m ()
-law_cataRefl t = cata embed t === t
-
-prop_muCataRefl :: Property
-prop_muCataRefl =
-  property $ law_cataRefl =<< forAll genMuExpr
-    
-
 tests :: IO Bool
 tests = checkParallel $$(discover)
