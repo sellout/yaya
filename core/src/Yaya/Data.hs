@@ -1,5 +1,4 @@
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE UndecidableInstances #-} -- DecidableInstances
 
 module Yaya.Data where
 

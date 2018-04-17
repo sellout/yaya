@@ -5,16 +5,9 @@ module Test.Yaya.Data where
 import           Hedgehog
 
 import           Yaya
-import           Yaya.Data
-
-import           Test.Expr
-import           Test.Yaya.Control
-
-genMuExpr :: Gen (Mu Expr)
-genMuExpr = genEmbeddable genExpr
-
-genNuExpr :: Gen (Nu Expr)
-genNuExpr = genEmbeddable genExpr
+import           Yaya.Hedgehog.Control
+import           Yaya.Hedgehog.Data
+import           Yaya.Hedgehog.Expr
 
 prop_muCataCancel :: Property
 prop_muCataCancel =

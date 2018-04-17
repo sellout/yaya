@@ -1,4 +1,4 @@
-name:                yaya-unsafe
+name:                yaya-hedgehog
 version:             0.1.0.0
 -- synopsis:
 -- description:
@@ -13,13 +13,13 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Yaya.Unsafe.Control
-                     , Yaya.Unsafe.Data
-                     , Yaya.Unsafe.Zoo
+  exposed-modules:     Yaya.Hedgehog
+                     , Yaya.Hedgehog.Expr
+                     , Yaya.Hedgehog.Control
+                     , Yaya.Hedgehog.Data
   build-depends:       base >= 4.7 && < 5
-                     , bifunctors
-                     , comonad
-                     , free
+                     , deriving-compat
+                     , hedgehog
                      , yaya
   default-extensions:  ConstraintKinds
                      , DeriveTraversable
@@ -31,20 +31,6 @@ library
                      , RankNTypes
                      , ScopedTypeVariables
                      , TupleSections
-  default-language:    Haskell2010
-
-test-suite yaya-unsafe-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             test.hs
-  other-modules:       Test.Yaya.Unsafe.Control
-                     , Test.Yaya.Unsafe.Data
-  build-depends:       base
-                     , hedgehog
-                     , yaya
-                     , yaya-hedgehog
-                     , yaya-unsafe
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
   default-language:    Haskell2010
 
 source-repository head

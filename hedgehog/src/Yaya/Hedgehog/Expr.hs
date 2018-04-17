@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Test.Expr where
+module Yaya.Hedgehog.Expr where
 
 import           Data.Eq.Deriving
 import           Hedgehog
@@ -19,7 +19,7 @@ deriveEq1 ''Expr
 deriveShow1 ''Expr
 
 genExpr :: Gen a -> Gen (Expr a)
-genExpr a = Gen.frequency [ (2, Lit <$> Gen.int (Range.linear (-1000) 1000))
+genExpr a = Gen.frequency [ (3, Lit <$> Gen.int (Range.linear (-1000) 1000))
                           , (1, Add <$> a <*> a)
                           , (1, Mult <$> a <*> a)
                           ]

@@ -39,6 +39,10 @@ instance Corecursive [a] (XNor a) where
 instance Functor f => Recursive (Fix f) f where
   cata = flip hylo project
 
+-- FIXME: Relies on primitive recursion.
+instance Eq1 f => Eq (Fix f) where
+  a == b = liftEq (==) (project a) (project b)
+
 instance (Functor f, Show1 f) => Show (Fix f) where
   showsPrec = recursiveShowsPrec
 
@@ -47,6 +51,10 @@ instance Functor f => Corecursive (Mu f) f where
 
 instance Functor f => Recursive (Nu f) f where
   cata = flip hylo project
+
+-- FIXME: Relies on primitive recursion.
+instance (Eq1 f, Functor f) => Eq (Nu f) where
+  a == b = liftEq (==) (project a) (project b)
 
 instance (Functor f, Show1 f) => Show (Nu f) where
   showsPrec = recursiveShowsPrec

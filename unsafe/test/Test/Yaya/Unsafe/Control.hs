@@ -1,8 +1,6 @@
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Test.Yaya.Control where
+module Test.Yaya.Unsafe.Control where
 
 import           Hedgehog
 
