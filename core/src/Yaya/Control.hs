@@ -1,11 +1,13 @@
 module Yaya.Control where
 
+import Control.Applicative
 import Control.Arrow
 import Control.Comonad
 import Control.Comonad.Env
 import Control.Monad
 import Data.Bitraversable
 import Data.Distributive
+import Data.Functor.Classes
 import Data.Functor.Identity
 
 import Yaya
@@ -145,3 +147,41 @@ attributeAlgebra
   :: (Steppable t (EnvT a f), Functor f)
   => Algebra f a -> Algebra f t
 attributeAlgebra φ ft = embed $ EnvT (φ (fmap (fst . runEnvT . project) ft)) ft
+
+-- instances for non-recursive types
+
+constEmbed :: Algebra (Const a) a
+constEmbed = getConst
+
+constProject :: Coalgebra (Const a) a
+constProject = Const
+
+constCata :: Algebra (Const b) a -> b -> a
+constCata φ = φ . Const
+
+constAna :: Coalgebra (Const b) a -> a -> b
+constAna ψ = getConst . ψ
+
+instance Embeddable (Either a b) (Const (Either a b)) where
+  embed = constEmbed
+
+instance Projectable (Either a b) (Const (Either a b)) where
+  project = constProject
+
+instance Recursive (Either a b) (Const (Either a b)) where
+  cata = constCata
+
+instance Corecursive (Either a b) (Const (Either a b)) where
+  ana = constAna
+
+instance Embeddable (Maybe a) (Const (Maybe a)) where
+  embed = constEmbed
+
+instance Projectable (Maybe a) (Const (Maybe a)) where
+  project = constProject
+
+instance Recursive (Maybe a) (Const (Maybe a)) where
+  cata = constCata
+
+instance Corecursive (Maybe a) (Const (Maybe a)) where
+  ana = constAna

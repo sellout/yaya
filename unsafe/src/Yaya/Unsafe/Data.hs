@@ -1,7 +1,5 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-
 -- | Definitions and instances that use direct recursion.
--- | This contains instances that you might _expect_ to see, but which aren’t
+--   This contains instances that you might _expect_ to see, but which aren’t
 --   actually total. For example, folding a lazy list `[a]` is _not_ guaranteed
 --   to terminate. It also currently contains any instance which uses “native”
 --   recursion, even if it is safe. These should probably be pulled into a
@@ -14,6 +12,7 @@ import Control.Comonad.Cofree
 import Control.Comonad.Env
 import Control.Monad
 import Control.Monad.Trans.Free
+import Data.Functor.Classes
 
 import Yaya
 import Yaya.Control
@@ -40,11 +39,17 @@ instance Corecursive [a] (XNor a) where
 instance Functor f => Recursive (Fix f) f where
   cata = flip hylo project
 
+instance (Functor f, Show1 f) => Show (Fix f) where
+  showsPrec = recursiveShowsPrec
+
 instance Functor f => Corecursive (Mu f) f where
   ana = hylo embed
 
 instance Functor f => Recursive (Nu f) f where
   cata = flip hylo project
+
+instance (Functor f, Show1 f) => Show (Nu f) where
+  showsPrec = recursiveShowsPrec
 
 instance Recursive [a] (XNor a) where
   cata = flip hylo project

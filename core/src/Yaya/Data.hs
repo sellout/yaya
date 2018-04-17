@@ -7,8 +7,8 @@ import Control.Applicative
 import Control.Comonad.Cofree
 import Control.Comonad.Env
 import Control.Monad.Trans.Free
-import Numeric.Natural
 import Data.Functor.Classes
+import Numeric.Natural
 
 import Yaya
 import Yaya.Control
@@ -77,41 +77,3 @@ instance Embeddable (Free f a) (FreeF f a) where
 
 instance Projectable (Free f a) (FreeF f a) where
   project = runFree
-
--- instances for non-recursive types
-
-constEmbed :: Algebra (Const a) a
-constEmbed = getConst
-
-constProject :: Coalgebra (Const a) a
-constProject = Const
-
-constCata :: Algebra (Const b) a -> b -> a
-constCata φ = φ . Const
-
-constAna :: Coalgebra (Const b) a -> a -> b
-constAna ψ = getConst . ψ
-
-instance Embeddable (Either a b) (Const (Either a b)) where
-  embed = constEmbed
-
-instance Projectable (Either a b) (Const (Either a b)) where
-  project = constProject
-
-instance Recursive (Either a b) (Const (Either a b)) where
-  cata = constCata
-
-instance Corecursive (Either a b) (Const (Either a b)) where
-  ana = constAna
-
-instance Embeddable (Maybe a) (Const (Maybe a)) where
-  embed = constEmbed
-
-instance Projectable (Maybe a) (Const (Maybe a)) where
-  project = constProject
-
-instance Recursive (Maybe a) (Const (Maybe a)) where
-  cata = constCata
-
-instance Corecursive (Maybe a) (Const (Maybe a)) where
-  ana = constAna
