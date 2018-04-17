@@ -25,8 +25,12 @@ instance Functor f => Projectable (Mu f) f where
 instance Recursive (Mu f) f where
   cata φ (Mu f) = f φ
 
-instance Show (f String) => Show (Mu f) where
-  show = cata show
+-- | An implementation of `Show` for any `Recursive` instance.
+recursiveShowsPrec :: (Recursive t f, Show1 f) => Int -> t -> ShowS
+recursiveShowsPrec prec = cata (showParen True . liftShowsPrec (const id) (foldMap id) prec)
+
+instance Show1 f => Show (Mu f) where
+  showsPrec = recursiveShowsPrec
 
 -- FIXME: Relies on primitive recursion.
 instance (Functor f, Eq1 f) => Eq (Mu f) where
