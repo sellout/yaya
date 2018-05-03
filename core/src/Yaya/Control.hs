@@ -98,6 +98,14 @@ gcataM
   -> m a
 gcataM w φ = fmap extract . cataM (lowerAlgebraM w φ)
 
+elgotCataM
+  :: (Monad m, Recursive t f, Traversable f, Comonad w, Traversable w)
+  => DistributiveLaw f w
+  -> ElgotAlgebraM m w f a
+  -> t
+  -> m a
+elgotCataM w φ = φ <=< cataM (fmap w . traverse (sequence . extend φ))
+
 gana
   :: (Corecursive t f, Functor f, Monad m)
   => DistributiveLaw m f
