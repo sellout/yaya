@@ -106,6 +106,17 @@ elgotCataM
   -> m a
 elgotCataM w φ = φ <=< cataM (fmap w . traverse (sequence . extend φ))
 
+ezygoM
+  :: (Monad m, Recursive t f, Traversable f)
+  => AlgebraM m f b
+  -> ElgotAlgebraM m ((,) b) f a
+  -> t
+  -> m a
+ezygoM φ' φ =
+  fmap snd
+  . cataM ((\x@(b, _) -> (b,) <$> φ x)
+           <=< bisequence . (φ' . fmap fst &&&  pure . fmap snd))
+
 gana
   :: (Corecursive t f, Functor f, Monad m)
   => DistributiveLaw m f

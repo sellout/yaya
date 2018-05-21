@@ -1,5 +1,6 @@
 module Yaya where
 
+import Control.Arrow
 import Numeric.Natural
 
 type Algebra f a = f a -> a
@@ -21,3 +22,6 @@ height = (+ 1) . foldr max (-1)
 
 size :: Foldable f => Algebra f Natural
 size = foldr (+) 1
+
+zipAlgebras :: Functor f => Algebra f a -> Algebra f b -> Algebra f (a, b)
+zipAlgebras f g = (f . fmap fst &&& g . fmap snd)
