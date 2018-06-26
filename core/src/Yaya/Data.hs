@@ -6,6 +6,7 @@ import Control.Applicative
 import Control.Comonad.Cofree
 import Control.Comonad.Env
 import Control.Monad.Trans.Free
+import Data.Bifunctor
 import Data.Functor.Classes
 import Numeric.Natural
 
@@ -56,6 +57,11 @@ instance Projectable [a] (XNor a) where
 
 -- | Isomorphic to `(a, Maybe b)`, it’s also the pattern functor for non-empty lists.
 data AndMaybe a b = Only a | Indeed a b deriving (Functor, Foldable, Traversable)
+
+instance Bifunctor AndMaybe where
+  bimap f g = \case
+    Only a -> Only (f a)
+    Indeed a b -> Indeed (f a) (g b)
 
 instance Embeddable Natural Maybe where
   embed = maybe 0 (+ 1)

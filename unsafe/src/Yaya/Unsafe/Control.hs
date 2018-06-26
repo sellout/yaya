@@ -26,8 +26,7 @@ ganaM
   :: (Monad m, Monad n, Traversable n, Embeddable t f, Traversable f)
   => DistributiveLaw n f
   -> GCoalgebraM m n f a
-  -> a
-  -> m t
+  -> a -> m t
 ganaM k ψ = anaM (lowerCoalgebraM k ψ) . pure
 
 -- | Fusion of an 'ana' and 'cata'.
@@ -42,8 +41,7 @@ ghylo
   -> DistributiveLaw m f
   -> GAlgebra w f b
   -> GCoalgebra m f a
-  -> a
-  -> b
+  -> a -> b
 ghylo w m φ ψ =
   extract . hylo (lowerAlgebra w φ) (lowerCoalgebra m ψ) . pure
 
@@ -51,9 +49,8 @@ hyloM
   :: (Monad m, Traversable f)
   => AlgebraM m f b
   -> CoalgebraM m f a
-  -> a
-  -> m b
-hyloM φ ψ = hylo (φ <=< join . fmap sequenceA . getCompose) (Compose . ψ)
+  -> a -> m b
+hyloM φ ψ = hylo (φ <=< sequenceA <=< getCompose) (Compose . ψ)
 
 ghyloM
   :: (Comonad w, Traversable w, Monad m, Traversable f, Monad n, Traversable n)
@@ -61,8 +58,7 @@ ghyloM
   -> DistributiveLaw n f
   -> GAlgebraM m w f b
   -> GCoalgebraM m n f a
-  -> a
-  -> m b
+  -> a -> m b
 ghyloM w n φ ψ =
   fmap extract . hyloM (lowerAlgebraM w φ) (lowerCoalgebraM n ψ) . pure
 
@@ -71,8 +67,7 @@ stream'
   => CoalgebraM Maybe f b
   -> (b -> ((b -> b, t) -> u) -> e t -> u)
   -> b
-  -> t
-  -> u
+  -> t -> u
 stream' ψ f = go
   where
     go c x =
@@ -87,8 +82,7 @@ streamAna
   => CoalgebraM Maybe f b
   -> AlgebraM ((,) (b -> b)) e t
   -> b
-  -> t
-  -> u
+  -> t -> u
 streamAna ψ φ = stream' ψ $ \c f -> f . φ
 
 -- | Another form of Gibbons’ metamorphism. This one can be applied to non-
@@ -100,6 +94,5 @@ streamGApo
   -> CoalgebraM Maybe f b
   -> (e t -> Maybe (b -> b, t))
   -> b
-  -> t
-  -> u
+  -> t -> u
 streamGApo ψ' ψ φ = stream' ψ $ \c f -> maybe (ana ψ' c) f . φ
