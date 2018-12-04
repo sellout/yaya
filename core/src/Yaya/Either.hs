@@ -51,6 +51,9 @@ fixed f = f `until` ((==) <*> f)
 --   exist at the end.
 runToEnd :: Recursive t (Either a) => t -> a
 runToEnd = cata fromEither
+  where
+    fromEither (Left a) = a
+    fromEither (Right a) = a
 
 -- | Converts exceptional divergence to non-termination.
 fromMaybe :: (Embeddable t (Either a), Corecursive t (Either a)) => Maybe a -> t
