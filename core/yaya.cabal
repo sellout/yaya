@@ -16,6 +16,7 @@ library
   exposed-modules:     Yaya
                      , Yaya.Control
                      , Yaya.Data
+                     , Yaya.Either
                      , Yaya.Example
                      , Yaya.Example.Foldable
                      , Yaya.Maybe
