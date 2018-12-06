@@ -21,11 +21,11 @@ import Yaya.Data
 -- | A recursion scheme that allows you to return a complete branch when
 --   unfolding.
 apo
-  :: (Projectable t f, Corecursive t f, Functor f)
+  :: (Steppable t f, Corecursive t f, Functor f)
   => GCoalgebra (Either t) f a
   -> a
   -> t
-apo = gana $ distGApo project
+apo = gana (seqEither project)
 
 -- | A recursion scheme that allows to algebras to see each others’ results. (A
 --   generalization of 'zygo'.) This is an example that falls outside the scope of “comonadic folds”, but _would_ be covered by “adjoint folds”.
@@ -94,11 +94,11 @@ mutuM φ' φ = fmap snd . cataM (bisequence . (φ' . fmap swap &&& φ))
 -- | A recursion scheme that gives you access to the original structure as you
 --   fold. (A specialization of 'zygo'.)
 para
-  :: (Embeddable t f, Recursive t f, Functor f)
+  :: (Steppable t f, Recursive t f, Functor f)
   => GAlgebra ((,) t) f a
   -> t
   -> a
-para = gcata $ distZygo embed
+para = gcata $ distTuple embed
 
 -- | A recursion scheme that uses a “helper algebra” to provide additional
 --   information when folding. (A generalization of 'para', and specialization
@@ -109,9 +109,9 @@ zygo
   -> GAlgebra ((,) b) f a
   -> t
   -> a
-zygo φ = gcata $ distZygo φ
+zygo φ = gcata $ distTuple φ
 
--- | This definition is different from the one given by 'gcataM $ distZygo φ''
+-- | This definition is different from the one given by `gcataM (distTuple φ')`
 --   because it has a monadic “helper” algebra. But at least it gives us the
 --   opportunity to show how 'zygo' is a specialization of 'mutu'.
 zygoM
@@ -150,7 +150,7 @@ instance Applicative Partial where
   pure = Partial . embed . Left
   ff <*> fa =
     flip insidePartial ff
-    $ elgotAna (distGApo project)
+    $ elgotAna (seqEither project)
                ((fromPartial . flip fmap fa +++ Right) . project)
 
 instance Monad Partial where
@@ -158,7 +158,7 @@ instance Monad Partial where
     where
       join =
         insidePartial
-        $ elgotAna (distGApo project) ((fromPartial +++ Right) . project)
+        $ elgotAna (seqEither project) ((fromPartial +++ Right) . project)
 
 -- | Always-infinite streams (as opposed to 'Colist', which _may_ terminate).
 type Stream a = Nu ((,) a)
@@ -166,11 +166,11 @@ type Stream a = Nu ((,) a)
 -- | A more general implementation of 'fmap', because it can also work to, from,
 --   or within monomorphic structures, obviating the need for classes like
 --  'MonoFunctor'.
-map :: (Recursive t (f a), Embeddable u (f b), Bifunctor f) => (a -> b) -> t -> u
+map :: (Recursive t (f a), Steppable u (f b), Bifunctor f) => (a -> b) -> t -> u
 map f = cata $ embed . first f
 
 comap
-  :: (Projectable t (f a), Corecursive u (f b), Bifunctor f)
+  :: (Steppable t (f a), Corecursive u (f b), Bifunctor f)
   => (a -> b)
   -> t
   -> u
@@ -182,7 +182,7 @@ comap f = ana $ first f . project
 -- TODO: Weaken the 'Monad' constraint to 'Applicative'.
 traverse
   :: ( Recursive t (f a)
-     , Embeddable u (f b)
+     , Steppable u (f b)
      , Bitraversable f
      , Traversable (f a)
      , Monad m)
@@ -194,14 +194,14 @@ traverse f = cataM $ fmap embed . bitraverse f pure
 -- | A more general implementation of 'contramap', because it can also work to,
 --   from, or within monomorphic structures.
 contramap
-  :: (Recursive t (f b), Embeddable u (f a), Profunctor f)
+  :: (Recursive t (f b), Steppable u (f a), Profunctor f)
   => (a -> b)
   -> t
   -> u
 contramap f = cata $ embed . lmap f
 
 cocontramap
-  :: (Projectable t (f b), Corecursive u (f a), Profunctor f)
+  :: (Steppable t (f b), Corecursive u (f a), Profunctor f)
   => (a -> b)
   -> t
   -> u

@@ -20,14 +20,14 @@ chrono
   -> GCoalgebra (Free f) f a
   -> a
   -> b
-chrono = ghylo (distGHisto id) (distGFutu id)
+chrono = ghylo (distCofreeT id) (seqFreeT id)
 
 codyna :: Functor f => Algebra f b -> GCoalgebra (Free f) f a -> a -> b
-codyna φ = ghylo distCata (distGFutu id) $ φ . fmap runIdentity
+codyna φ = ghylo distIdentity (seqFreeT id) (φ . fmap runIdentity)
 
 -- | [Recursion Schemes for Dynamic Programming](https://www.researchgate.net/publication/221440162_Recursion_Schemes_for_Dynamic_Programming)
 dyna :: Functor f => GAlgebra (Cofree f) f b -> Coalgebra f a -> a -> b
-dyna φ ψ = ghylo (distGHisto id) distAna φ $ fmap Identity . ψ
+dyna φ ψ = ghylo (distCofreeT id) seqIdentity φ (fmap Identity . ψ)
 
 -- | Unlike most 'hylo's, 'elgot' composes an algebra and coalgebra in a way
 --   that allows information to move between them. The coalgebra can return,
@@ -41,7 +41,7 @@ coelgot :: Functor f => ElgotAlgebra ((,) a) f b -> Coalgebra f a -> a -> b
 coelgot φ ψ = hylo (φ . getCompose) (Compose . (id &&& ψ))
 
 futu :: (Corecursive t f, Functor f) => GCoalgebra (Free f) f a -> a -> t
-futu = gana $ distGFutu id
+futu = gana (seqFreeT id)
 
 gprepro
   :: (Steppable t f, Recursive t f, Functor f, Comonad w)
@@ -50,7 +50,7 @@ gprepro
   -> (forall a. f a -> f a)
   -> t
   -> a
-gprepro k φ e = ghylo k distAna φ $ fmap (Identity . cata (embed . e)) . project
+gprepro k φ e = ghylo k seqIdentity φ (fmap (Identity . cata (embed . e)) . project)
 
 gpostpro
   :: (Steppable t f, Corecursive t f, Functor f, Monad m)
@@ -59,14 +59,14 @@ gpostpro
   -> GCoalgebra m f a
   -> a
   -> t
-gpostpro k e = ghylo distCata k (embed . fmap (ana (e . project) . runIdentity))
+gpostpro k e = ghylo distIdentity k (embed . fmap (ana (e . project) . runIdentity))
 
 histo :: (Recursive t f, Functor f) => GAlgebra (Cofree f) f a -> t -> a
-histo = gcata $ distGHisto id
+histo = gcata (distCofreeT id)
 
 -- | The metamorphism definition from Gibbons’ paper.
 stream :: Coalgebra (XNor c) b -> (b -> a -> b) -> b -> [a] -> [c]
-stream f g = fstream f g (const None)
+stream f g = fstream f g (const Neither)
 
 -- | Basically the definition from Gibbons’ paper, except the flusher (`h`) is a
 --  'Coalgebra' instead of an 'unfold'.
@@ -79,10 +79,10 @@ fstream
   -> [c]
 fstream f g h = streamGApo h
                            (\b -> case f b of
-                                    None -> Nothing
-                                    other -> Just other)
+                                    Neither -> Nothing
+                                    other   -> Just other)
                            (\case
-                               None -> Nothing
+                               Neither   -> Nothing
                                Both a x' -> Just (flip g a, x'))
 
 -- snoc :: [a] -> a -> [a]
@@ -93,8 +93,8 @@ fstream f g h = streamGApo h
 
 -- TODO: Weaken 'Monad' constraint to 'Applicative'.
 cotraverse
-  :: ( Projectable t (f a)
-     , Embeddable u (f b)
+  :: ( Steppable t (f a)
+     , Steppable u (f b)
      , Corecursive u (f b)
      , Bitraversable f
      , Traversable (f b)
@@ -102,7 +102,7 @@ cotraverse
   => (a -> m b)
   -> t
   -> m u
-cotraverse f = anaM $ bitraverse f pure . project
+cotraverse f = anaM (bitraverse f pure . project)
 
 -- | Zygohistomorphic prepromorphism – everyone’s favorite recursion scheme joke.
 zygoHistoPrepro
@@ -112,4 +112,4 @@ zygoHistoPrepro
   -> (forall c. f c -> f c)
   -> t
   -> a
-zygoHistoPrepro φ' = gprepro $ distZygoT φ' $ distGHisto id
+zygoHistoPrepro φ' = gprepro (distEnvT φ' (distCofreeT id))

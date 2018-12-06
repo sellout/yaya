@@ -17,11 +17,17 @@ type CoalgebraM m f a = a -> m (f a)
 type GCoalgebraM m n f a = a -> m (f (n a))
 
 -- TODO: Redefine this using `Natural`
+-- | When folded, returns the height of the data structure.
 height :: Foldable f => Algebra f Integer
 height = (+ 1) . foldr max (-1)
 
+-- NB: It seems like this could be some more general notion of this, like
+--        (Foldable f, Semiring a) => Algebra f a
+-- | When folded, returns the nembur ef nodes in the data structure.
 size :: Foldable f => Algebra f Natural
 size = foldr (+) 1
 
+-- | Combines two `Algebra`s with different carriers into a single tupled
+--  `Algebra`.
 zipAlgebras :: Functor f => Algebra f a -> Algebra f b -> Algebra f (a, b)
 zipAlgebras f g = (f . fmap fst &&& g . fmap snd)

@@ -19,6 +19,7 @@ library
                      , Yaya.Either
                      , Yaya.Example
                      , Yaya.Example.Foldable
+                     , Yaya.Identity
                      , Yaya.Maybe
                      , Yaya.Tuple
                      , Yaya.Zoo
@@ -31,6 +32,7 @@ library
                      , either
                      , errors
                      , free
+                     , kan-extensions
                      , profunctors
                      , template-haskell
                      , transformers

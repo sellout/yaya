@@ -21,10 +21,8 @@ import Yaya.Unsafe.Control
 
 newtype Fix f = Fix { unFix :: f (Fix f) }
 
-instance Embeddable (Fix f) f where
+instance Steppable (Fix f) f where
   embed = Fix
-
-instance Projectable (Fix f) f where
   project = unFix
 
 instance Functor f => Corecursive (Fix f) f where
@@ -39,8 +37,8 @@ instance Corecursive [a] (XNor a) where
 instance Functor f => Recursive (Fix f) f where
   cata = flip hylo project
 
-instance Eq1 f => Eq (Fix f) where
-  (==) = projectableEq
+instance (Functor f, Foldable f, Eq1 f) => Eq (Fix f) where
+  (==) = recursiveEq
 
 instance (Functor f, Show1 f) => Show (Fix f) where
   showsPrec = recursiveShowsPrec
@@ -51,8 +49,8 @@ instance Functor f => Corecursive (Mu f) f where
 instance Functor f => Recursive (Nu f) f where
   cata = flip hylo project
 
-instance (Eq1 f, Functor f) => Eq (Nu f) where
-  (==) = projectableEq
+instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
+  (==) = recursiveEq
 
 instance (Functor f, Show1 f) => Show (Nu f) where
   showsPrec = recursiveShowsPrec
@@ -75,16 +73,18 @@ instance Functor f => Corecursive (Free f a) (FreeF f a) where
 -- TODO: If we can generalize these to an arbitrary '{Co}recursive t'
 --       then they would no longer be unsafe.
 
-distGFutu
+seqFreeT
   :: (Functor f, Functor h)
   => DistributiveLaw h f
   -> DistributiveLaw (Free h) f
-distGFutu k = cata (\case
-                   Pure a -> free . Pure <$> a
-                   Free ft -> free . Free <$> k ft)
+seqFreeT k =
+  cata
+  (\case
+      Pure a -> free . Pure <$> a
+      Free ft -> free . Free <$> k ft)
 
-distGHisto
+distCofreeT
   :: (Functor f, Functor h)
   => DistributiveLaw f h
   -> DistributiveLaw f (Cofree h)
-distGHisto k = ana $ uncurry EnvT . (fmap extract &&& k . fmap unwrap)
+distCofreeT k = ana $ uncurry EnvT . (fmap extract &&& k . fmap unwrap)

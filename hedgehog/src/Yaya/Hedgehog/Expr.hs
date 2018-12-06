@@ -18,8 +18,11 @@ data Expr a
 deriveEq1 ''Expr
 deriveShow1 ''Expr
 
+genExprLit :: Gen (Expr a)
+genExprLit = Lit <$> Gen.int (Range.linear (-1000) 1000)
+
+genExprOp :: Gen a -> Gen (Expr a)
+genExprOp a = Gen.choice [Add <$> a <*> a, Mult <$> a <*> a]
+
 genExpr :: Gen a -> Gen (Expr a)
-genExpr a = Gen.frequency [ (3, Lit <$> Gen.int (Range.linear (-1000) 1000))
-                          , (1, Add <$> a <*> a)
-                          , (1, Mult <$> a <*> a)
-                          ]
+genExpr a = Gen.frequency [(3, genExprLit), (2, genExprOp a)]

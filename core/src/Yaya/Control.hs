@@ -7,32 +7,50 @@ import Control.Comonad.Env
 import Control.Monad
 import Data.Bitraversable
 import Data.Distributive
+import Data.Foldable
 import Data.Functor.Classes
+import Data.Functor.Day
 import Data.Functor.Identity
 
 import Yaya
 
-class Embeddable t f | t -> f where
-  embed :: Algebra f t
-
-class Projectable t f | t -> f where
-  project :: Coalgebra f t
-
 -- | Structures you can walk through step-by-step.
-type Steppable t f = (Embeddable t f, Projectable t f)
+class Steppable t f | t -> f where
+  embed :: Algebra f t
+  project :: Coalgebra f t
 
 -- | Inductive structures that can be reasoned about in the way we usually do –
 --   with pattern matching.
 class Recursive t f | t -> f where
   cata :: Algebra f a -> t -> a
 
--- FIXME: Relies on primitive recursion.
-projectableEq :: (Projectable t f, Eq1 f) => t -> t -> Bool
-projectableEq a b = liftEq projectableEq (project a) (project b)
+-- | Algebras over Day convolution are convenient for binary operations, but
+--   aren’t directly handleable by `cata`.
+lowerDay :: Steppable t g => Algebra (Day f g) a -> Algebra f (t -> a)
+lowerDay φ fta t = φ (Day fta (project t) ($))
+
+-- | By analogy with `liftA2` (which also relies on `Day`, at least
+--   conceptually).
+cata2 :: (Recursive t f, Steppable u g) => Algebra (Day f g) a -> t -> u -> a
+cata2 = cata . lowerDay
+
+equal :: (Functor f, Foldable f, Eq1 f) => Algebra (Day f f) Bool
+equal (Day f1 f2 fn) =
+  liftEq (==) (void f1) (void f2)
+  && and (zipWith fn (toList f1) (toList f2))
+
+-- | An implementation of `Eq` for any `Recursive` instance. Note that this is
+--   actually more general than `Eq`, as it can compare between different
+--   fixed-point representations of the same functor.
+recursiveEq
+  :: (Recursive t f, Steppable u f, Functor f, Foldable f, Eq1 f)
+  => t -> u -> Bool
+recursiveEq = cata2 equal
 
 -- | An implementation of `Show` for any `Recursive` instance.
 recursiveShowsPrec :: (Recursive t f, Show1 f) => Int -> t -> ShowS
-recursiveShowsPrec prec = cata (showParen True . liftShowsPrec (const id) (foldMap id) prec)
+recursiveShowsPrec prec =
+  cata (showParen True . liftShowsPrec (const id) (foldMap id) prec)
 
 -- | Coinductive (potentially-infinite) structures that guarantee _productivity_
 --   rather than termination.
@@ -133,10 +151,10 @@ elgotAna
   -> t
 elgotAna k ψ = ana (fmap (>>= ψ) . k) . ψ
 
-lambek :: (Embeddable t f, Recursive t f, Functor f) => Coalgebra f t
+lambek :: (Steppable t f, Recursive t f, Functor f) => Coalgebra f t
 lambek = cata $ fmap embed
 
-colambek :: (Projectable t f, Corecursive t f, Functor f) => Algebra f t
+colambek :: (Steppable t f, Corecursive t f, Functor f) => Algebra f t
 colambek = ana $ fmap project
 
 -- | There are a number of distributive laws, including
@@ -145,24 +163,26 @@ colambek = ana $ fmap project
 --   schemes.
 type DistributiveLaw f g = forall a. f (g a) -> g (f a)
 
-distCata :: Functor f => DistributiveLaw f Identity
-distCata = Identity . fmap runIdentity
+-- | A less-constrained `distribute` for `Identity`.
+distIdentity :: Functor f => DistributiveLaw f Identity
+distIdentity = Identity . fmap runIdentity
 
-distAna :: Functor f => DistributiveLaw Identity f
-distAna = fmap Identity . runIdentity
+-- | A less-constrained `sequenceA` for `Identity`.
+seqIdentity :: Functor f => DistributiveLaw Identity f
+seqIdentity = fmap Identity . runIdentity
 
-distZygo :: Functor f => Algebra f a -> DistributiveLaw f ((,) a)
-distZygo φ = φ . fmap fst &&& fmap snd
+distTuple :: Functor f => Algebra f a -> DistributiveLaw f ((,) a)
+distTuple φ = φ . fmap fst &&& fmap snd
 
-distZygoT
+distEnvT
   :: (Functor f, Comonad w)
   => Algebra f a
   -> DistributiveLaw f w
   -> DistributiveLaw f (EnvT a w)
-distZygoT φ k = uncurry EnvT . (φ . fmap ask &&& k . fmap lower)
+distEnvT φ k = uncurry EnvT . (φ . fmap ask &&& k . fmap lower)
 
-distGApo :: Functor f => Coalgebra f a -> DistributiveLaw (Either a) f
-distGApo ψ = fmap Left . ψ ||| fmap Right
+seqEither :: Functor f => Coalgebra f a -> DistributiveLaw (Either a) f
+seqEither ψ = fmap Left . ψ ||| fmap Right
 
 -- | Converts an `Algebra` to one that annotates the tree with the result for
 --   each node.
@@ -185,10 +205,8 @@ constCata φ = φ . Const
 constAna :: Coalgebra (Const b) a -> a -> b
 constAna ψ = getConst . ψ
 
-instance Embeddable (Either a b) (Const (Either a b)) where
+instance Steppable (Either a b) (Const (Either a b)) where
   embed = constEmbed
-
-instance Projectable (Either a b) (Const (Either a b)) where
   project = constProject
 
 instance Recursive (Either a b) (Const (Either a b)) where
@@ -197,10 +215,8 @@ instance Recursive (Either a b) (Const (Either a b)) where
 instance Corecursive (Either a b) (Const (Either a b)) where
   ana = constAna
 
-instance Embeddable (Maybe a) (Const (Maybe a)) where
+instance Steppable (Maybe a) (Const (Maybe a)) where
   embed = constEmbed
-
-instance Projectable (Maybe a) (Const (Maybe a)) where
   project = constProject
 
 instance Recursive (Maybe a) (Const (Maybe a)) where

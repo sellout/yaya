@@ -3,6 +3,11 @@ module Yaya.Tuple where
 import Yaya
 import Yaya.Control
 
+-- | Converts a single value into a tuple with the same value on both sides.
+--   > x &&& y = (x *** y) . duplicate
+duplicate :: Coalgebra ((,) a) a
+duplicate i = (i, i)
+
 unarySequence :: (a -> a) -> Coalgebra ((,) a) a
 unarySequence f a = (a, f a)
 

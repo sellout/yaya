@@ -1,6 +1,7 @@
 module Yaya.Example where
 
 import Control.Monad.Trans.Free
+import Data.Functor.Day
 
 import Yaya
 import Yaya.Control
@@ -8,41 +9,42 @@ import Yaya.Data
 import Yaya.Maybe
 import Yaya.Tuple
 
-naturals :: (Embeddable n Maybe, Corecursive t ((,) n)) => t
-naturals = flip ana zeroN $ unarySequence succN
+naturals :: (Steppable n Maybe, Corecursive t ((,) n)) => t
+naturals = ana (unarySequence succN) zeroN
 
-takeAnother
-  :: (Projectable t ((,) a), Embeddable u (XNor a))
-  => Algebra Maybe (t -> u)
-takeAnother Nothing = embed . const None
-takeAnother (Just f) = embed . uncurry Both . fmap f . project
+takeAnother :: Day Maybe ((,) a) b -> XNor a b
+takeAnother = \case
+  Day Nothing  _      _ -> Neither
+  Day (Just x) (h, t) f -> Both h (f x t)
 
-takeAvailable
-  :: (Projectable t (XNor a), Embeddable u (XNor a))
-  => Algebra Maybe (t -> u)
-takeAvailable Nothing = embed . const None
-takeAvailable (Just f) = embed . fmap f . project
+takeAvailable :: Day Maybe (XNor a) b -> XNor a b
+takeAvailable = \case
+  Day Nothing  _ _ -> Neither
+  Day (Just x) t f -> fmap (f x) t
 
+-- | Extracts _no more than_ `n` elements from the possibly-infinite sequence
+--  `s`.
 takeUpTo
-  :: (Recursive n Maybe, Projectable s (XNor a), Embeddable l (XNor a))
+  :: (Recursive n Maybe, Steppable s (XNor a), Steppable l (XNor a))
   => n -> s -> l
-takeUpTo = cata takeAvailable
+takeUpTo = cata (lowerDay (embed . takeAvailable))
 
+-- | Extracts _exactly_ `n` elements from the infinite stream `s`.
 take
-  :: (Recursive n Maybe, Projectable s ((,) a), Embeddable l (XNor a))
+  :: (Recursive n Maybe, Steppable s ((,) a), Steppable l (XNor a))
   => n -> s -> l
-take = cata takeAnother
+take = cata (lowerDay (embed . takeAnother))
 
 -- | Turns part of a structure inductive, so it can be analyzed, without forcing
 --   the entire tree.
 maybeReify
-  :: (Projectable s f, Embeddable l (FreeF f s), Functor f)
+  :: (Steppable s f, Steppable l (FreeF f s), Functor f)
   => Algebra Maybe (s -> l)
 maybeReify Nothing = embed . Pure
 maybeReify (Just f) = embed . Free . fmap f . project
 
 reifyUpTo
-  :: (Recursive n Maybe, Projectable s f, Embeddable l (FreeF f s), Functor f)
+  :: (Recursive n Maybe, Steppable s f, Steppable l (FreeF f s), Functor f)
   => n -> s -> l
 reifyUpTo = cata maybeReify
 
@@ -73,8 +75,19 @@ jacobsthal = lucasSequenceU 1 (-2)
 mersenne :: (Integral i, Corecursive t ((,) i)) => t
 mersenne = lucasSequenceU 3 2
 
-duplicate :: Coalgebra ((,) a) a
-duplicate i = (i, i)
-
+-- | Creates an infinite stream of the provided value.
 constantly :: Corecursive t ((,) a) => a -> t
 constantly = ana duplicate
+
+-- | Lops off the branches of the tree below a certain depth, turning a
+--   potentially-infinite structure into a finite one. Like a generalized
+--  'take'.
+truncate
+  :: (Recursive n Maybe, Steppable t f, Steppable u (FreeF f ()), Functor f)
+  => n -> t -> u
+truncate = cata (lowerDay (embed . truncate'))
+
+truncate' :: Functor f => Day Maybe f a -> FreeF f () a
+truncate' = \case
+  Day Nothing  fa _ -> Pure ()
+  Day (Just n) fa f -> Free (fmap (f n) fa)
