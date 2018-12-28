@@ -19,7 +19,7 @@ foldMap = cata . lowerMonoid
 --   representation of `Foldable` as `Recursive` specialized to lists.
 class Listable f where
   naturalList :: f a b -> Free (XNor a) b
-  -- toColist :: (Steppable t (f a), Corecursive u (XNor a)) => t -> u
+  -- toColist :: (Projectable t (f a), Corecursive u (XNor a)) => t -> u
   -- toColist = elgotAna seqFree (naturalList . project)
   -- toList :: (Recursive t (f a), Steppable u (XNor a)) => t -> u
   -- toList = cata (embed . unFree . naturalList)

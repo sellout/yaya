@@ -8,18 +8,24 @@ import Control.Comonad.Cofree
 import Control.Comonad.Trans.Env
 import Control.Monad.Trans.Free
 import Data.List.NonEmpty
+import Numeric.Natural
 
 import Yaya.Fold
 import Yaya.Pattern
 
 newtype Fix f = Fix { unFix :: f (Fix f) }
 
+instance Projectable (Fix f) f where
+  project = unFix
+
 instance Steppable (Fix f) f where
   embed = Fix
-  project = unFix
 
 instance Functor f => Corecursive (Fix f) f where
   ana φ = embed . fmap (ana φ) . φ
+
+instance Recursive Natural Maybe where
+  cata ɸ = ɸ . fmap (cata ɸ) . project
 
 instance Corecursive [a] (XNor a) where
   ana ψ =

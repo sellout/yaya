@@ -39,10 +39,16 @@ type ElgotCoalgebra m f a = a -> m (f a)
 type CoalgebraM m f a = a -> m (f a)
 type GCoalgebraM m n f a = a -> m (f (n a))
 
--- | Structures you can walk through step-by-step.
-class Steppable t f | t -> f where
-  embed :: Algebra f t
+-- | This type class is lawless on its own, but there exist types that can’t
+--   implement the corresponding `embed` operation. Laws are induced by
+--   implementing either `Steppable` (which extends this) or `Corecursive`
+--  (which doesn’t).
+class Projectable t f | t -> f where
   project :: Coalgebra f t
+
+-- | Structures you can walk through step-by-step.
+class Projectable t f => Steppable t f | t -> f where
+  embed :: Algebra f t
 
 -- | Inductive structures that can be reasoned about in the way we usually do –
 --   with pattern matching.
@@ -70,9 +76,12 @@ recursiveShowsPrec prec =
 -- | A fixed-point operator for inductive / finite data structures.
 data Mu f = Mu (forall a. Algebra f a -> a)
 
+
+instance Functor f => Projectable (Mu f) f where
+  project = lambek
+
 instance Functor f => Steppable (Mu f) f where
   embed m = Mu (\f -> f (fmap (cata f) m))
-  project = lambek
 
 instance Recursive (Mu f) f where
   cata φ (Mu f) = f φ
@@ -87,48 +96,58 @@ instance (Functor f, Foldable f, Eq1 f) => Eq (Mu f) where
 --   structures.
 data Nu f where Nu :: Coalgebra f a -> a -> Nu f
 
+instance Functor f => Projectable (Nu f) f where
+  project (Nu f a) = Nu f <$> f a
+
 instance Functor f => Steppable (Nu f) f where
   embed = colambek
-  project (Nu f a) = Nu f <$> f a
 
 instance Corecursive (Nu f) f where
   ana = Nu
 
+instance Projectable [a] (XNor a) where
+  project []      = Neither
+  project (h : t) = Both h t
+
 instance Steppable [a] (XNor a) where
   embed Neither    = []
   embed (Both h t) = h : t
-  project []      = Neither
-  project (h : t) = Both h t
+
+instance Projectable (NonEmpty a) (AndMaybe a) where
+  project (a :| [])     = Only a
+  project (a :| b : bs) = Indeed a (b :| bs)
 
 instance Steppable (NonEmpty a) (AndMaybe a) where
   embed (Only a)     = a :| []
   embed (Indeed a b) = a :| toList b
-  project (a :| [])     = Only a
-  project (a :| b : bs) = Indeed a (b :| bs)
 
-instance Steppable Natural Maybe where
-  embed = maybe 0 succ
+instance Projectable Natural Maybe where
   project 0 = Nothing
   project n = Just (pred n)
 
--- TODO: This should at least move to the `Native` module.
-instance Recursive Natural Maybe where
-  cata ɸ = ɸ . fmap (cata ɸ) . project
+instance Steppable Natural Maybe where
+  embed = maybe 0 succ
+
+instance Projectable Void Identity where
+  project = Identity
 
 instance Steppable Void Identity where
   embed = runIdentity
-  project = Identity
 
 instance Recursive Void Identity where
   cata _ = absurd
 
+instance Projectable (Cofree f a) (EnvT a f) where
+  project (a :< ft) = EnvT a ft
+
 instance Steppable (Cofree f a) (EnvT a f) where
   embed (EnvT a ft) = a :< ft
-  project (a :< ft) = EnvT a ft
+
+instance Projectable (Free f a) (FreeF f a) where
+  project = runFree
 
 instance Steppable (Free f a) (FreeF f a) where
   embed = free
-  project = runFree
 
 -- | Combines two `Algebra`s with different carriers into a single tupled
 --  `Algebra`.
@@ -137,12 +156,12 @@ zipAlgebras f g = (f . fmap fst &&& g . fmap snd)
 
 -- | Algebras over Day convolution are convenient for binary operations, but
 --   aren’t directly handleable by `cata`.
-lowerDay :: Steppable t g => Algebra (Day f g) a -> Algebra f (t -> a)
+lowerDay :: Projectable t g => Algebra (Day f g) a -> Algebra f (t -> a)
 lowerDay φ fta t = φ (Day fta (project t) ($))
 
 -- | By analogy with `liftA2` (which also relies on `Day`, at least
 --   conceptually).
-cata2 :: (Recursive t f, Steppable u g) => Algebra (Day f g) a -> t -> u -> a
+cata2 :: (Recursive t f, Projectable u g) => Algebra (Day f g) a -> t -> u -> a
 cata2 = cata . lowerDay
 
 -- | Makes it possible to provide a 'GAlgebra' to 'cata'.
@@ -240,7 +259,7 @@ elgotAna k ψ = ana (fmap (>>= ψ) . k) . ψ
 lambek :: (Steppable t f, Recursive t f, Functor f) => Coalgebra f t
 lambek = cata (fmap embed)
 
-colambek :: (Steppable t f, Corecursive t f, Functor f) => Algebra f t
+colambek :: (Projectable t f, Corecursive t f, Functor f) => Algebra f t
 colambek = ana (fmap project)
 
 -- | There are a number of distributive laws, including
@@ -309,9 +328,11 @@ constCata φ = φ . Const
 constAna :: Coalgebra (Const b) a -> a -> b
 constAna ψ = getConst . ψ
 
+instance Projectable (Either a b) (Const (Either a b)) where
+  project = constProject
+
 instance Steppable (Either a b) (Const (Either a b)) where
   embed = constEmbed
-  project = constProject
 
 instance Recursive (Either a b) (Const (Either a b)) where
   cata = constCata
@@ -319,9 +340,11 @@ instance Recursive (Either a b) (Const (Either a b)) where
 instance Corecursive (Either a b) (Const (Either a b)) where
   ana = constAna
 
+instance Projectable (Maybe a) (Const (Maybe a)) where
+  project = constProject
+
 instance Steppable (Maybe a) (Const (Maybe a)) where
   embed = constEmbed
-  project = constProject
 
 instance Recursive (Maybe a) (Const (Maybe a)) where
   cata = constCata

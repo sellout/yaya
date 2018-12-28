@@ -23,7 +23,7 @@ import Yaya.Pattern
 -- | A recursion scheme that allows you to return a complete branch when
 --   unfolding.
 apo
-  :: (Steppable t f, Corecursive t f, Functor f)
+  :: (Projectable t f, Corecursive t f, Functor f)
   => GCoalgebra (Either t) f a
   -> a
   -> t
@@ -182,7 +182,7 @@ map f = cata (embed . first f)
 
 -- | A version of `map` that applies to Corecursive structures.
 comap
-  :: (Steppable t (f a), Corecursive u (f b), Bifunctor f)
+  :: (Projectable t (f a), Corecursive u (f b), Bifunctor f)
   => (a -> b)
   -> t
   -> u
@@ -213,7 +213,7 @@ contramap
 contramap f = cata (embed . lmap f)
 
 cocontramap
-  :: (Steppable t (f b), Corecursive u (f a), Profunctor f)
+  :: (Projectable t (f b), Corecursive u (f a), Profunctor f)
   => (a -> b)
   -> t
   -> u

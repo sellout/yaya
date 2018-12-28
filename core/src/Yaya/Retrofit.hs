@@ -4,4 +4,11 @@ module Yaya.Retrofit
   ( module Yaya.Fold
   ) where
 
-import Yaya.Fold (Corecursive, Recursive, Steppable, recursiveEq, recursiveShowsPrec)
+import Yaya.Fold
+       ( Corecursive
+       , Projectable
+       , Recursive
+       , recursiveEq
+       , recursiveShowsPrec
+       , Steppable
+       )

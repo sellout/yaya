@@ -42,26 +42,26 @@ naturals = ana (unarySequence succN) zeroN
 -- | Extracts _no more than_ `n` elements from the possibly-infinite sequence
 --  `s`.
 takeUpTo
-  :: (Recursive n Maybe, Steppable s (XNor a), Steppable l (XNor a))
+  :: (Recursive n Maybe, Projectable s (XNor a), Steppable l (XNor a))
   => n -> s -> l
 takeUpTo = cata (lowerDay (embed . takeAvailable))
 
 -- | Extracts _exactly_ `n` elements from the infinite stream `s`.
 take
-  :: (Recursive n Maybe, Steppable s ((,) a), Steppable l (XNor a))
+  :: (Recursive n Maybe, Projectable s ((,) a), Steppable l (XNor a))
   => n -> s -> l
 take = cata (lowerDay (embed . takeAnother))
 
 -- | Turns part of a structure inductive, so it can be analyzed, without forcing
 --   the entire tree.
 maybeReify
-  :: (Steppable s f, Steppable l (FreeF f s), Functor f)
+  :: (Projectable s f, Steppable l (FreeF f s), Functor f)
   => Algebra Maybe (s -> l)
 maybeReify Nothing = embed . Pure
 maybeReify (Just f) = embed . Free . fmap f . project
 
 reifyUpTo
-  :: (Recursive n Maybe, Steppable s f, Steppable l (FreeF f s), Functor f)
+  :: (Recursive n Maybe, Projectable s f, Steppable l (FreeF f s), Functor f)
   => n -> s -> l
 reifyUpTo = cata maybeReify
 
@@ -97,6 +97,6 @@ constantly = ana split
 --   potentially-infinite structure into a finite one. Like a generalized
 --  'take'.
 truncate
-  :: (Recursive n Maybe, Steppable t f, Steppable u (FreeF f ()), Functor f)
+  :: (Recursive n Maybe, Projectable t f, Steppable u (FreeF f ()), Functor f)
   => n -> t -> u
 truncate = cata (lowerDay (embed . truncate'))

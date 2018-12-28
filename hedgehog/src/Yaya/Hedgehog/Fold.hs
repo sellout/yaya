@@ -10,6 +10,7 @@ import           Hedgehog
 import           Numeric.Natural
 
 import           Yaya.Fold
+import           Yaya.Fold.Native
 
 law_cataCancel
   :: (Eq a, Show a, Steppable t f, Recursive t f, Functor f, MonadTest m)
