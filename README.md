@@ -50,11 +50,23 @@ As a mnemonic, you can read the `e` as “exterior” as with a regular generali
 
 Kleisli (“monadic”) variant – This convention is much more widespread than simply recursion schemes. A fold that returns its result in a `Monad`, by applying a Kleisli algebra (i.e., `f a -> m a` rather than `f a -> a`. The dual of this might be something like `anaW` (taking a seed value in a `Comonad`), but those are uninteresting. Having Kleisli variants of unfolds is unsafe, as it can force traversal of an infinite structure. If you’re looking for an operation like that, you are better off with an effectful streaming library.
 
-## Packages
+## organization
+
+### packages
 
 * `yaya` – the safe operations and data types for working with recursion
+* `yaya-hedgehog` – utilities for testing your Yaya-using code with [Hedgehog](https://github.com/hedgehogqa/haskell-hedgehog)
 * `yaya-unsafe` – unsafe instances and operations
-* `yaya-optics` – lenses, prisms, and isomorphisms – oh my!
+
+### modules
+
+This organization is intended to make this a lightly-opinionated library. You should only need to import one module (per package) into any module of yours.
+
+* `Pattern` – This is what you should use most of the time. It provides common pattern functors that aren’t found elsewhere as well as other operations that are useful when you’re defining your own algebras.
+* `Fold` – This (and its submodules) provides algebra transformers, fixed-point operators, and other things you use when applying folds.
+* `Retrofit` – Utilities for making your existing data types compatible with recursion schemes.
+* `Applied` – A number of commonly-useful utilies defined as folds. Intended both as examples and code that you can actually use in your projects.
+* `Zoo` – Names that you may have seen in the recursion scheme literature, but that we generally avoid using here. In general, prefer the right-hand side of these definitions, which shouldn’t require importing this module.
 
 ## other libraries
 

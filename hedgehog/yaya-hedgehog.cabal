@@ -13,9 +13,8 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Yaya.Hedgehog.Control
-                     , Yaya.Hedgehog.Data
-                     , Yaya.Hedgehog.Expr
+  exposed-modules:     Yaya.Hedgehog.Expr
+                     , Yaya.Hedgehog.Fold
   build-depends:       base >= 4.7 && < 5
                      , deriving-compat
                      , hedgehog

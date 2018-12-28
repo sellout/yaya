@@ -1,19 +1,20 @@
 -- | Definitions and instances that use direct recursion, which (because of
 --   laziness) can lead to non-termination.
-module Yaya.Unsafe.Control where
+module Yaya.Unsafe.Fold where
 
 import Control.Arrow
 import Control.Comonad
 import Control.Comonad.Cofree
 import Control.Comonad.Env
+import Control.Lens
 import Control.Monad
+import Control.Monad.Trans.Free
+import Data.Either.Combinators
 import Data.Function
 import Data.Functor.Compose
 import Data.Functor.Identity
 
-import Yaya
-import Yaya.Control
-import Yaya.Data
+import Yaya.Fold
 
 -- | This can’t be implemented in a total fashion. There is a _similar_ approach
 --   that can be total – with `ψ :: CoalgebraM m f a`, `ana (Compose . ψ)`
@@ -96,3 +97,9 @@ streamGApo
   -> b
   -> t -> u
 streamGApo ψ' ψ φ = stream' ψ $ \c f -> maybe (ana ψ' c) f . φ
+
+corecursivePrism
+  :: (Steppable t f, Recursive t f, Corecursive t f, Traversable f)
+  => CoalgebraPrism f a
+  -> Prism' a t
+corecursivePrism alg = prism (cata (review alg)) (anaM (matching alg))

@@ -3,26 +3,16 @@
 --
 --   As these few operations have the usual signatures, the rest of the type
 --   class can be implemented in the as in 'base'.
-module Yaya.Example.Foldable where
+module Yaya.Experimental.Foldable where
 
 import Control.Monad.Trans.Free
 
-import Yaya
-import Yaya.Control
-import Yaya.Data
-
-lowerMonoid :: Monoid m => (a -> m) -> Algebra (XNor a) m
-lowerMonoid f = \case
-  Neither  -> mempty
-  Both a b -> mappend (f a) b
+import Yaya.Fold
+import Yaya.Fold.Common
+import Yaya.Pattern
 
 foldMap :: (Recursive t (XNor a), Monoid m) => (a -> m) -> t -> m
 foldMap = cata . lowerMonoid
-
-unFree :: Steppable t f => Algebra (FreeF f t) t
-unFree = \case
-  Pure t  -> t
-  Free ft -> embed ft
 
 -- | This class represents the ability of a structure to be converted to a
 --   list. It is equivalent to `Foldable`, but designed to illustrate the

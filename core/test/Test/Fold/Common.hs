@@ -1,13 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Test.Yaya where
+module Test.Fold.Common where
 
 import           Hedgehog
 import qualified Hedgehog.Gen as Gen
 
-import           Yaya
-import           Yaya.Control
-import           Yaya.Hedgehog.Data
+import           Yaya.Fold
+import           Yaya.Fold.Common
+import           Yaya.Hedgehog.Expr
 
 prop_heightLtSize :: Property
 prop_heightLtSize =

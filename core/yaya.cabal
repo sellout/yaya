@@ -13,16 +13,14 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Yaya
-                     , Yaya.Control
-                     , Yaya.Data
-                     , Yaya.Either
-                     , Yaya.Example
-                     , Yaya.Example.Foldable
-                     , Yaya.Identity
-                     , Yaya.Maybe
-                     , Yaya.Tuple
+  exposed-modules:     Yaya.Pattern
+                     , Yaya.Fold
+                     , Yaya.Fold.Common
+                     , Yaya.Fold.Native
+                     , Yaya.Retrofit
+                     , Yaya.Applied
                      , Yaya.Zoo
+                     , Yaya.Experimental.Foldable
   build-depends:       base >= 4.7 && < 5
                      , bifunctors
                      , comonad
@@ -33,6 +31,7 @@ library
                      , errors
                      , free
                      , kan-extensions
+                     , lens
                      , profunctors
                      , template-haskell
                      , transformers
@@ -43,6 +42,7 @@ library
                      , FunctionalDependencies
                      , LambdaCase
                      , MultiParamTypeClasses
+                     , PolyKinds
                      , RankNTypes
                      , ScopedTypeVariables
                      , TupleSections
@@ -52,9 +52,8 @@ test-suite yaya-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             test.hs
-  other-modules:       Test.Yaya
-                     , Test.Yaya.Control
-                     , Test.Yaya.Data
+  other-modules:       Test.Fold
+                     , Test.Fold.Common
   build-depends:       base
                      , deriving-compat
                      , hedgehog

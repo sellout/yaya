@@ -5,7 +5,9 @@
 module Yaya.Zoo where
 
 import Control.Arrow hiding (first)
+import Control.Comonad.Cofree
 import Control.Comonad.Env
+import Control.Monad
 import Control.Monad.Trans.Free
 import Data.Bifunctor
 import Data.Bitraversable
@@ -14,9 +16,9 @@ import Data.Function
 import Data.Profunctor
 import Data.Tuple
 
-import Yaya
-import Yaya.Control
-import Yaya.Data
+import Yaya.Fold
+import Yaya.Fold.Native (distCofreeT)
+import Yaya.Pattern
 
 -- | A recursion scheme that allows you to return a complete branch when
 --   unfolding.
@@ -27,8 +29,14 @@ apo
   -> t
 apo = gana (seqEither project)
 
+-- | If you have a monadic algebra, you can fold it by distributing the monad
+--   over the algebra.
+cataM :: (Monad m, Recursive t f, Traversable f) => AlgebraM m f a -> t -> m a
+cataM φ = cata (φ <=< sequenceA)
+
 -- | A recursion scheme that allows to algebras to see each others’ results. (A
---   generalization of 'zygo'.) This is an example that falls outside the scope of “comonadic folds”, but _would_ be covered by “adjoint folds”.
+--   generalization of 'zygo'.) This is an example that falls outside the scope
+--   of “comonadic folds”, but _would_ be covered by “adjoint folds”.
 mutu
   :: (Recursive t f, Functor f)
   => GAlgebra ((,) a) f b
@@ -91,6 +99,9 @@ mutuM
   -> m a
 mutuM φ' φ = fmap snd . cataM (bisequence . (φ' . fmap swap &&& φ))
 
+histo :: (Recursive t f, Functor f) => GAlgebra (Cofree f) f a -> t -> a
+histo = gcata (distCofreeT id)
+
 -- | A recursion scheme that gives you access to the original structure as you
 --   fold. (A specialization of 'zygo'.)
 para
@@ -98,7 +109,7 @@ para
   => GAlgebra ((,) t) f a
   -> t
   -> a
-para = gcata $ distTuple embed
+para = gcata (distTuple embed)
 
 -- | A recursion scheme that uses a “helper algebra” to provide additional
 --   information when folding. (A generalization of 'para', and specialization
@@ -109,7 +120,7 @@ zygo
   -> GAlgebra ((,) b) f a
   -> t
   -> a
-zygo φ = gcata $ distTuple φ
+zygo φ = gcata (distTuple φ)
 
 -- | This definition is different from the one given by `gcataM (distTuple φ')`
 --   because it has a monadic “helper” algebra. But at least it gives us the
@@ -144,7 +155,7 @@ insidePartial :: (Nu (Either a) -> Nu (Either b)) -> Partial a -> Partial b
 insidePartial f = Partial . f . fromPartial
 
 instance Functor Partial where
-  fmap f = insidePartial $ comap f
+  fmap f = insidePartial (comap f)
 
 instance Applicative Partial where
   pure = Partial . embed . Left
@@ -154,7 +165,7 @@ instance Applicative Partial where
                ((fromPartial . flip fmap fa +++ Right) . project)
 
 instance Monad Partial where
-  pa >>= f = join $ fmap f pa
+  pa >>= f = join (fmap f pa)
     where
       join =
         insidePartial
@@ -167,14 +178,15 @@ type Stream a = Nu ((,) a)
 --   or within monomorphic structures, obviating the need for classes like
 --  'MonoFunctor'.
 map :: (Recursive t (f a), Steppable u (f b), Bifunctor f) => (a -> b) -> t -> u
-map f = cata $ embed . first f
+map f = cata (embed . first f)
 
+-- | A version of `map` that applies to Corecursive structures.
 comap
   :: (Steppable t (f a), Corecursive u (f b), Bifunctor f)
   => (a -> b)
   -> t
   -> u
-comap f = ana $ first f . project
+comap f = ana (first f . project)
 
 -- | A more general implementation of 'traverse', because it can also work to,
 --   from, or within monomorphic structures, obviating the need for classes like
@@ -189,7 +201,7 @@ traverse
   => (a -> m b)
   -> t
   -> m u
-traverse f = cataM $ fmap embed . bitraverse f pure
+traverse f = cata (fmap embed . bitraverse f pure <=< sequenceA)
 
 -- | A more general implementation of 'contramap', because it can also work to,
 --   from, or within monomorphic structures.
@@ -198,11 +210,11 @@ contramap
   => (a -> b)
   -> t
   -> u
-contramap f = cata $ embed . lmap f
+contramap f = cata (embed . lmap f)
 
 cocontramap
   :: (Steppable t (f b), Corecursive u (f a), Profunctor f)
   => (a -> b)
   -> t
   -> u
-cocontramap f = ana $ lmap f . project
+cocontramap f = ana (lmap f . project)

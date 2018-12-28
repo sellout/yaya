@@ -1,19 +1,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Test.Yaya.Unsafe.Data where
+module Test.Fold where
 
 import           Hedgehog
 import qualified Hedgehog.Gen as Gen
 
-import           Yaya
-import           Yaya.Hedgehog.Control
-import           Yaya.Hedgehog.Data
+import           Yaya.Fold.Common
 import           Yaya.Hedgehog.Expr
-import           Yaya.Unsafe.Data
-
--- TODO: Should we have a yaya-native-hedgehog package too?
-genFixExpr :: Size -> Gen (Fix Expr)
-genFixExpr = expression
+import           Yaya.Hedgehog.Fold
+import           Yaya.Unsafe.Fold.Instances ()
 
 prop_fixCataCancel :: Property
 prop_fixCataCancel =

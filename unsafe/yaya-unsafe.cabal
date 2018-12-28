@@ -13,13 +13,15 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Yaya.Unsafe.Control
-                     , Yaya.Unsafe.Data
+  exposed-modules:     Yaya.Unsafe.Fold
+                     , Yaya.Unsafe.Fold.Instances
                      , Yaya.Unsafe.Zoo
   build-depends:       base >= 4.7 && < 5
                      , bifunctors
                      , comonad
+                     , either
                      , free
+                     , lens
                      , yaya
   default-extensions:  ConstraintKinds
                      , DeriveTraversable
@@ -37,8 +39,7 @@ test-suite yaya-unsafe-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             test.hs
-  other-modules:       Test.Yaya.Unsafe.Control
-                     , Test.Yaya.Unsafe.Data
+  other-modules:       Test.Fold
   build-depends:       base
                      , hedgehog
                      , yaya

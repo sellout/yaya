@@ -1,14 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Test.Yaya.Data where
+module Test.Fold where
 
 import           Hedgehog
 import qualified Hedgehog.Gen as Gen
 
-import           Yaya
-import           Yaya.Hedgehog.Control
-import           Yaya.Hedgehog.Data
+import           Yaya.Fold.Common
 import           Yaya.Hedgehog.Expr
+import           Yaya.Hedgehog.Fold
 
 prop_muCataCancel :: Property
 prop_muCataCancel =

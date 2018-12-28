@@ -2,16 +2,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Yaya.Hedgehog.Control where
+module Yaya.Hedgehog.Fold where
 
 import           Control.Arrow
 import           Data.Void
 import           Hedgehog
 import           Numeric.Natural
 
-import           Yaya
-import           Yaya.Control
-import           Yaya.Data
+import           Yaya.Fold
 
 law_cataCancel
   :: (Eq a, Show a, Steppable t f, Recursive t f, Functor f, MonadTest m)

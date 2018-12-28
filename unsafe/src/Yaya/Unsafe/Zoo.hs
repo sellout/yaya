@@ -8,11 +8,11 @@ import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Bitraversable
 
-import Yaya
-import Yaya.Control
-import Yaya.Data
-import Yaya.Unsafe.Control
-import Yaya.Unsafe.Data
+import Yaya.Fold
+import Yaya.Fold.Native
+import Yaya.Pattern
+import Yaya.Unsafe.Fold
+import Yaya.Unsafe.Fold.Instances -- NB: extremely unsafe
 
 chrono
   :: Functor f
@@ -60,9 +60,6 @@ gpostpro
   -> a
   -> t
 gpostpro k e = ghylo distIdentity k (embed . fmap (ana (e . project) . runIdentity))
-
-histo :: (Recursive t f, Functor f) => GAlgebra (Cofree f) f a -> t -> a
-histo = gcata (distCofreeT id)
 
 -- | The metamorphism definition from Gibbons’ paper.
 stream :: Coalgebra (XNor c) b -> (b -> a -> b) -> b -> [a] -> [c]

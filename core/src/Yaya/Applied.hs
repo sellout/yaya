@@ -1,26 +1,43 @@
-module Yaya.Example where
+module Yaya.Applied where
 
 import Control.Monad.Trans.Free
-import Data.Functor.Day
+import Data.Functor.Identity
 
-import Yaya
-import Yaya.Control
-import Yaya.Data
-import Yaya.Maybe
-import Yaya.Tuple
+import Yaya.Fold
+import Yaya.Fold.Common
+import Yaya.Pattern
+
+now :: Steppable t (Either a) => a -> t
+now = embed . Left
+
+-- | This will collapse all the intermediate steps to get to the value that must
+--   exist at the end.
+runToEnd :: Recursive t (Either a) => t -> a
+runToEnd = cata fromEither
+
+-- | Converts exceptional divergence to non-termination.
+fromMaybe :: (Steppable t (Either a), Corecursive t (Either a)) => Maybe a -> t
+fromMaybe = maybe (ana (toRight . never) ()) now
+
+type Void = Mu Identity
+
+absurd :: Recursive t Identity => t -> a
+absurd = cata runIdentity
+
+vacuous :: (Functor f, Recursive t Identity) => f t -> f a
+vacuous = fmap absurd
+
+zeroN :: Steppable t Maybe => t
+zeroN = embed Nothing
+
+succN :: Steppable t Maybe => t -> t
+succN = embed . Just
+
+height :: (Foldable f, Steppable n Maybe, Ord n) => f n -> n
+height = foldr (max . succN) zeroN
 
 naturals :: (Steppable n Maybe, Corecursive t ((,) n)) => t
 naturals = ana (unarySequence succN) zeroN
-
-takeAnother :: Day Maybe ((,) a) b -> XNor a b
-takeAnother = \case
-  Day Nothing  _      _ -> Neither
-  Day (Just x) (h, t) f -> Both h (f x t)
-
-takeAvailable :: Day Maybe (XNor a) b -> XNor a b
-takeAvailable = \case
-  Day Nothing  _ _ -> Neither
-  Day (Just x) t f -> fmap (f x) t
 
 -- | Extracts _no more than_ `n` elements from the possibly-infinite sequence
 --  `s`.
@@ -54,9 +71,6 @@ fibonacciPolynomials x = lucasSequenceU x (-1)
 fibonacci :: Corecursive t ((,) Int) => t
 fibonacci = fibonacciPolynomials 1
 
-lucasSequence' :: Integral i => i -> i -> Coalgebra ((,) i) (i, i)
-lucasSequence' p q = binarySequence (\n2 n1 -> p * n1 - q * n2)
-
 lucasSequenceU :: (Integral i, Corecursive t ((,) i)) => i -> i -> t
 lucasSequenceU p q = lucasSequence' p q `ana` (0, 1)
 
@@ -77,7 +91,7 @@ mersenne = lucasSequenceU 3 2
 
 -- | Creates an infinite stream of the provided value.
 constantly :: Corecursive t ((,) a) => a -> t
-constantly = ana duplicate
+constantly = ana split
 
 -- | Lops off the branches of the tree below a certain depth, turning a
 --   potentially-infinite structure into a finite one. Like a generalized
@@ -86,8 +100,3 @@ truncate
   :: (Recursive n Maybe, Steppable t f, Steppable u (FreeF f ()), Functor f)
   => n -> t -> u
 truncate = cata (lowerDay (embed . truncate'))
-
-truncate' :: Functor f => Day Maybe f a -> FreeF f () a
-truncate' = \case
-  Day Nothing  fa _ -> Pure ()
-  Day (Just n) fa f -> Free (fmap (f n) fa)
