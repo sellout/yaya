@@ -1,14 +1,19 @@
 name:                yaya-hedgehog
 version:             0.1.0.0
--- synopsis:
--- description:
+synopsis:            Hedgehog testing support for the Yaya recursion scheme
+                     library.
+description:         If you use Yaya in your own code and have tests written
+                     using Hedgehog, then this library will help you with
+                     generating trees, verifying type class instances, etc.
 homepage:            https://github.com/sellout/yaya#readme
 author:              Greg Pfeil
 maintainer:          greg@technomadic.org
 copyright:           2017 Greg Pfeil
+license:             AGPL-3
+license-file:        LICENSE
 category:            Recursion
 build-type:          Simple
-extra-source-files:  ../README.md
+extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
