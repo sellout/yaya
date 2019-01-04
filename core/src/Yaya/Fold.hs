@@ -36,6 +36,9 @@ type ElgotAlgebraM m w f a = w (f a) -> m a
 type Coalgebra f a = a -> f a
 type GCoalgebra m f a = a -> f (m a)
 type ElgotCoalgebra m f a = a -> m (f a)
+-- | Note that using a `CoalgebraM` “directly” is partial (e.g., with `anaM`).
+--   However, `ana . Compose` can accept a `CoalgebraM` and produce something
+--   like an effectful stream.
 type CoalgebraM m f a = a -> m (f a)
 type GCoalgebraM m n f a = a -> m (f (n a))
 
