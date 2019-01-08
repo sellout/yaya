@@ -64,39 +64,39 @@ ghyloM w n φ ψ =
   fmap extract . hyloM (lowerAlgebraM w φ) (lowerCoalgebraM n ψ) . pure
 
 stream'
-  :: (Steppable t e, Steppable u f, Functor f)
-  => CoalgebraM Maybe f b
-  -> (b -> ((b -> b, t) -> u) -> e t -> u)
+  :: (Projectable t f, Steppable u g, Functor g)
+  => CoalgebraM Maybe g b
+  -> (b -> ((b -> b, t) -> u) -> f t -> u)
   -> b
   -> t -> u
 stream' ψ f = go
   where
     go c x =
-      maybe (f c (uncurry go . ((&) c *** id)) $ project x)
+      maybe (f c (uncurry go . ((&) c *** id)) (project x))
             (embed . fmap (flip go x))
-            $ ψ c
+            (ψ c)
 
 -- | Gibbons’ metamorphism. It lazily folds a (necessarily infinite) value,
 --   incrementally re-expanding that value into some new representation.
 streamAna
-  :: (Steppable t e, Steppable u f, Functor f)
-  => CoalgebraM Maybe f b
-  -> AlgebraM ((,) (b -> b)) e t
+  :: (Projectable t f, Steppable u g, Functor g)
+  => CoalgebraM Maybe g b
+  -> AlgebraM ((,) (b -> b)) f t
   -> b
   -> t -> u
-streamAna ψ φ = stream' ψ $ \c f -> f . φ
+streamAna ψ φ = stream' ψ (\c f -> f . φ)
 
 -- | Another form of Gibbons’ metamorphism. This one can be applied to non-
 --   infinite inputs and takes an additional “flushing” coalgebra to be applied
 --   after all the input has been consumed.
 streamGApo
-  :: (Steppable t e, Steppable u f, Corecursive u f, Functor f)
-  => Coalgebra f b
-  -> CoalgebraM Maybe f b
-  -> (e t -> Maybe (b -> b, t))
+  :: (Projectable t f, Steppable u g, Corecursive u g, Functor g)
+  => Coalgebra g b
+  -> CoalgebraM Maybe g b
+  -> (f t -> Maybe (b -> b, t))
   -> b
   -> t -> u
-streamGApo ψ' ψ φ = stream' ψ $ \c f -> maybe (ana ψ' c) f . φ
+streamGApo ψ' ψ φ = stream' ψ (\c f -> maybe (ana ψ' c) f . φ)
 
 corecursivePrism
   :: (Steppable t f, Recursive t f, Corecursive t f, Traversable f)

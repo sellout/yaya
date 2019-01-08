@@ -9,22 +9,22 @@
 --   to terminate.
 module Yaya.Unsafe.Fold.Instances where
 
-import Control.Arrow
-import Control.Comonad
-import Control.Comonad.Cofree
-import Control.Comonad.Env
-import Control.Monad
-import Control.Monad.Trans.Free
-import Data.Functor.Classes
-import Data.List.NonEmpty
+import           Control.Arrow
+import           Control.Comonad
+import           Control.Comonad.Cofree
+import           Control.Comonad.Env
+import           Control.Monad
+import           Control.Monad.Trans.Free
+import           Data.Functor.Classes
+import           Data.List.NonEmpty
 
-import Yaya.Fold
-import Yaya.Fold.Native
-import Yaya.Pattern
-import Yaya.Unsafe.Fold
+import           Yaya.Fold
+import           Yaya.Fold.Native
+import           Yaya.Pattern
+import qualified Yaya.Unsafe.Fold as Unsafe
 
 instance Functor f => Recursive (Fix f) f where
-  cata = flip hylo project
+  cata = flip Unsafe.hylo project
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Fix f) where
   (==) = recursiveEq
@@ -33,10 +33,10 @@ instance (Functor f, Show1 f) => Show (Fix f) where
   showsPrec = recursiveShowsPrec
 
 instance Functor f => Corecursive (Mu f) f where
-  ana = hylo embed
+  ana = Unsafe.hylo embed
 
 instance Functor f => Recursive (Nu f) f where
-  cata = flip hylo project
+  cata = flip Unsafe.hylo project
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
   (==) = recursiveEq
@@ -45,16 +45,16 @@ instance (Functor f, Show1 f) => Show (Nu f) where
   showsPrec = recursiveShowsPrec
 
 instance Recursive [a] (XNor a) where
-  cata = flip hylo project
+  cata = flip Unsafe.hylo project
 
 instance Recursive (NonEmpty a) (AndMaybe a) where
-  cata = flip hylo project
+  cata = flip Unsafe.hylo project
 
 instance Functor f => Recursive (Cofree f a) (EnvT a f) where
-  cata = flip hylo project
+  cata = flip Unsafe.hylo project
 
 instance Functor f => Recursive (Free f a) (FreeF f a) where
-  cata = flip hylo project
+  cata = flip Unsafe.hylo project
 
 -- TODO: If we can generalize this to an arbitrary 'Recursive t (FreeF h a)'
 --       then it would no longer be unsafe.

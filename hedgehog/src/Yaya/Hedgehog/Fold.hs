@@ -21,6 +21,12 @@ law_cataRefl
   :: (Eq t, Show t, Steppable t f, Recursive t f, MonadTest m) => t -> m ()
 law_cataRefl = uncurry (===) . (cata embed &&& id)
 
+-- | NB: Since this requires both a `Corecursive` and `Eq` instance on the same
+--       type, it _likely_ requires instances from yaya-unsafe.
+law_anaRefl
+  :: (Eq t, Show t, Steppable t f, Corecursive t f, MonadTest m) => t -> m ()
+law_anaRefl = uncurry (===) . (ana project &&& id)
+
 -- law_cataFusion
 --   :: (Eq a, Show a, Recursive t f, Functor f, MonadTest m)
 --   => (a -> a) -> Algebra f a -> f a -> t -> m ()

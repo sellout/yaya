@@ -1,5 +1,5 @@
 name:                yaya
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            Total recursion schemes.
 description:         Recursion schemes allow you to separate recursion from your
                      business logic – making your own operations simpler, more
@@ -15,7 +15,8 @@ license:             AGPL-3
 license-file:        LICENSE
 category:            Recursion
 build-type:          Simple
-extra-source-files:  README.md
+extra-source-files:  CHANGELOG.md
+                   , README.md
 cabal-version:       >=1.10
 
 library
@@ -24,6 +25,7 @@ library
                      , Yaya.Fold
                      , Yaya.Fold.Common
                      , Yaya.Fold.Native
+                     , Yaya.Functor
                      , Yaya.Retrofit
                      , Yaya.Applied
                      , Yaya.Zoo
@@ -64,8 +66,8 @@ test-suite yaya-test
   build-depends:       base
                      , deriving-compat
                      , hedgehog
-                     , yaya
-                     , yaya-hedgehog
+                     , yaya >= 0.1.0
+                     , yaya-hedgehog >= 0.1.0
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
   default-language:    Haskell2010
 

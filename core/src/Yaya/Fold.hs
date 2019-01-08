@@ -24,6 +24,7 @@ import Data.Void
 import Numeric.Natural
 
 import Yaya.Fold.Common
+import Yaya.Functor
 import Yaya.Pattern
 
 type Algebra f a = f a -> a
@@ -79,7 +80,6 @@ recursiveShowsPrec prec =
 -- | A fixed-point operator for inductive / finite data structures.
 data Mu f = Mu (forall a. Algebra f a -> a)
 
-
 instance Functor f => Projectable (Mu f) f where
   project = lambek
 
@@ -88,6 +88,9 @@ instance Functor f => Steppable (Mu f) f where
 
 instance Recursive (Mu f) f where
   cata φ (Mu f) = f φ
+
+instance DFunctor Mu where
+ dmap f (Mu fold) = Mu (\φ -> fold (φ . f))
 
 instance Show1 f => Show (Mu f) where
   showsPrec = recursiveShowsPrec
@@ -107,6 +110,9 @@ instance Functor f => Steppable (Nu f) f where
 
 instance Corecursive (Nu f) f where
   ana = Nu
+
+instance DFunctor Nu where
+  dmap f (Nu φ a) = Nu (f . φ) a
 
 instance Projectable [a] (XNor a) where
   project []      = Neither
@@ -309,6 +315,11 @@ attributeCoalgebra ψ = uncurry EnvT . (id &&& ψ)
 ignoringAttribute :: Algebra f a -> Algebra (EnvT b f) a
 ignoringAttribute φ = φ . lowerEnvT
 
+-- | It is somewhat common to have a natural transformation that looks like
+--  `η :: forall a. f a -> Free g a`. This maps naturally to a `GCoalgebra` (to
+--   pass to `apo`) with `η . project`, but the desired `Algebra` is more likely
+--   to be `cata unFree . η` than `embed . η`. See yaya-streams for some
+--   examples of this.
 unFree :: Steppable t f => Algebra (FreeF f t) t
 unFree = \case
   Pure t  -> t
@@ -317,7 +328,7 @@ unFree = \case
 -- preservingAttribute :: (forall a. f a -> g a) -> EnvT a f b -> EnvT a g b
 -- preservingAttribute = cohoist
 
--- instances for non-recursive types
+-- * instances for non-recursive types
 
 constEmbed :: Algebra (Const a) a
 constEmbed = getConst
@@ -355,30 +366,14 @@ instance Recursive (Maybe a) (Const (Maybe a)) where
 instance Corecursive (Maybe a) (Const (Maybe a)) where
   ana = constAna
 
--- | An endofunctor in the category of endofunctors.
-class HFunctor h where
-  hmap :: (forall a. f a -> g a) -> h f a -> h g a
-
-
--- | A functor from the category of endofunctors to *Hask*.
-class DFunctor d where
-  dmap :: (forall a. f a -> g a) -> d f -> d g
-
--- instance DFunctor Mu where
---   dmap f = cata (embed . f)
-
--- instance DFunctor Fix where
---   dmap f = ana (f . project)
-
--- instance DFunctor Nu where
---   dmap f = ana (f . project)
+-- * Optics
 
 type BialgebraIso f a = Iso' (f a) a
 type AlgebraPrism f a = Prism' (f a) a
 type CoalgebraPrism f a = Prism' a (f a)
 
-cursiveIso :: Steppable t f => BialgebraIso f t
-cursiveIso = iso embed project
+steppableIso :: Steppable t f => BialgebraIso f t
+steppableIso = iso embed project
 
 birecursiveIso
   :: (Recursive t f, Corecursive t f)

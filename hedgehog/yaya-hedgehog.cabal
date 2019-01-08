@@ -1,5 +1,5 @@
 name:                yaya-hedgehog
-version:             0.1.0.0
+version:             0.1.1.0
 synopsis:            Hedgehog testing support for the Yaya recursion scheme
                      library.
 description:         If you use Yaya in your own code and have tests written
@@ -13,7 +13,8 @@ license:             AGPL-3
 license-file:        LICENSE
 category:            Recursion
 build-type:          Simple
-extra-source-files:  README.md
+extra-source-files:  CHANGELOG.md
+                   , README.md
 cabal-version:       >=1.10
 
 library
@@ -23,7 +24,7 @@ library
   build-depends:       base >= 4.7 && < 5
                      , deriving-compat
                      , hedgehog
-                     , yaya
+                     , yaya >= 0.1.0
   default-extensions:  ConstraintKinds
                      , DeriveTraversable
                      , FlexibleContexts

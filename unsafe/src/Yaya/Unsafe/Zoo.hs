@@ -1,18 +1,18 @@
 module Yaya.Unsafe.Zoo where
 
-import Control.Arrow
-import Control.Comonad.Cofree
-import Control.Comonad.Env
-import Control.Monad.Trans.Free
-import Data.Functor.Compose
-import Data.Functor.Identity
-import Data.Bitraversable
+import           Control.Arrow
+import           Control.Comonad.Cofree
+import           Control.Comonad.Env
+import           Control.Monad.Trans.Free
+import           Data.Functor.Compose
+import           Data.Functor.Identity
+import           Data.Bitraversable
 
-import Yaya.Fold
-import Yaya.Fold.Native
-import Yaya.Pattern
-import Yaya.Unsafe.Fold
-import Yaya.Unsafe.Fold.Instances -- NB: extremely unsafe
+import           Yaya.Fold
+import           Yaya.Fold.Native
+import           Yaya.Pattern
+import qualified Yaya.Unsafe.Fold as Unsafe
+import qualified Yaya.Unsafe.Fold.Instances as Unsafe -- NB: extremely unsafe
 
 chrono
   :: Functor f
@@ -20,28 +20,28 @@ chrono
   -> GCoalgebra (Free f) f a
   -> a
   -> b
-chrono = ghylo (distCofreeT id) (seqFreeT id)
+chrono = Unsafe.ghylo (distCofreeT id) (Unsafe.seqFreeT id)
 
 codyna :: Functor f => Algebra f b -> GCoalgebra (Free f) f a -> a -> b
-codyna φ = ghylo distIdentity (seqFreeT id) (φ . fmap runIdentity)
+codyna φ = Unsafe.ghylo distIdentity (Unsafe.seqFreeT id) (φ . fmap runIdentity)
 
 -- | [Recursion Schemes for Dynamic Programming](https://www.researchgate.net/publication/221440162_Recursion_Schemes_for_Dynamic_Programming)
 dyna :: Functor f => GAlgebra (Cofree f) f b -> Coalgebra f a -> a -> b
-dyna φ ψ = ghylo (distCofreeT id) seqIdentity φ (fmap Identity . ψ)
+dyna φ ψ = Unsafe.ghylo (distCofreeT id) seqIdentity φ (fmap Identity . ψ)
 
 -- | Unlike most 'hylo's, 'elgot' composes an algebra and coalgebra in a way
 --   that allows information to move between them. The coalgebra can return,
 --   effectively, a pre-folded branch, short-circuiting parts of the process.
 elgot :: Functor f => Algebra f b -> ElgotCoalgebra (Either b) f a -> a -> b
-elgot φ ψ = hylo ((id ||| φ) . getCompose) (Compose . ψ)
+elgot φ ψ = Unsafe.hylo ((id ||| φ) . getCompose) (Compose . ψ)
 
 -- | The dual of 'elgot', 'coelgot' allows the _algebra_ to short-circuit in
 --   some cases – operating directly on a part of the seed.
 coelgot :: Functor f => ElgotAlgebra ((,) a) f b -> Coalgebra f a -> a -> b
-coelgot φ ψ = hylo (φ . getCompose) (Compose . (id &&& ψ))
+coelgot φ ψ = Unsafe.hylo (φ . getCompose) (Compose . (id &&& ψ))
 
 futu :: (Corecursive t f, Functor f) => GCoalgebra (Free f) f a -> a -> t
-futu = gana (seqFreeT id)
+futu = gana (Unsafe.seqFreeT id)
 
 gprepro
   :: (Steppable t f, Recursive t f, Functor f, Comonad w)
@@ -50,7 +50,8 @@ gprepro
   -> (forall a. f a -> f a)
   -> t
   -> a
-gprepro k φ e = ghylo k seqIdentity φ (fmap (Identity . cata (embed . e)) . project)
+gprepro k φ e =
+  Unsafe.ghylo k seqIdentity φ (fmap (Identity . cata (embed . e)) . project)
 
 gpostpro
   :: (Steppable t f, Corecursive t f, Functor f, Monad m)
@@ -59,7 +60,8 @@ gpostpro
   -> GCoalgebra m f a
   -> a
   -> t
-gpostpro k e = ghylo distIdentity k (embed . fmap (ana (e . project) . runIdentity))
+gpostpro k e =
+  Unsafe.ghylo distIdentity k (embed . fmap (ana (e . project) . runIdentity))
 
 -- | The metamorphism definition from Gibbons’ paper.
 stream :: Coalgebra (XNor c) b -> (b -> a -> b) -> b -> [a] -> [c]
@@ -74,13 +76,15 @@ fstream
   -> b
   -> [a]
   -> [c]
-fstream f g h = streamGApo h
-                           (\b -> case f b of
-                                    Neither -> Nothing
-                                    other   -> Just other)
-                           (\case
-                               Neither   -> Nothing
-                               Both a x' -> Just (flip g a, x'))
+fstream f g h =
+  Unsafe.streamGApo
+  h
+  (\b -> case f b of
+           Neither -> Nothing
+           other   -> Just other)
+  (\case
+      Neither   -> Nothing
+      Both a x' -> Just (flip g a, x'))
 
 -- snoc :: [a] -> a -> [a]
 -- snoc x a = x ++ [a]
@@ -99,7 +103,7 @@ cotraverse
   => (a -> m b)
   -> t
   -> m u
-cotraverse f = anaM (bitraverse f pure . project)
+cotraverse f = Unsafe.anaM (bitraverse f pure . project)
 
 -- | Zygohistomorphic prepromorphism – everyone’s favorite recursion scheme joke.
 zygoHistoPrepro
