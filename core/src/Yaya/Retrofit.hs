@@ -5,10 +5,10 @@ module Yaya.Retrofit
   ) where
 
 import Yaya.Fold
-       ( Corecursive
-       , Projectable
-       , Recursive
+       ( Corecursive (..)
+       , Projectable (..)
+       , Recursive (..)
        , recursiveEq
        , recursiveShowsPrec
-       , Steppable
+       , Steppable (..)
        )
