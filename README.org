@@ -1,0 +1,46 @@
+This branch contains a project with the structure
+
+#+begin_src dot :file dependencies.png
+digraph "" {
+  rankdir=BT
+
+  subgraph "cluster_top" {
+    label=top
+
+    tlibrary [label=library]
+    "top-test" -> tlibrary
+  }
+
+  subgraph "cluster_meddler" {
+    label=meddler
+
+    mlibrary [label=library]
+  }
+
+  "top-test" -> mlibrary -> tlibrary
+}
+#+end_src
+
+#+RESULTS:
+[[file:dependencies.png]]
+
+There is no cycle at the target level, but there is one at the package level.
+
+Running ~stack test~ on  this project with GHC 8.0.2 succeeds, but building it with GHC 8.2.1 fails with the following error:
+
+#+begin_src text
+    top/test/test.hs:5:21: error:
+        • Couldn't match expected type ‘Meh’
+                      with actual type ‘top-0.1.0.0:Top.Meh’
+          NB: ‘top-0.1.0.0:Top.Meh’
+                is defined in ‘Top’ in package ‘top-0.1.0.0’
+              ‘Meh’ is defined in ‘Top’ in package ‘top-0.1.0.0’
+        • In the first argument of ‘unMeh’, namely ‘simpleMeh’
+          In the first argument of ‘print’, namely ‘(unMeh simpleMeh)’
+          In the expression: print (unMeh simpleMeh)
+      |
+    5 | main = print (unMeh simpleMeh)
+      |                     ^^^^^^^^^
+#+end_src
+
+The error itself seems to be saying “these are the same type”, yet it thinks they’re different types.
