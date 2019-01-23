@@ -15,7 +15,7 @@ test-suite top-test
   hs-source-dirs:      test
   main-is:             test.hs
   build-depends:       base
-                     , yaya-hedgehog
+                     , top-meddler
                      , top
   ghc-options:         -Wall
   default-language:    Haskell2010
