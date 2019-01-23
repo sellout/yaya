@@ -21,12 +21,11 @@ digraph "" {
 }
 #+end_src
 
-#+RESULTS:
 [[file:dependencies.png]]
 
-There is no cycle at the target level, but there is one at the package level.
+There is no cycle at the target level, but there is one at the cabal package level.
 
-Running ~stack test~ on  this project with GHC 8.0.2 succeeds, but building it with GHC 8.2.1 fails with the following error:
+Running ~stack test~ on  this project with GHC 8.0.2 (and Cabal 1.24.2.0) succeeds, but building it with GHC 8.2.1 (and Cabal 2.0.0.2) fails with the following error:
 
 #+begin_src text
     top/test/test.hs:5:21: error:
