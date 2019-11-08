@@ -13,6 +13,8 @@ import Numeric.Natural
 import Yaya.Fold
 import Yaya.Pattern
 
+-- | A fixed-point constructor that uses Haskell's built-in recursion. This is
+--   lazy/corecursive.
 newtype Fix f = Fix { unFix :: f (Fix f) }
 
 instance Projectable (Fix f) f where

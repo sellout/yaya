@@ -39,14 +39,14 @@ height = foldr (max . succN) zeroN
 naturals :: (Steppable n Maybe, Corecursive t ((,) n)) => t
 naturals = ana (unarySequence succN) zeroN
 
--- | Extracts _no more than_ `n` elements from the possibly-infinite sequence
---  `s`.
+-- | Extracts _no more than_ @n@ elements from the possibly-infinite sequence
+--  @s@.
 takeUpTo
   :: (Recursive n Maybe, Projectable s (XNor a), Steppable l (XNor a))
   => n -> s -> l
 takeUpTo = cata (lowerDay (embed . takeAvailable))
 
--- | Extracts _exactly_ `n` elements from the infinite stream `s`.
+-- | Extracts _exactly_ @n@ elements from the infinite stream @s@.
 take
   :: (Recursive n Maybe, Projectable s ((,) a), Steppable l (XNor a))
   => n -> s -> l
@@ -95,7 +95,7 @@ constantly = ana split
 
 -- | Lops off the branches of the tree below a certain depth, turning a
 --   potentially-infinite structure into a finite one. Like a generalized
---  'take'.
+--  `Yaya.Applied.take`.
 truncate
   :: (Recursive n Maybe, Projectable t f, Steppable u (FreeF f ()), Functor f)
   => n -> t -> u

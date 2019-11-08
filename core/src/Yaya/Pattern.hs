@@ -1,3 +1,6 @@
+{-# LANGUAGE StrictData #-}
+
+-- | Common pattern functors (and instances for them).
 module Yaya.Pattern where
 
 import Control.Applicative
@@ -18,7 +21,7 @@ import Data.Void
 import Numeric.Natural
 
 -- | Isomorphic to 'Maybe (a, b)', it’s also the pattern functor for lists.
-data XNor a b = Neither | Both a b deriving (Functor, Foldable, Traversable)
+data XNor a b = Neither | Both ~a b deriving (Functor, Foldable, Traversable)
 
 instance Bifunctor XNor where
   bimap f g = \case
@@ -27,7 +30,8 @@ instance Bifunctor XNor where
 
 -- | Isomorphic to `(a, Maybe b)`, it’s also the pattern functor for non-empty
 --   lists.
-data AndMaybe a b = Only a | Indeed a b deriving (Functor, Foldable, Traversable)
+data AndMaybe a b = Only a | Indeed ~a b
+  deriving (Functor, Foldable, Traversable)
 
 instance Bifunctor AndMaybe where
   bimap f g = \case

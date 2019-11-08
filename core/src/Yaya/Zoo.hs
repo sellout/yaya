@@ -35,7 +35,7 @@ cataM :: (Monad m, Recursive t f, Traversable f) => AlgebraM m f a -> t -> m a
 cataM φ = cata (φ <=< sequenceA)
 
 -- | A recursion scheme that allows to algebras to see each others’ results. (A
---   generalization of 'zygo'.) This is an example that falls outside the scope
+--   generalization of `zygo`.) This is an example that falls outside the scope
 --   of “comonadic folds”, but _would_ be covered by “adjoint folds”.
 mutu
   :: (Recursive t f, Functor f)
@@ -103,7 +103,7 @@ histo :: (Recursive t f, Functor f) => GAlgebra (Cofree f) f a -> t -> a
 histo = gcata (distCofreeT id)
 
 -- | A recursion scheme that gives you access to the original structure as you
---   fold. (A specialization of 'zygo'.)
+--   fold. (A specialization of `zygo`.)
 para
   :: (Steppable t f, Recursive t f, Functor f)
   => GAlgebra ((,) t) f a
@@ -112,8 +112,8 @@ para
 para = gcata (distTuple embed)
 
 -- | A recursion scheme that uses a “helper algebra” to provide additional
---   information when folding. (A generalization of 'para', and specialization
---   of 'mutu'.)
+--   information when folding. (A generalization of `para`, and specialization
+--   of `mutu`.)
 zygo
   :: (Recursive t f, Functor f)
   => Algebra f b
@@ -124,7 +124,7 @@ zygo φ = gcata (distTuple φ)
 
 -- | This definition is different from the one given by `gcataM (distTuple φ')`
 --   because it has a monadic “helper” algebra. But at least it gives us the
---   opportunity to show how 'zygo' is a specialization of 'mutu'.
+--   opportunity to show how `zygo` is a specialization of `mutu`.
 zygoM
   :: (Monad m, Recursive t f, Traversable f)
   => AlgebraM m f b
@@ -133,7 +133,7 @@ zygoM
   -> m a
 zygoM φ' φ = mutuM (φ' . fmap snd) φ
 
--- | Potentially-infinite lists, like 'Data.List'.
+-- | Potentially-infinite lists, like `[]`.
 type Colist a = Nu (XNor a)
 
 -- | Finite lists.
@@ -145,12 +145,12 @@ type NonEmptyList a = Mu (AndMaybe a)
 -- | Finite natural numbers.
 type Nat = Mu Maybe
 
--- | Represents partial functions that may eventually return a value ('Left').
+-- | Represents partial functions that may eventually return a value (`Left`).
 -- NB: This is a newtype so we can create the usual instances.
 newtype Partial a = Partial { fromPartial :: Nu (Either a) }
 
--- TODO: There may be some way to do this over an arbitrary 'newtype', or at
---       least a way to do it over an arbitrary 'Iso'.
+-- TODO: There may be some way to do this over an arbitrary @newtype@, or at
+--       least a way to do it over an arbitrary `Iso`.
 insidePartial :: (Nu (Either a) -> Nu (Either b)) -> Partial a -> Partial b
 insidePartial f = Partial . f . fromPartial
 
@@ -171,16 +171,16 @@ instance Monad Partial where
         insidePartial
         $ elgotAna (seqEither project) ((fromPartial +++ Right) . project)
 
--- | Always-infinite streams (as opposed to 'Colist', which _may_ terminate).
+-- | Always-infinite streams (as opposed to `Colist`, which _may_ terminate).
 type Stream a = Nu ((,) a)
 
--- | A more general implementation of 'fmap', because it can also work to, from,
+-- | A more general implementation of `fmap`, because it can also work to, from,
 --   or within monomorphic structures, obviating the need for classes like
---  'MonoFunctor'.
+--  `Data.MonoTraversable.MonoFunctor`.
 map :: (Recursive t (f a), Steppable u (f b), Bifunctor f) => (a -> b) -> t -> u
 map f = cata (embed . first f)
 
--- | A version of `map` that applies to Corecursive structures.
+-- | A version of `Yaya.Zoo.map` that applies to Corecursive structures.
 comap
   :: (Projectable t (f a), Corecursive u (f b), Bifunctor f)
   => (a -> b)
@@ -188,10 +188,10 @@ comap
   -> u
 comap f = ana (first f . project)
 
--- | A more general implementation of 'traverse', because it can also work to,
---   from, or within monomorphic structures, obviating the need for classes like
---  'MonoTraversable'.
--- TODO: Weaken the 'Monad' constraint to 'Applicative'.
+-- TODO: Weaken the `Monad` constraint to `Applicative`.
+-- | A more general implementation of `Data.Traversable.traverse`, because it
+--   can also work to, from, or within monomorphic structures, obviating the
+--   need for classes like `Data.MonoTraversable.MonoTraversable`.
 traverse
   :: ( Recursive t (f a)
      , Steppable u (f b)
@@ -203,8 +203,8 @@ traverse
   -> m u
 traverse f = cata (fmap embed . bitraverse f pure <=< sequenceA)
 
--- | A more general implementation of 'contramap', because it can also work to,
---   from, or within monomorphic structures.
+-- | A more general implementation of `Data.Functor.contramap`, because it can
+--   also work to, from, or within monomorphic structures.
 contramap
   :: (Recursive t (f b), Steppable u (f a), Profunctor f)
   => (a -> b)

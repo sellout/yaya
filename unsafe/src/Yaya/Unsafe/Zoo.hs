@@ -29,13 +29,13 @@ codyna φ = Unsafe.ghylo distIdentity (Unsafe.seqFreeT id) (φ . fmap runIdentit
 dyna :: Functor f => GAlgebra (Cofree f) f b -> Coalgebra f a -> a -> b
 dyna φ ψ = Unsafe.ghylo (distCofreeT id) seqIdentity φ (fmap Identity . ψ)
 
--- | Unlike most 'hylo's, 'elgot' composes an algebra and coalgebra in a way
---   that allows information to move between them. The coalgebra can return,
+-- | Unlike most `Unsafe.hylo`s, `elgot` composes an algebra and coalgebra in a
+--   way that allows information to move between them. The coalgebra can return,
 --   effectively, a pre-folded branch, short-circuiting parts of the process.
 elgot :: Functor f => Algebra f b -> ElgotCoalgebra (Either b) f a -> a -> b
 elgot φ ψ = Unsafe.hylo ((id ||| φ) . getCompose) (Compose . ψ)
 
--- | The dual of 'elgot', 'coelgot' allows the _algebra_ to short-circuit in
+-- | The dual of `elgot`, `coelgot` allows the /algebra/ to short-circuit in
 --   some cases – operating directly on a part of the seed.
 coelgot :: Functor f => ElgotAlgebra ((,) a) f b -> Coalgebra f a -> a -> b
 coelgot φ ψ = Unsafe.hylo (φ . getCompose) (Compose . (id &&& ψ))
@@ -67,8 +67,8 @@ gpostpro k e =
 stream :: Coalgebra (XNor c) b -> (b -> a -> b) -> b -> [a] -> [c]
 stream f g = fstream f g (const Neither)
 
--- | Basically the definition from Gibbons’ paper, except the flusher (`h`) is a
---  'Coalgebra' instead of an 'unfold'.
+-- | Basically the definition from Gibbons’ paper, except the flusher (@h@) is a
+--  `Coalgebra` instead of an `unfold`.
 fstream
   :: Coalgebra (XNor c) b
   -> (b -> a -> b)
@@ -92,7 +92,7 @@ fstream f g h =
 -- x :: [Int]
 -- x = stream project snoc [] [1, 2, 3, 4, 5]
 
--- TODO: Weaken 'Monad' constraint to 'Applicative'.
+-- TODO: Weaken `Monad` constraint to `Applicative`.
 cotraverse
   :: ( Steppable t (f a)
      , Steppable u (f b)

@@ -14,23 +14,25 @@ import Numeric.Natural
 
 import Yaya.Pattern
 
--- | Converts the free monoid (a list) into some other monoid.
+-- | Converts the free monoid (a list) into some other `Monoid`.
 lowerMonoid :: Monoid m => (a -> m) -> XNor a m -> m
 lowerMonoid f = \case
   Neither  -> mempty
   Both a b -> mappend (f a) b
 
--- | Converts the free semigroup (a non-empty list) into some other semigroup.
+-- | Converts the free semigroup (a non-empty list) into some other `Semigroup`.
 lowerSemigroup :: Semigroup m => (a -> m) -> AndMaybe a m -> m
 lowerSemigroup f = \case
   Only a     -> f a
   Indeed a b -> f a <> b
 
+-- | Converts the free monad into some other `Monad`.
 lowerMonad :: Monad m => (forall a. f a -> m a) -> FreeF f a (m a) -> m a
 lowerMonad f = \case
   Pure a  -> pure a
   Free fm -> join (f fm)
 
+-- | Provides equality over arbitrary pattern functors.
 equal :: (Functor f, Foldable f, Eq1 f) => Day f f Bool -> Bool
 equal (Day f1 f2 fn) =
   liftEq (==) (void f1) (void f2)
@@ -48,6 +50,8 @@ height = (+ 1) . foldr max (-1)
 size :: Foldable f => f Natural -> Natural
 size = foldr (+) 1
 
+-- | Converts a provably infinite structure into a `Yaya.Zoo.Partial` one (that
+--   will never terminate).
 toRight :: Identity b -> Either a b
 toRight = Right . runIdentity
 
@@ -55,11 +59,14 @@ toRight = Right . runIdentity
 while :: (a -> Maybe a) -> a -> Either a a
 while f a = maybe (Left a) Right $ f a
 
+-- | Collapses a `Yaya.Zoo.Partial` structure to a value (probably requiring
+--   unsafe instances).
 fromEither :: Either a a -> a
 fromEither = \case
   Left a  -> a
   Right a -> a
 
+-- | Generates an infinite structure from an arbitrary seed.
 never :: a -> Identity a
 never = Identity
 

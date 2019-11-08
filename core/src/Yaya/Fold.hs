@@ -37,9 +37,9 @@ type ElgotAlgebraM m w f a = w (f a) -> m a
 type Coalgebra f a = a -> f a
 type GCoalgebra m f a = a -> f (m a)
 type ElgotCoalgebra m f a = a -> m (f a)
--- | Note that using a `CoalgebraM` “directly” is partial (e.g., with `anaM`).
---   However, `ana . Compose` can accept a `CoalgebraM` and produce something
---   like an effectful stream.
+-- | Note that using a `CoalgebraM` “directly” is partial (e.g., with
+--  `Yaya.Unsafe.Fold.anaM`). However, @ana . Compose@ can accept a `CoalgebraM`
+--   and produce something like an effectful stream.
 type CoalgebraM m f a = a -> m (f a)
 type GCoalgebraM m n f a = a -> m (f (n a))
 
@@ -177,7 +177,7 @@ lowerDay φ fta t = φ (Day fta (project t) ($))
 cata2 :: (Recursive t f, Projectable u g) => Algebra (Day f g) a -> t -> u -> a
 cata2 = cata . lowerDay
 
--- | Makes it possible to provide a 'GAlgebra' to 'cata'.
+-- | Makes it possible to provide a `GAlgebra` to `cata`.
 lowerAlgebra
   :: (Functor f, Comonad w)
   => DistributiveLaw f w
@@ -185,7 +185,7 @@ lowerAlgebra
   -> Algebra f (w a)
 lowerAlgebra k φ = fmap φ . k . fmap duplicate
 
--- | Makes it possible to provide a 'GAlgebraM' to 'cataM'.
+-- | Makes it possible to provide a `GAlgebraM` to `Yaya.Zoo.cataM`.
 lowerAlgebraM
   :: (Applicative m, Traversable f, Comonad w, Traversable w)
   => DistributiveLaw f w
@@ -193,7 +193,7 @@ lowerAlgebraM
   -> AlgebraM m f (w a)
 lowerAlgebraM k φ = traverse φ . k . fmap duplicate
 
--- | Makes it possible to provide a 'GCoalgebra' to 'ana'.
+-- | Makes it possible to provide a `GCoalgebra` to `ana`.
 lowerCoalgebra
   :: (Functor f, Monad m)
   => DistributiveLaw m f
@@ -201,7 +201,7 @@ lowerCoalgebra
   -> Coalgebra f (m a)
 lowerCoalgebra k ψ = fmap join . k . fmap ψ
 
--- | Makes it possible to provide a 'GCoalgebraM' to 'anaM'.
+-- | Makes it possible to provide a `GCoalgebraM` to `Yaya.Unsafe.Fold.anaM`.
 lowerCoalgebraM
   :: (Applicative m, Traversable f, Monad n, Traversable n)
   => DistributiveLaw n f
@@ -320,10 +320,10 @@ ignoringAttribute :: Algebra f a -> Algebra (EnvT b f) a
 ignoringAttribute φ = φ . lowerEnvT
 
 -- | It is somewhat common to have a natural transformation that looks like
---  `η :: forall a. f a -> Free g a`. This maps naturally to a `GCoalgebra` (to
---   pass to `apo`) with `η . project`, but the desired `Algebra` is more likely
---   to be `cata unFree . η` than `embed . η`. See yaya-streams for some
---   examples of this.
+--  @η :: forall a. f a -> Free g a@. This maps naturally to a `GCoalgebra` (to
+--   pass to `Yaya.Zoo.apo`) with @η . project@, but the desired `Algebra` is
+--   more likely to be @cata unFree . η@ than @embed . η@. See yaya-streams for
+--   some examples of this.
 unFree :: Steppable t f => Algebra (FreeF f t) t
 unFree = \case
   Pure t  -> t

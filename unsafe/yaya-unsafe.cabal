@@ -1,5 +1,5 @@
 name:                yaya-unsafe
-version:             0.1.1.1
+version:             0.1.1.2
 synopsis:            Non-total extensions to the Yaya recursion scheme library.
 description:         Yaya is designed as a _total_ library. However, it is often
                      expedient to use partial operations in some cases, and this

@@ -43,25 +43,28 @@ law_cataCompose _ φ ε =
   uncurry (===) . (cata φ . cata (embed . ε :: f u -> u) &&& cata (φ . ε))
 
 -- | Creates a generator for any `Steppable` type whose pattern functor has
---   terminal cases (e.g., not `Identity` or `((,) a)`). `leaf` can only
---   generate terminal cases, and `any` can generate any case. If the provided
---  `any` generates terminal cases, then the resulting tree may have a height
---   less than the `Size`, otherwise it will be a perfect tree with a height of
---   exactly the provided `Size`.
+--   terminal cases (e.g., not `Data.Functor.Identity` or `((,) a)`). @leaf@ can
+--   only generate terminal cases, and `any` can generate any case. If the
+--   provided `any` generates terminal cases, then the resulting tree may have a
+--   height less than the `Size`, otherwise it will be a perfect tree with a
+--   height of exactly the provided `Size`.
 --
 --   This is similar to `Gen.recursive` in that it separates the non-recursive
 --   cases from the recursive ones, except
--- • the types here also ensure that the non-recursive cases aren’t recursive,
--- • different generator distributions may be used for rec & non-rec cases, and
--- • the non-recursive cases aren’t included in recursive calls (see above for
+--
+-- * the types here also ensure that the non-recursive cases aren’t recursive,
+--
+-- * different generator distributions may be used for rec & non-rec cases, and
+--
+-- * the non-recursive cases aren’t included in recursive calls (see above for
 --   why).
 --
---   If there’s no existing `Gen (f Void)` for your pattern functor, you can
+--   If there’s no existing @Gen (f Void)@ for your pattern functor, you can
 --   either create one manually, or pass `Hedgehog.Gen.discard` to the usual
---  `Gen a -> Gen (f a)` generator.
+--  @Gen a -> Gen (f a)@ generator.
 --
---  *NB*: Hedgehog’s `Size` is signed, so this can raise an exception if given a
---        negative `Size`.
+--  NB: Hedgehog’s `Size` is signed, so this can raise an exception if given a
+--      negative `Size`.
 embeddableOfHeight
   :: (Steppable t f, Functor f)
   => Gen (f Void) -> (Gen t -> Gen (f t)) -> Size -> Gen t
