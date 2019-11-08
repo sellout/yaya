@@ -1,6 +1,7 @@
 name:                yaya-test
-version:             0.2.1.1
+version:             0.2.1.2
 synopsis:            Test suites for `yaya`.
+description:         This package should not be depended on by anything.
 homepage:            https://github.com/sellout/yaya#readme
 author:              Greg Pfeil
 maintainer:          greg@technomadic.org
@@ -18,7 +19,7 @@ test-suite yaya-test
   other-modules:       Test.Fold
                      , Test.Fold.Common
                      , Test.Retrofit
-  build-depends:       base
+  build-depends:       base >= 4.7 && < 5
                      , deriving-compat
                      , hedgehog
                      , yaya >= 0.1.0

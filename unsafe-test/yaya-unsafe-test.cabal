@@ -1,6 +1,7 @@
 name:                yaya-unsafe-test
-version:             0.1.1.1
+version:             0.1.1.2
 synopsis:            Test suites for `yaya-unsafe`.
+description:         This package should not be depended on by anything.
 homepage:            https://github.com/sellout/yaya#readme
 author:              Greg Pfeil
 maintainer:          greg@technomadic.org
@@ -16,7 +17,7 @@ test-suite yaya-unsafe-test
   hs-source-dirs:      test
   main-is:             test.hs
   other-modules:       Test.Fold
-  build-depends:       base
+  build-depends:       base >= 4.7 && < 5
                      , hedgehog
                      , yaya >= 0.1.0
                      , yaya-hedgehog >= 0.1.2
