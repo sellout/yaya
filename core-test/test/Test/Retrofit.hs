@@ -1,6 +1,10 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 -- | The point of this module is that it should compile _without_ importing any
 --   other Yaya modules.
 module Test.Retrofit where
+
+import           Hedgehog
 
 import qualified Yaya.Hedgehog.Expr as ExprF
 import           Yaya.Retrofit
@@ -39,3 +43,6 @@ instance Eq DExpr where
 --   if necessary.
 instance Show DExpr where
   showsPrec = recursiveShowsPrec
+
+tests :: IO Bool
+tests = checkParallel $$(discover)

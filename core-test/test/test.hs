@@ -4,7 +4,7 @@ import           System.IO (BufferMode(..), hSetBuffering, stdout, stderr)
 
 import qualified Test.Fold as Fold
 import qualified Test.Fold.Common as Fold.Common
-import qualified Test.Fold.Retrofit as Fold.Retrofit
+import qualified Test.Retrofit as Retrofit
 
 main :: IO ()
 main = do
@@ -13,7 +13,7 @@ main = do
 
   results <- sequence [ Fold.tests
                       , Fold.Common.tests
-                      , Fold.Retrofit.tests
+                      , Retrofit.tests
                       ]
 
   unless (and results) exitFailure

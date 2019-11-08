@@ -78,6 +78,10 @@ recursiveShowsPrec prec =
   cata (showParen True . liftShowsPrec (const id) (foldMap id) prec)
 
 -- | A fixed-point operator for inductive / finite data structures.
+--
+--  *NB*: This is only guaranteed to be finite when @f a@ is strict in @a@
+--       (having strict functors won't prevent `Nu` from being lazy). Using
+--       @-XStrictData@ can help with this a lot.
 data Mu f = Mu (forall a. Algebra f a -> a)
 
 instance Functor f => Projectable (Mu f) f where

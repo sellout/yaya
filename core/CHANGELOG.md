@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## 0.2.1.1 – 2019–11–08
+### Added
+- documentation explaining limitations of `Mu`
+- tests for `law_cataCompose` (which bumps the yaya-hedgehog dependency for tests)
+
 ## 0.2.1.0 – 2019–01–08
 ### Added
 - exports of type class methods via `Yaya.Retrofit`

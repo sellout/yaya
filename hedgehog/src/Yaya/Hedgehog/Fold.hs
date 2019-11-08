@@ -5,6 +5,7 @@
 module Yaya.Hedgehog.Fold where
 
 import           Control.Arrow
+import           Data.Proxy
 import           Data.Void
 import           Hedgehog
 import           Numeric.Natural
@@ -34,11 +35,12 @@ law_anaRefl = uncurry (===) . (ana project &&& id)
 --       uncurry (==) ((f . φ &&& φ . fmap f) fa)
 --   ==> uncurry (===) ((f . cata φ &&& cata φ) t)
 
--- law_cataCompose
---   :: (Eq b, Show b, Recursive t f, Steppable u g, Recursive u g, MonadTest m)
---   => Algebra g b -> (forall a. f a -> g a) -> t -> m ()
--- law_cataCompose φ ε =
---   uncurry (===) . (cata φ . cata (embed . ε) &&& cata (φ . ε))
+law_cataCompose
+  :: forall t f u g m b
+   . (Eq b, Show b, Recursive t f, Steppable u g, Recursive u g, MonadTest m)
+  => Proxy u -> Algebra g b -> (forall a. f a -> g a) -> t -> m ()
+law_cataCompose _ φ ε =
+  uncurry (===) . (cata φ . cata (embed . ε :: f u -> u) &&& cata (φ . ε))
 
 -- | Creates a generator for any `Steppable` type whose pattern functor has
 --   terminal cases (e.g., not `Identity` or `((,) a)`). `leaf` can only

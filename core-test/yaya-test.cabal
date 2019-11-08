@@ -1,0 +1,33 @@
+name:                yaya-test
+version:             0.2.1.1
+synopsis:            Test suites for `yaya`.
+homepage:            https://github.com/sellout/yaya#readme
+author:              Greg Pfeil
+maintainer:          greg@technomadic.org
+copyright:           2017 Greg Pfeil
+license:             AGPL-3
+license-file:        LICENSE
+category:            Recursion
+build-type:          Simple
+cabal-version:       >=1.10
+
+test-suite yaya-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             test.hs
+  other-modules:       Test.Fold
+                     , Test.Fold.Common
+                     , Test.Retrofit
+  build-depends:       base
+                     , deriving-compat
+                     , hedgehog
+                     , yaya >= 0.1.0
+                     , yaya-hedgehog >= 0.1.2
+  default-extensions:  LambdaCase
+                     , MultiParamTypeClasses
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/sellout/yaya
