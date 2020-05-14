@@ -8,11 +8,9 @@ import Control.Arrow hiding (first)
 import Control.Comonad.Cofree
 import Control.Comonad.Env
 import Control.Monad
-import Control.Monad.Trans.Free
 import Data.Bifunctor
 import Data.Bitraversable
 import Data.Either.Combinators
-import Data.Function
 import Data.Profunctor
 import Data.Tuple
 
@@ -165,9 +163,9 @@ instance Applicative Partial where
                ((fromPartial . flip fmap fa +++ Right) . project)
 
 instance Monad Partial where
-  pa >>= f = join (fmap f pa)
+  pa >>= f = join' (fmap f pa)
     where
-      join =
+      join' =
         insidePartial
         $ elgotAna (seqEither project) ((fromPartial +++ Right) . project)
 

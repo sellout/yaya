@@ -1,3 +1,5 @@
+{-# options_ghc -Wno-orphans #-}
+
 -- | Uses of recursion schemes that use Haskell’s built-in recursion in a total
 --   manner.
 module Yaya.Fold.Native where

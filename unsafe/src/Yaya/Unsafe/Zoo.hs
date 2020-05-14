@@ -47,7 +47,7 @@ gprepro
   :: (Steppable t f, Recursive t f, Functor f, Comonad w)
   => DistributiveLaw f w
   -> GAlgebra w f a
-  -> (forall a. f a -> f a)
+  -> (forall x. f x -> f x)
   -> t
   -> a
 gprepro k φ e =
@@ -56,7 +56,7 @@ gprepro k φ e =
 gpostpro
   :: (Steppable t f, Corecursive t f, Functor f, Monad m)
   => DistributiveLaw m f
-  -> (forall a. f a -> f a)
+  -> (forall x. f x -> f x)
   -> GCoalgebra m f a
   -> a
   -> t

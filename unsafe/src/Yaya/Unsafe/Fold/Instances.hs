@@ -1,3 +1,5 @@
+{-# options_ghc -Wno-orphans #-}
+
 -- | Type class instances that use direct recursion in a potentially partial
 --   way. This is separated from the rest of `Yaya.Unsafe.Fold` because you can
 --   neither control nor qualify the import of instances. Therefore this module
@@ -9,11 +11,8 @@
 --   to terminate.
 module Yaya.Unsafe.Fold.Instances where
 
-import           Control.Arrow
-import           Control.Comonad
 import           Control.Comonad.Cofree
 import           Control.Comonad.Env
-import           Control.Monad
 import           Control.Monad.Trans.Free
 import           Data.Functor.Classes
 import           Data.List.NonEmpty

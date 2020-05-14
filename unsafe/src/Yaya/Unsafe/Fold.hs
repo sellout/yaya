@@ -4,15 +4,9 @@ module Yaya.Unsafe.Fold where
 
 import Control.Arrow
 import Control.Comonad
-import Control.Comonad.Cofree
-import Control.Comonad.Env
 import Control.Lens
 import Control.Monad
-import Control.Monad.Trans.Free
-import Data.Either.Combinators
-import Data.Function
 import Data.Functor.Compose
-import Data.Functor.Identity
 
 import Yaya.Fold
 
@@ -84,7 +78,7 @@ streamAna
   -> AlgebraM ((,) (b -> b)) f t
   -> b
   -> t -> u
-streamAna ψ φ = stream' ψ (\c f -> f . φ)
+streamAna ψ φ = stream' ψ (\_ f -> f . φ)
 
 -- | Another form of Gibbons’ metamorphism. This one can be applied to non-
 --   infinite inputs and takes an additional “flushing” coalgebra to be applied

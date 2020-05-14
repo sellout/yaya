@@ -11,7 +11,7 @@ import           Hedgehog
 import           Numeric.Natural
 
 import           Yaya.Fold
-import           Yaya.Fold.Native
+import           Yaya.Fold.Native ()
 
 law_cataCancel
   :: (Eq a, Show a, Steppable t f, Recursive t f, Functor f, MonadTest m)
@@ -44,10 +44,10 @@ law_cataCompose _ φ ε =
 
 -- | Creates a generator for any `Steppable` type whose pattern functor has
 --   terminal cases (e.g., not `Data.Functor.Identity` or `((,) a)`). @leaf@ can
---   only generate terminal cases, and `any` can generate any case. If the
---   provided `any` generates terminal cases, then the resulting tree may have a
---   height less than the `Size`, otherwise it will be a perfect tree with a
---   height of exactly the provided `Size`.
+--   only generate terminal cases, and `branch` can generate any case. If the
+--   provided `branch` generates terminal cases, then the resulting tree may
+--   have a height less than the `Size`, otherwise it will be a perfect tree
+--   with a height of exactly the provided `Size`.
 --
 --   This is similar to `Gen.recursive` in that it separates the non-recursive
 --   cases from the recursive ones, except
@@ -68,14 +68,15 @@ law_cataCompose _ φ ε =
 embeddableOfHeight
   :: (Steppable t f, Functor f)
   => Gen (f Void) -> (Gen t -> Gen (f t)) -> Size -> Gen t
-embeddableOfHeight leaf any size =
-  cata (genAlgebra leaf any) (fromIntegral size :: Natural)
+embeddableOfHeight leaf branch size =
+  cata (genAlgebra leaf branch) (fromIntegral size :: Natural)
 
 -- | Builds a generic tree generator of a certain height.
 genAlgebra
   :: (Steppable t f, Functor f)
   => Gen (f Void) -> (Gen t -> Gen (f t)) -> Algebra Maybe (Gen t)
-genAlgebra leaf any = maybe (fmap (embed . fmap absurd) leaf) (fmap embed . any)
+genAlgebra leaf branch =
+  maybe (fmap (embed . fmap absurd) leaf) (fmap embed . branch)
 
 -- | Creates a generator for potentially-infinite values.
 genCorecursive :: Corecursive t f => (a -> f a) -> Gen a -> Gen t

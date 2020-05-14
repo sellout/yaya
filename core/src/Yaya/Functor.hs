@@ -7,7 +7,7 @@ import Data.Bifunctor
 -- | A functor from the category of endofunctors to *Hask*. The @D@ is meant to
 --   be a mnemonic for “down”, as we’re “lowering” from endofunctors to types.
 class DFunctor (d :: (* -> *) -> *) where
-  dmap :: (forall a. f a -> g a) -> d f -> d g
+  dmap :: (forall x. f x -> g x) -> d f -> d g
 
 -- | This isn’t a Functor instance because of the position of the @a@, but you
 --   can use it like:
@@ -19,4 +19,4 @@ firstMap f = dmap (first f)
 
 -- | An endofunctor in the category of endofunctors.
 class HFunctor (h :: (* -> *) -> * -> *) where
-  hmap :: (forall a. f a -> g a) -> h f a -> h g a
+  hmap :: (forall x. f x -> g x) -> h f a -> h g a

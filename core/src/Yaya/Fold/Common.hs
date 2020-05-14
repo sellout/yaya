@@ -1,15 +1,12 @@
 -- | Common algebras that are useful when folding.
 module Yaya.Fold.Common where
 
-import Control.Arrow
 import Control.Monad
 import Control.Monad.Trans.Free
 import Data.Foldable
-import Data.Functor
 import Data.Functor.Classes
 import Data.Functor.Day
 import Data.Functor.Identity
-import Data.Semigroup
 import Numeric.Natural
 
 import Yaya.Pattern
@@ -27,7 +24,7 @@ lowerSemigroup f = \case
   Indeed a b -> f a <> b
 
 -- | Converts the free monad into some other `Monad`.
-lowerMonad :: Monad m => (forall a. f a -> m a) -> FreeF f a (m a) -> m a
+lowerMonad :: Monad m => (forall x. f x -> m x) -> FreeF f a (m a) -> m a
 lowerMonad f = \case
   Pure a  -> pure a
   Free fm -> join (f fm)
@@ -88,7 +85,7 @@ takeAvailable = \case
 
 truncate' :: Functor f => Day Maybe f a -> FreeF f () a
 truncate' = \case
-  Day Nothing  fa _ -> Pure ()
+  Day Nothing  _  _ -> Pure ()
   Day (Just n) fa f -> Free (fmap (f n) fa)
 
 -- | Converts a single value into a tuple with the same value on both sides.

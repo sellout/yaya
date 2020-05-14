@@ -6,19 +6,15 @@ import Control.Applicative
 import Control.Arrow
 import Control.Comonad
 import Control.Comonad.Cofree
-import Control.Comonad.Hoist.Class
 import Control.Comonad.Trans.Env
 import Control.Lens hiding ((:<))
 import Control.Monad
 import Control.Monad.Trans.Free
-import Data.Bifunctor
 import Data.Bitraversable
-import Data.Distributive
 import Data.Either.Combinators
 import Data.Foldable
 import Data.Functor.Classes
 import Data.Functor.Day
-import Data.Functor.Identity
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Void
 import Numeric.Natural
@@ -94,7 +90,7 @@ instance Recursive (Mu f) f where
   cata φ (Mu f) = f φ
 
 instance DFunctor Mu where
- dmap f (Mu fold) = Mu (\φ -> fold (φ . f))
+ dmap f (Mu run) = Mu (\φ -> run (φ . f))
 
 instance Show1 f => Show (Mu f) where
   showsPrec = recursiveShowsPrec
