@@ -22,7 +22,7 @@ import           Yaya.Fold.Native
 import           Yaya.Pattern
 import qualified Yaya.Unsafe.Fold as Unsafe
 
-instance Functor f => Recursive (Fix f) f where
+instance Functor f => Recursive (->) (Fix f) f where
   cata = flip Unsafe.hylo project
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Fix f) where
@@ -31,10 +31,10 @@ instance (Functor f, Foldable f, Eq1 f) => Eq (Fix f) where
 instance (Functor f, Show1 f) => Show (Fix f) where
   showsPrec = recursiveShowsPrec
 
-instance Functor f => Corecursive (Mu f) f where
+instance Functor f => Corecursive (->) (Mu f) f where
   ana = Unsafe.hylo embed
 
-instance Functor f => Recursive (Nu f) f where
+instance Functor f => Recursive (->) (Nu f) f where
   cata = flip Unsafe.hylo project
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
@@ -43,24 +43,24 @@ instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
 instance (Functor f, Show1 f) => Show (Nu f) where
   showsPrec = recursiveShowsPrec
 
-instance Recursive [a] (XNor a) where
+instance Recursive (->) [a] (XNor a) where
   cata = flip Unsafe.hylo project
 
-instance Recursive (NonEmpty a) (AndMaybe a) where
+instance Recursive (->) (NonEmpty a) (AndMaybe a) where
   cata = flip Unsafe.hylo project
 
-instance Functor f => Recursive (Cofree f a) (EnvT a f) where
+instance Functor f => Recursive (->) (Cofree f a) (EnvT a f) where
   cata = flip Unsafe.hylo project
 
-instance Functor f => Recursive (Free f a) (FreeF f a) where
+instance Functor f => Recursive (->) (Free f a) (FreeF f a) where
   cata = flip Unsafe.hylo project
 
--- TODO: If we can generalize this to an arbitrary 'Recursive t (FreeF h a)'
+-- TODO: If we can generalize this to an arbitrary 'Recursive (->) t (FreeF h a)'
 --       then it would no longer be unsafe.
 seqFreeT
   :: (Functor f, Functor h)
-  => DistributiveLaw h f
-  -> DistributiveLaw (Free h) f
+  => DistributiveLaw (->) h f
+  -> DistributiveLaw (->) (Free h) f
 seqFreeT k =
   cata
   (\case

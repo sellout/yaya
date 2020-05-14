@@ -32,7 +32,7 @@ genExprOp a = Gen.choice [Add <$> a <*> a, Mult <$> a <*> a]
 genExpr :: Gen a -> Gen (Expr a)
 genExpr a = Gen.frequency [(3, genExprLit), (2, genExprOp a)]
 
-expression :: Steppable t Expr => Size -> Gen t
+expression :: Steppable (->) t Expr => Size -> Gen t
 expression = embeddableOfHeight genExprLit genExpr
 
 genMuExpr :: Size -> Gen (Mu Expr)

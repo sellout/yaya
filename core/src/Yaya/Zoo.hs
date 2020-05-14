@@ -21,34 +21,34 @@ import Yaya.Pattern
 -- | A recursion scheme that allows you to return a complete branch when
 --   unfolding.
 apo
-  :: (Projectable t f, Corecursive t f, Functor f)
-  => GCoalgebra (Either t) f a
+  :: (Projectable (->) t f, Corecursive (->) t f, Functor f)
+  => GCoalgebra (->) (Either t) f a
   -> a
   -> t
 apo = gana (seqEither project)
 
 -- | If you have a monadic algebra, you can fold it by distributing the monad
 --   over the algebra.
-cataM :: (Monad m, Recursive t f, Traversable f) => AlgebraM m f a -> t -> m a
+cataM :: (Monad m, Recursive (->) t f, Traversable f) => AlgebraM (->) m f a -> t -> m a
 cataM φ = cata (φ <=< sequenceA)
 
 -- | A recursion scheme that allows to algebras to see each others’ results. (A
 --   generalization of `zygo`.) This is an example that falls outside the scope
 --   of “comonadic folds”, but _would_ be covered by “adjoint folds”.
 mutu
-  :: (Recursive t f, Functor f)
-  => GAlgebra ((,) a) f b
-  -> GAlgebra ((,) b) f a
+  :: (Recursive (->) t f, Functor f)
+  => GAlgebra (->) ((,) a) f b
+  -> GAlgebra (->) ((,) b) f a
   -> t
   -> a
 mutu φ' φ = extract . cata (φ' . fmap swap &&& φ)
 
 gmutu
-  :: (Comonad w, Comonad v, Recursive t f, Functor f)
-  => DistributiveLaw f w
-  -> DistributiveLaw f v
-  -> GAlgebra (EnvT a w) f b
-  -> GAlgebra (EnvT b v) f a
+  :: (Comonad w, Comonad v, Recursive (->) t f, Functor f)
+  => DistributiveLaw (->) f w
+  -> DistributiveLaw (->) f v
+  -> GAlgebra (->) (EnvT a w) f b
+  -> GAlgebra (->) (EnvT b v) f a
   -> t
   -> a
 gmutu w v φ' φ = extract . mutu (lowerEnv w φ') (lowerEnv v φ)
@@ -63,19 +63,19 @@ gmutu w v φ' φ = extract . mutu (lowerEnv w φ') (lowerEnv v φ)
 
 -- | This could use a better name.
 comutu
-  :: (Corecursive t f, Functor f)
-  => GCoalgebra (Either a) f b
-  -> GCoalgebra (Either b) f a
+  :: (Corecursive (->) t f, Functor f)
+  => GCoalgebra (->) (Either a) f b
+  -> GCoalgebra (->) (Either b) f a
   -> a
   -> t
 comutu ψ' ψ = ana (fmap swapEither . ψ' ||| ψ) . pure
 
 -- gcomutu
---   :: (Monad m, Monad n, Corecursive t f, Functor f)
---   => DistributiveLaw m f
---   -> DistributiveLaw n f
---   -> GCoalgebra (FreeF m a) f b
---   -> GCoalgebra (FreeF n b) f a
+--   :: (Monad m, Monad n, Corecursive (->) t f, Functor f)
+--   => DistributiveLaw (->) m f
+--   -> DistributiveLaw (->) n f
+--   -> GCoalgebra (->) (FreeF m a) f b
+--   -> GCoalgebra (->) (FreeF n b) f a
 --   -> a
 --   -> t
 -- gcomutu m n ψ' ψ = comutu (lowerFree m ψ') (lowerFree n ψ) . pure
@@ -84,27 +84,27 @@ comutu ψ' ψ = ana (fmap swapEither . ψ' ||| ψ) . pure
 --       fmap ((pure +++ join) . distProd . fmap (uncurry EnvT))
 --       . x
 --       . fmap ψ''
---     distProd :: DistributiveLaw f (Either a)
+--     distProd :: DistributiveLaw (->) f (Either a)
 --     distProd p =
 --       let a = fst p
 --       in fmap (\b -> (a , b)) (snd p)
 
 mutuM
-  :: (Monad m, Recursive t f, Traversable f)
-  => GAlgebraM m ((,) a) f b
-  -> GAlgebraM m ((,) b) f a
+  :: (Monad m, Recursive (->) t f, Traversable f)
+  => GAlgebraM (->) m ((,) a) f b
+  -> GAlgebraM (->) m ((,) b) f a
   -> t
   -> m a
 mutuM φ' φ = fmap snd . cataM (bisequence . (φ' . fmap swap &&& φ))
 
-histo :: (Recursive t f, Functor f) => GAlgebra (Cofree f) f a -> t -> a
+histo :: (Recursive (->) t f, Functor f) => GAlgebra (->) (Cofree f) f a -> t -> a
 histo = gcata (distCofreeT id)
 
 -- | A recursion scheme that gives you access to the original structure as you
 --   fold. (A specialization of `zygo`.)
 para
-  :: (Steppable t f, Recursive t f, Functor f)
-  => GAlgebra ((,) t) f a
+  :: (Steppable (->) t f, Recursive (->) t f, Functor f)
+  => GAlgebra (->) ((,) t) f a
   -> t
   -> a
 para = gcata (distTuple embed)
@@ -113,9 +113,9 @@ para = gcata (distTuple embed)
 --   information when folding. (A generalization of `para`, and specialization
 --   of `mutu`.)
 zygo
-  :: (Recursive t f, Functor f)
-  => Algebra f b
-  -> GAlgebra ((,) b) f a
+  :: (Recursive (->) t f, Functor f)
+  => Algebra (->) f b
+  -> GAlgebra (->) ((,) b) f a
   -> t
   -> a
 zygo φ = gcata (distTuple φ)
@@ -124,9 +124,9 @@ zygo φ = gcata (distTuple φ)
 --   because it has a monadic “helper” algebra. But at least it gives us the
 --   opportunity to show how `zygo` is a specialization of `mutu`.
 zygoM
-  :: (Monad m, Recursive t f, Traversable f)
-  => AlgebraM m f b
-  -> GAlgebraM m ((,) b) f a
+  :: (Monad m, Recursive (->) t f, Traversable f)
+  => AlgebraM (->) m f b
+  -> GAlgebraM (->) m ((,) b) f a
   -> t
   -> m a
 zygoM φ' φ = mutuM (φ' . fmap snd) φ
@@ -175,12 +175,12 @@ type Stream a = Nu ((,) a)
 -- | A more general implementation of `fmap`, because it can also work to, from,
 --   or within monomorphic structures, obviating the need for classes like
 --  `Data.MonoTraversable.MonoFunctor`.
-map :: (Recursive t (f a), Steppable u (f b), Bifunctor f) => (a -> b) -> t -> u
+map :: (Recursive (->) t (f a), Steppable (->) u (f b), Bifunctor f) => (a -> b) -> t -> u
 map f = cata (embed . first f)
 
 -- | A version of `Yaya.Zoo.map` that applies to Corecursive structures.
 comap
-  :: (Projectable t (f a), Corecursive u (f b), Bifunctor f)
+  :: (Projectable (->) t (f a), Corecursive (->) u (f b), Bifunctor f)
   => (a -> b)
   -> t
   -> u
@@ -191,8 +191,8 @@ comap f = ana (first f . project)
 --   can also work to, from, or within monomorphic structures, obviating the
 --   need for classes like `Data.MonoTraversable.MonoTraversable`.
 traverse
-  :: ( Recursive t (f a)
-     , Steppable u (f b)
+  :: ( Recursive (->) t (f a)
+     , Steppable (->) u (f b)
      , Bitraversable f
      , Traversable (f a)
      , Monad m)
@@ -204,14 +204,14 @@ traverse f = cata (fmap embed . bitraverse f pure <=< sequenceA)
 -- | A more general implementation of `Data.Functor.contramap`, because it can
 --   also work to, from, or within monomorphic structures.
 contramap
-  :: (Recursive t (f b), Steppable u (f a), Profunctor f)
+  :: (Recursive (->) t (f b), Steppable (->) u (f a), Profunctor f)
   => (a -> b)
   -> t
   -> u
 contramap f = cata (embed . lmap f)
 
 cocontramap
-  :: (Projectable t (f b), Corecursive u (f a), Profunctor f)
+  :: (Projectable (->) t (f b), Corecursive (->) u (f a), Profunctor f)
   => (a -> b)
   -> t
   -> u
