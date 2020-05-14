@@ -1,4 +1,4 @@
-resolver: lts-14.13
+resolver: lts-15.11
 
 # NB: The `-test` packages are simply test suites for the corresponding
 #     non-`-test` package. They're separated to eliminate the
