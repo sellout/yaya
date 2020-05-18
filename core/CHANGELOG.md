@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## 0.3.1.0 – 2020–05–14
+## 0.3.1.1 – 2020–05–18
+### Changed
+- Turned on StrictData
+
+## 0.3.1.0 – 2020–05–18
 ### Added
 - Copied Kmett's auto-extraction of pattern functors
 

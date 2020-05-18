@@ -1,5 +1,5 @@
 name:                yaya-unsafe
-version:             0.2.0.0
+version:             0.2.0.1
 synopsis:            Non-total extensions to the Yaya recursion scheme library.
 description:         Yaya is designed as a _total_ library. However, it is often
                      expedient to use partial operations in some cases, and this
@@ -43,6 +43,7 @@ library
                      , MultiParamTypeClasses
                      , RankNTypes
                      , ScopedTypeVariables
+                     , StrictData
                      , TupleSections
   default-language:    Haskell2010
 

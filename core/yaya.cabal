@@ -1,5 +1,5 @@
 name:                yaya
-version:             0.3.1.0
+version:             0.3.1.1
 synopsis:            Total recursion schemes.
 description:         Recursion schemes allow you to separate recursion from your
                      business logic – making your own operations simpler, more
@@ -55,6 +55,7 @@ library
                      , PolyKinds
                      , RankNTypes
                      , ScopedTypeVariables
+                     , StrictData
                      , TupleSections
                      , TypeOperators
   default-language:    Haskell2010

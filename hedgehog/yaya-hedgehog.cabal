@@ -1,5 +1,5 @@
 name:                yaya-hedgehog
-version:             0.2.0.0
+version:             0.2.0.1
 synopsis:            Hedgehog testing support for the Yaya recursion scheme
                      library.
 description:         If you use Yaya in your own code and have tests written
@@ -34,6 +34,7 @@ library
                      , MultiParamTypeClasses
                      , RankNTypes
                      , ScopedTypeVariables
+                     , StrictData
                      , TupleSections
   default-language:    Haskell2010
 
