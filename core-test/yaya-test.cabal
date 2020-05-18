@@ -1,5 +1,5 @@
 name:                yaya-test
-version:             0.3.0.0
+version:             0.3.1.0
 synopsis:            Test suites for `yaya`.
 description:         This package should not be depended on by anything.
 homepage:            https://github.com/sellout/yaya#readme
@@ -22,7 +22,7 @@ test-suite yaya-test
   build-depends:       base >= 4.7 && < 5
                      , deriving-compat
                      , hedgehog
-                     , yaya >= 0.3.0
+                     , yaya >= 0.3.1
                      , yaya-hedgehog >= 0.2.0
   default-extensions:  LambdaCase
                      , MultiParamTypeClasses

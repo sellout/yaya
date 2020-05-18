@@ -1,5 +1,5 @@
 name:                yaya
-version:             0.3.0.0
+version:             0.3.1.0
 synopsis:            Total recursion schemes.
 description:         Recursion schemes allow you to separate recursion from your
                      business logic – making your own operations simpler, more
@@ -43,6 +43,7 @@ library
                      , lens
                      , profunctors
                      , template-haskell
+                     , th-abstraction
                      , transformers
   default-extensions:  ConstraintKinds
                      , DeriveTraversable
