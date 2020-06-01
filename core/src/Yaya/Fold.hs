@@ -163,6 +163,13 @@ instance Steppable (->) (Free f a) (FreeF f a) where
 zipAlgebras :: Functor f => Algebra (->) f a -> Algebra (->) f b -> Algebra (->) f (a, b)
 zipAlgebras f g = (f . fmap fst &&& g . fmap snd)
 
+-- | Combines two `AlgebraM`s with different carriers into a single tupled
+--  `AlgebraM`.
+zipAlgebraMs
+  :: (Applicative m, Functor f)
+  => AlgebraM (->) m f a -> AlgebraM (->) m f b -> AlgebraM (->) m f (a, b)
+zipAlgebraMs f g = uncurry (liftA2 (,)) . (f . fmap fst &&& g . fmap snd)
+
 -- | Algebras over Day convolution are convenient for binary operations, but
 --   aren’t directly handleable by `cata`.
 lowerDay :: Projectable (->) t g => Algebra (->) (Day f g) a -> Algebra (->) f (t -> a)

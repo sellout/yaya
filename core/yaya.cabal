@@ -1,5 +1,5 @@
 name:                yaya
-version:             0.3.1.2
+version:             0.3.2.0
 synopsis:            Total recursion schemes.
 description:         Recursion schemes allow you to separate recursion from your
                      business logic – making your own operations simpler, more
