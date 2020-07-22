@@ -44,13 +44,24 @@ naturals = ana (unarySequence succN) zeroN
 takeUpTo
   :: (Recursive (->) n Maybe, Projectable (->) s (XNor a), Steppable (->) l (XNor a))
   => n -> s -> l
-takeUpTo = cata (lowerDay (embed . takeAvailable))
+takeUpTo = cata2 (embed . takeAvailable)
 
 -- | Extracts _exactly_ @n@ elements from the infinite stream @s@.
 take
   :: (Recursive (->) n Maybe, Projectable (->) s ((,) a), Steppable (->) l (XNor a))
   => n -> s -> l
-take = cata (lowerDay (embed . takeAnother))
+take = cata2 (embed . takeAnother)
+
+-- | Extracts the element at a finite index of an infinite sequence (a `!!` that
+--   can't fail).
+at :: (Recursive (->) n Maybe, Projectable (->) s ((,) a)) => n -> s -> a
+at = cata2 takeNext
+
+-- | Extracts the element at a finite index of a (co)list (a `!!` that fails
+--   with `Nothing`).
+atMay
+  :: (Recursive (->) n Maybe, Projectable (->) s (XNor a)) => n -> s -> Maybe a
+atMay = cata2 maybeTakeNext
 
 -- | Turns part of a structure inductive, so it can be analyzed, without forcing
 --   the entire tree.
@@ -91,7 +102,7 @@ mersenne = lucasSequenceU 3 2
 
 -- | Creates an infinite stream of the provided value.
 constantly :: Corecursive (->) t ((,) a) => a -> t
-constantly = ana split
+constantly = ana diagonal
 
 -- | Lops off the branches of the tree below a certain depth, turning a
 --   potentially-infinite structure into a finite one. Like a generalized
@@ -99,4 +110,4 @@ constantly = ana split
 truncate
   :: (Recursive (->) n Maybe, Projectable (->) t f, Steppable (->) u (FreeF f ()), Functor f)
   => n -> t -> u
-truncate = cata (lowerDay (embed . truncate'))
+truncate = cata2 (embed . truncate')

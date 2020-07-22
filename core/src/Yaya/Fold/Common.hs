@@ -43,7 +43,12 @@ height = (+ 1) . foldr max (-1)
 -- NB: It seems like this could be some more general notion of this, like
 --        size :: (Foldable f, Semiring a) => f a -> a
 --        size = foldr (+) one
--- | When folded, returns the number ef nodes in the data structure.
+-- | When folded, returns the number of nodes in the data structure.
+--
+--  __NB__: This is /not/ the same as the length when applied to a list. I.e.,
+--          @`length` xs + 1 == `cata` `size` xs@, because this is counting the
+--          nodes of the structure (how many `Neither`s and `Both`s), not how
+--          many elements (which would be equivalent to only counting `Both`s).
 size :: Foldable f => f Natural -> Natural
 size = foldr (+) 1
 
@@ -52,16 +57,14 @@ size = foldr (+) 1
 toRight :: Identity b -> Either a b
 toRight = Right . runIdentity
 
--- | Returns the last 'Just' result.
-while :: (a -> Maybe a) -> a -> Either a a
-while f a = maybe (Left a) Right $ f a
+-- | Captures the input value if the application was undefined.
+definedOrInput :: (a -> Maybe b) -> a -> Either a b
+definedOrInput f a = maybe (Left a) Right $ f a
 
 -- | Collapses a `Yaya.Zoo.Partial` structure to a value (probably requiring
 --   unsafe instances).
 fromEither :: Either a a -> a
-fromEither = \case
-  Left a  -> a
-  Right a -> a
+fromEither = either id id
 
 -- | Generates an infinite structure from an arbitrary seed.
 never :: a -> Identity a
@@ -83,15 +86,26 @@ takeAvailable = \case
   Day Nothing  _ _ -> Neither
   Day (Just x) t f -> fmap (f x) t
 
+takeNext :: Day Maybe ((,) a) a -> a
+takeNext = \case
+  Day Nothing  (h, _) _ -> h
+  Day (Just x) (_, t) f -> f x t
+
+maybeTakeNext :: Day Maybe (XNor a) (Maybe a) -> Maybe a
+maybeTakeNext = \case
+  Day Nothing  (Both h _) _ -> Just h
+  Day (Just x) (Both _ t) f -> f x t
+  Day _        Neither    _ -> Nothing
+
 truncate' :: Functor f => Day Maybe f a -> FreeF f () a
 truncate' = \case
   Day Nothing  _  _ -> Pure ()
   Day (Just n) fa f -> Free (fmap (f n) fa)
 
 -- | Converts a single value into a tuple with the same value on both sides.
---   > x &&& y = (x *** y) . split
-split :: a -> (a, a)
-split x = (x, x)
+--   > x &&& y = (x *** y) . diagonal
+diagonal :: a -> (a, a)
+diagonal x = (x, x)
 
 -- * sequence generators
 --
