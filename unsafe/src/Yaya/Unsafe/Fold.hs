@@ -72,17 +72,23 @@ stream' ψ f = go
 
 -- | Gibbons’ metamorphism. It lazily folds a (necessarily infinite) value,
 --   incrementally re-expanding that value into some new representation.
+--
+--  __NB__: See https://gist.github.com/sellout/4709e723cb649110af00217486c4466b
+--          for some commentary and explanation.
 streamAna
   :: (Projectable (->) t f, Steppable (->) u g, Functor g)
   => CoalgebraM (->) Maybe g b
   -> AlgebraM (->) ((,) (b -> b)) f t
   -> b
   -> t -> u
-streamAna ψ φ = stream' ψ (\_ f -> f . φ)
+streamAna process accum = stream' process (\_ f -> f . accum)
 
 -- | Another form of Gibbons’ metamorphism. This one can be applied to non-
 --   infinite inputs and takes an additional “flushing” coalgebra to be applied
 --   after all the input has been consumed.
+--
+--  __NB__: See https://gist.github.com/sellout/4709e723cb649110af00217486c4466b
+--          for some commentary and explanation.
 streamGApo
   :: (Projectable (->) t f, Steppable (->) u g, Corecursive (->) u g, Functor g)
   => Coalgebra (->) g b
@@ -90,7 +96,8 @@ streamGApo
   -> (f t -> Maybe (b -> b, t))
   -> b
   -> t -> u
-streamGApo ψ' ψ φ = stream' ψ (\c f -> maybe (ana ψ' c) f . φ)
+streamGApo flush process accum =
+  stream' process (\c f -> maybe (ana flush c) f . accum)
 
 corecursivePrism
   :: (Steppable (->) t f, Recursive (->) t f, Corecursive (->) t f, Traversable f)
