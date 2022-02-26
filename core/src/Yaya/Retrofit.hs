@@ -49,6 +49,22 @@ import Yaya.Fold
        , recursiveShowsPrec
        )
 
+#if MIN_VERSION_template_haskell(2, 17, 0)
+type TyVarBndr' = TyVarBndr ()
+#else
+type TyVarBndr' = TyVarBndr
+#endif
+
+#if MIN_VERSION_template_haskell(2, 17, 0)
+-- provided via TH in newer versions
+#else
+kindedTV :: Name -> Kind -> TyVarBndr'
+kindedTV n k = PlainTV n k
+
+plainTV :: Name -> TyVarBndr'
+plainTV n = PlainTV n
+#endif
+
 -- | Extract a pattern functor and relevant instances from a simply recursive type.
 --
 -- /e.g./
@@ -161,13 +177,13 @@ makePrimForDI
                           Datatype        -> False
                           Newtype         -> False
 
-    toTyVarBndr :: Type -> Maybe TyVarBndr
-    toTyVarBndr (VarT n)          = pure $ PlainTV n
-    toTyVarBndr (SigT (VarT n) k) = pure $ KindedTV n k
+    toTyVarBndr :: Type -> Maybe TyVarBndr'
+    toTyVarBndr (VarT n)          = pure $ plainTV n
+    toTyVarBndr (SigT (VarT n) k) = pure $ kindedTV n k
     toTyVarBndr _                 = Nothing
 
 makePrimForDI'
-  :: PatternFunctorRules -> Bool -> Name -> [TyVarBndr] -> [ConstructorInfo] -> Q [Dec]
+  :: PatternFunctorRules -> Bool -> Name -> [TyVarBndr'] -> [ConstructorInfo] -> Q [Dec]
 makePrimForDI' rules isNewtype tyName vars cons = do
     -- variable parameters
     let vars' = map VarT (typeVars vars)
@@ -180,7 +196,7 @@ makePrimForDI' rules isNewtype tyName vars cons = do
     let r = VarT rName
    
     -- Vars
-    let varsF = vars ++ [PlainTV rName]
+    let varsF = vars ++ [plainTV rName]
 
     -- #33
     cons' <- traverse (conTypeTraversal resolveTypeSynonyms) cons
@@ -199,7 +215,7 @@ makePrimForDI' rules isNewtype tyName vars cons = do
           where
             deriveds =
 -- TH 2.12.O means GHC 8.2.1, otherwise, we work back to GHC 8.0.1
-#if MIN_VERSION_template_haskell(2,12,0)
+#if MIN_VERSION_template_haskell(2, 12, 0)
               pure $ DerivClause Nothing
 #endif
               [ ConT functorTypeName
@@ -289,7 +305,7 @@ over l f = runIdentity . l (Identity . f)
 -------------------------------------------------------------------------------
 
 -- | Extract type variables
-typeVars :: [TyVarBndr] -> [Name]
+typeVars :: [TyVarBndr'] -> [Name]
 typeVars = map tvName
 
 -- | Apply arguments to a type constructor.
