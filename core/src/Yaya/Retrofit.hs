@@ -55,16 +55,6 @@ type TyVarBndr' = TyVarBndr ()
 type TyVarBndr' = TyVarBndr
 #endif
 
-#if MIN_VERSION_template_haskell(2, 17, 0)
--- provided via TH in newer versions
-#else
-kindedTV :: Name -> Kind -> TyVarBndr'
-kindedTV n k = PlainTV n k
-
-plainTV :: Name -> TyVarBndr'
-plainTV n = PlainTV n
-#endif
-
 -- | Extract a pattern functor and relevant instances from a simply recursive type.
 --
 -- /e.g./
