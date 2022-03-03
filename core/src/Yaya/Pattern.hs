@@ -10,7 +10,7 @@ data XNor a b = Neither | Both ~a b deriving (Functor, Foldable, Traversable)
 
 instance Bifunctor XNor where
   bimap f g = \case
-    Neither  -> Neither
+    Neither -> Neither
     Both a b -> Both (f a) (g b)
 
 -- | Isomorphic to `(a, Maybe b)`, it’s also the pattern functor for non-empty
@@ -22,4 +22,3 @@ instance Bifunctor AndMaybe where
   bimap f g = \case
     Only a -> Only (f a)
     Indeed a b -> Indeed (f a) (g b)
-

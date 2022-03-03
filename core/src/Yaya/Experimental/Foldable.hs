@@ -7,7 +7,6 @@
 module Yaya.Experimental.Foldable where
 
 import Control.Monad.Trans.Free
-
 import Yaya.Fold
 import Yaya.Fold.Common
 import Yaya.Pattern
@@ -21,10 +20,11 @@ foldMap = cata . lowerMonoid
 --   specialized to lists.
 class Listable f where
   naturalList :: f a b -> Free (XNor a) b
-  -- toColist :: (Projectable t (f a), Corecursive (->) u (XNor a)) => t -> u
-  -- toColist = elgotAna seqFree (naturalList . project)
-  -- toList :: (Recursive (->) t (f a), Steppable u (XNor a)) => t -> u
-  -- toList = cata (embed . unFree . naturalList)
+
+-- toColist :: (Projectable t (f a), Corecursive (->) u (XNor a)) => t -> u
+-- toColist = elgotAna seqFree (naturalList . project)
+-- toList :: (Recursive (->) t (f a), Steppable u (XNor a)) => t -> u
+-- toList = cata (embed . unFree . naturalList)
 
 -- FIXME: Use @cata . liftCoEnv@  instead of `iter`.
 
@@ -32,16 +32,25 @@ class Listable f where
 --   case, while the initial value is the @Nil@ case.
 foldr :: (Listable f, Recursive (->) t (f a)) => (a -> b -> b) -> b -> t -> b
 foldr f b =
-  cata (iter (\case
-                 Neither  -> b
-                 Both a r -> f a r)
-        . naturalList)
+  cata
+    ( iter
+        ( \case
+            Neither -> b
+            Both a r -> f a r
+        )
+        . naturalList
+    )
 
 -- | Simply `cata` with a carrier of @b -> b@.
 foldl :: (Listable f, Recursive (->) t (f a)) => (b -> a -> b) -> b -> t -> b
 foldl f =
   flip
-  (cata (iter (\case
-                  Neither  -> id
-                  Both a g -> g . flip f a)
-         . naturalList))
+    ( cata
+        ( iter
+            ( \case
+                Neither -> id
+                Both a g -> g . flip f a
+            )
+            . naturalList
+        )
+    )

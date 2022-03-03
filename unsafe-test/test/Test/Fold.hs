@@ -2,15 +2,14 @@
 
 module Test.Fold where
 
-import           Data.Proxy
-import           Hedgehog
+import Data.Proxy
+import Hedgehog
 import qualified Hedgehog.Gen as Gen
-
-import           Yaya.Fold
-import           Yaya.Fold.Common
-import           Yaya.Fold.Native
-import           Yaya.Hedgehog.Expr
-import           Yaya.Hedgehog.Fold
+import Yaya.Fold
+import Yaya.Fold.Common
+import Yaya.Fold.Native
+import Yaya.Hedgehog.Expr
+import Yaya.Hedgehog.Fold
 import qualified Yaya.Unsafe.Fold.Instances ()
 
 -- | NB: Only in yaya-unsafe instead of yaya because the `Eq (Fix f)` instance
@@ -29,9 +28,9 @@ prop_fixCataRefl =
 
 prop_fixCataCompose :: Property
 prop_fixCataCompose =
-  property
-  $ law_cataCompose (Proxy :: Proxy (Fix Expr)) size id
-    =<< forAll (Gen.sized genFixExpr)
+  property $
+    law_cataCompose (Proxy :: Proxy (Fix Expr)) size id
+      =<< forAll (Gen.sized genFixExpr)
 
 -- | NB: Only in yaya-unsafe instead of yaya because the `Eq (Nu f)` instance is
 --       needed.
@@ -49,9 +48,9 @@ prop_nuCataRefl =
 
 prop_nuCataCompose :: Property
 prop_nuCataCompose =
-  property
-  $ law_cataCompose (Proxy :: Proxy (Nu Expr)) size id
-    =<< forAll (Gen.sized genNuExpr)
+  property $
+    law_cataCompose (Proxy :: Proxy (Nu Expr)) size id
+      =<< forAll (Gen.sized genNuExpr)
 
 tests :: IO Bool
 tests = checkParallel $$(discover)

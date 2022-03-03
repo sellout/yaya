@@ -1,4 +1,4 @@
-{-# options_ghc -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Type class instances that use direct recursion in a potentially partial
 --   way. This is separated from the rest of `Yaya.Unsafe.Fold` because you can
@@ -11,15 +11,14 @@
 --   to terminate.
 module Yaya.Unsafe.Fold.Instances where
 
-import           Control.Comonad.Cofree
-import           Control.Comonad.Env
-import           Control.Monad.Trans.Free
-import           Data.Functor.Classes
-import           Data.List.NonEmpty
-
-import           Yaya.Fold
-import           Yaya.Fold.Native
-import           Yaya.Pattern
+import Control.Comonad.Cofree
+import Control.Comonad.Env
+import Control.Monad.Trans.Free
+import Data.Functor.Classes
+import Data.List.NonEmpty
+import Yaya.Fold
+import Yaya.Fold.Native
+import Yaya.Pattern
 import qualified Yaya.Unsafe.Fold as Unsafe
 
 instance Functor f => Recursive (->) (Fix f) f where
@@ -57,12 +56,13 @@ instance Functor f => Recursive (->) (Free f a) (FreeF f a) where
 
 -- TODO: If we can generalize this to an arbitrary 'Recursive (->) t (FreeF h a)'
 --       then it would no longer be unsafe.
-seqFreeT
-  :: (Functor f, Functor h)
-  => DistributiveLaw (->) h f
-  -> DistributiveLaw (->) (Free h) f
+seqFreeT ::
+  (Functor f, Functor h) =>
+  DistributiveLaw (->) h f ->
+  DistributiveLaw (->) (Free h) f
 seqFreeT k =
   cata
-  (\case
-      Pure a -> free . Pure <$> a
-      Free ft -> free . Free <$> k ft)
+    ( \case
+        Pure a -> free . Pure <$> a
+        Free ft -> free . Free <$> k ft
+    )

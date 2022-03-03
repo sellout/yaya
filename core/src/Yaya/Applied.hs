@@ -2,7 +2,6 @@ module Yaya.Applied where
 
 import Control.Monad.Trans.Free
 import Data.Functor.Identity
-
 import Yaya.Fold
 import Yaya.Fold.Common
 import Yaya.Pattern
@@ -41,15 +40,19 @@ naturals = ana (unarySequence succN) zeroN
 
 -- | Extracts _no more than_ @n@ elements from the possibly-infinite sequence
 --  @s@.
-takeUpTo
-  :: (Recursive (->) n Maybe, Projectable (->) s (XNor a), Steppable (->) l (XNor a))
-  => n -> s -> l
+takeUpTo ::
+  (Recursive (->) n Maybe, Projectable (->) s (XNor a), Steppable (->) l (XNor a)) =>
+  n ->
+  s ->
+  l
 takeUpTo = cata2 (embed . takeAvailable)
 
 -- | Extracts _exactly_ @n@ elements from the infinite stream @s@.
-take
-  :: (Recursive (->) n Maybe, Projectable (->) s ((,) a), Steppable (->) l (XNor a))
-  => n -> s -> l
+take ::
+  (Recursive (->) n Maybe, Projectable (->) s ((,) a), Steppable (->) l (XNor a)) =>
+  n ->
+  s ->
+  l
 take = cata2 (embed . takeAnother)
 
 -- | Extracts the element at a finite index of an infinite sequence (a `!!` that
@@ -59,21 +62,23 @@ at = cata2 takeNext
 
 -- | Extracts the element at a finite index of a (co)list (a `!!` that fails
 --   with `Nothing`).
-atMay
-  :: (Recursive (->) n Maybe, Projectable (->) s (XNor a)) => n -> s -> Maybe a
+atMay ::
+  (Recursive (->) n Maybe, Projectable (->) s (XNor a)) => n -> s -> Maybe a
 atMay = cata2 maybeTakeNext
 
 -- | Turns part of a structure inductive, so it can be analyzed, without forcing
 --   the entire tree.
-maybeReify
-  :: (Projectable (->) s f, Steppable (->) l (FreeF f s), Functor f)
-  => Algebra (->) Maybe (s -> l)
+maybeReify ::
+  (Projectable (->) s f, Steppable (->) l (FreeF f s), Functor f) =>
+  Algebra (->) Maybe (s -> l)
 maybeReify Nothing = embed . Pure
 maybeReify (Just f) = embed . Free . fmap f . project
 
-reifyUpTo
-  :: (Recursive (->) n Maybe, Projectable (->) s f, Steppable (->) l (FreeF f s), Functor f)
-  => n -> s -> l
+reifyUpTo ::
+  (Recursive (->) n Maybe, Projectable (->) s f, Steppable (->) l (FreeF f s), Functor f) =>
+  n ->
+  s ->
+  l
 reifyUpTo = cata maybeReify
 
 fibonacciPolynomials :: (Integral i, Corecursive (->) t ((,) i)) => i -> t
@@ -107,7 +112,9 @@ constantly = ana diagonal
 -- | Lops off the branches of the tree below a certain depth, turning a
 --   potentially-infinite structure into a finite one. Like a generalized
 --  `Yaya.Applied.take`.
-truncate
-  :: (Recursive (->) n Maybe, Projectable (->) t f, Steppable (->) u (FreeF f ()), Functor f)
-  => n -> t -> u
+truncate ::
+  (Recursive (->) n Maybe, Projectable (->) t f, Steppable (->) u (FreeF f ()), Functor f) =>
+  n ->
+  t ->
+  u
 truncate = cata2 (embed . truncate')
