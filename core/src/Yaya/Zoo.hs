@@ -58,7 +58,7 @@ gmutu w v φ' φ = extract . mutu (lowerEnv w φ') (lowerEnv v φ)
         . fmap (fmap (uncurry EnvT) . distProd . (extract *** duplicate))
     distProd p =
       let a = fst p
-       in fmap (\b -> (a, b)) (snd p)
+       in fmap (a,) (snd p)
 
 -- | This could use a better name.
 comutu ::
@@ -128,7 +128,7 @@ zygoM ::
   GAlgebraM (->) m ((,) b) f a ->
   t ->
   m a
-zygoM φ' φ = mutuM (φ' . fmap snd) φ
+zygoM φ' = mutuM (φ' . fmap snd)
 
 -- | Potentially-infinite lists, like `[]`.
 type Colist a = Nu (XNor a)

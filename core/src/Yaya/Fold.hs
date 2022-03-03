@@ -81,14 +81,14 @@ recursiveEq = cata2 equal
 -- | An implementation of `Show` for any `Recursive` instance.
 recursiveShowsPrec :: (Recursive (->) t f, Show1 f) => Int -> t -> ShowS
 recursiveShowsPrec prec =
-  cata (showParen True . liftShowsPrec (const id) (foldMap id) prec)
+  cata (showParen True . liftShowsPrec (const id) fold prec)
 
 -- | A fixed-point operator for inductive / finite data structures.
 --
 --  *NB*: This is only guaranteed to be finite when @f a@ is strict in @a@
 --       (having strict functors won't prevent `Nu` from being lazy). Using
 --       @-XStrictData@ can help with this a lot.
-data Mu f = Mu (forall a. Algebra (->) f a -> a)
+newtype Mu f = Mu (forall a. Algebra (->) f a -> a)
 
 instance Functor f => Projectable (->) (Mu f) f where
   project = lambek
@@ -171,7 +171,7 @@ instance Steppable (->) (Free f a) (FreeF f a) where
 -- | Combines two `Algebra`s with different carriers into a single tupled
 --  `Algebra`.
 zipAlgebras :: Functor f => Algebra (->) f a -> Algebra (->) f b -> Algebra (->) f (a, b)
-zipAlgebras f g = (f . fmap fst &&& g . fmap snd)
+zipAlgebras f g = f . fmap fst &&& g . fmap snd
 
 -- | Combines two `AlgebraM`s with different carriers into a single tupled
 --  `AlgebraM`.

@@ -49,7 +49,7 @@ instance HFunctor M.MaybeT where
   hmap nat m = M.MaybeT (nat (M.runMaybeT m))
 
 instance HFunctor (R.ReaderT r) where
-  hmap nat m = R.ReaderT (\i -> nat (R.runReaderT m i))
+  hmap nat m = R.ReaderT $ nat . R.runReaderT m
 
 instance HFunctor (RWS.RWST r w s) where
   hmap nat m = RWS.RWST (\r s -> nat (RWS.runRWST m r s))
@@ -58,10 +58,10 @@ instance HFunctor (RWS'.RWST r w s) where
   hmap nat m = RWS'.RWST (\r s -> nat (RWS'.runRWST m r s))
 
 instance HFunctor (S.StateT s) where
-  hmap nat m = S.StateT (\s -> nat (S.runStateT m s))
+  hmap nat m = S.StateT $ nat . S.runStateT m
 
 instance HFunctor (S'.StateT s) where
-  hmap nat m = S'.StateT (\s -> nat (S'.runStateT m s))
+  hmap nat m = S'.StateT $ nat . S'.runStateT m
 
 instance HFunctor (W.WriterT w) where
   hmap nat m = W.WriterT (nat (W.runWriterT m))

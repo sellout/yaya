@@ -71,8 +71,8 @@ stream' ψ f = go
   where
     go c x =
       maybe
-        (f c (uncurry go . ((&) c *** id)) (project x))
-        (embed . fmap (flip go x))
+        (f c (uncurry go . first (c &)) (project x))
+        (embed . fmap (`go` x))
         (ψ c)
 
 -- | Gibbons’ metamorphism. It lazily folds a (necessarily infinite) value,

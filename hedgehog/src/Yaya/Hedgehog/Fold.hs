@@ -1,6 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Yaya.Hedgehog.Fold where
 
@@ -11,6 +10,8 @@ import Hedgehog
 import Numeric.Natural
 import Yaya.Fold
 import Yaya.Fold.Native ()
+
+{-# ANN module "HLint: ignore Use camelCase" #-}
 
 law_cataCancel ::
   (Eq a, Show a, Steppable (->) t f, Recursive (->) t f, Functor f, MonadTest m) =>
