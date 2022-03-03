@@ -1,31 +1,33 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Yaya.Hedgehog.Fold where
 
-import           Control.Arrow
-import           Data.Proxy
-import           Data.Void
-import           Hedgehog
-import           Numeric.Natural
+import Control.Arrow
+import Data.Proxy
+import Data.Void
+import Hedgehog
+import Numeric.Natural
+import Yaya.Fold
+import Yaya.Fold.Native ()
 
-import           Yaya.Fold
-import           Yaya.Fold.Native ()
+{-# ANN module "HLint: ignore Use camelCase" #-}
 
-law_cataCancel
-  :: (Eq a, Show a, Steppable (->) t f, Recursive (->) t f, Functor f, MonadTest m)
-  => Algebra (->) f a -> f t -> m ()
+law_cataCancel ::
+  (Eq a, Show a, Steppable (->) t f, Recursive (->) t f, Functor f, MonadTest m) =>
+  Algebra (->) f a ->
+  f t ->
+  m ()
 law_cataCancel φ = uncurry (===) . (cata φ . embed &&& φ . fmap (cata φ))
 
-law_cataRefl
-  :: (Eq t, Show t, Steppable (->) t f, Recursive (->) t f, MonadTest m) => t -> m ()
+law_cataRefl ::
+  (Eq t, Show t, Steppable (->) t f, Recursive (->) t f, MonadTest m) => t -> m ()
 law_cataRefl = uncurry (===) . (cata embed &&& id)
 
 -- | NB: Since this requires both a `Corecursive` and `Eq` instance on the same
 --       type, it _likely_ requires instances from yaya-unsafe.
-law_anaRefl
-  :: (Eq t, Show t, Steppable (->) t f, Corecursive (->) t f, MonadTest m) => t -> m ()
+law_anaRefl ::
+  (Eq t, Show t, Steppable (->) t f, Corecursive (->) t f, MonadTest m) => t -> m ()
 law_anaRefl = uncurry (===) . (ana project &&& id)
 
 -- law_cataFusion
@@ -35,10 +37,14 @@ law_anaRefl = uncurry (===) . (ana project &&& id)
 --       uncurry (==) ((f . φ &&& φ . fmap f) fa)
 --   ==> uncurry (===) ((f . cata φ &&& cata φ) t)
 
-law_cataCompose
-  :: forall t f u g m b
-   . (Eq b, Show b, Recursive (->) t f, Steppable (->) u g, Recursive (->) u g, MonadTest m)
-  => Proxy u -> Algebra (->) g b -> (forall a. f a -> g a) -> t -> m ()
+law_cataCompose ::
+  forall t f u g m b.
+  (Eq b, Show b, Recursive (->) t f, Steppable (->) u g, Recursive (->) u g, MonadTest m) =>
+  Proxy u ->
+  Algebra (->) g b ->
+  (forall a. f a -> g a) ->
+  t ->
+  m ()
 law_cataCompose _ φ ε =
   uncurry (===) . (cata φ . cata (embed . ε :: f u -> u) &&& cata (φ . ε))
 
@@ -65,16 +71,21 @@ law_cataCompose _ φ ε =
 --
 --  NB: Hedgehog’s `Size` is signed, so this can raise an exception if given a
 --      negative `Size`.
-embeddableOfHeight
-  :: (Steppable (->) t f, Functor f)
-  => Gen (f Void) -> (Gen t -> Gen (f t)) -> Size -> Gen t
+embeddableOfHeight ::
+  (Steppable (->) t f, Functor f) =>
+  Gen (f Void) ->
+  (Gen t -> Gen (f t)) ->
+  Size ->
+  Gen t
 embeddableOfHeight leaf branch size =
   cata (genAlgebra leaf branch) (fromIntegral size :: Natural)
 
 -- | Builds a generic tree generator of a certain height.
-genAlgebra
-  :: (Steppable (->) t f, Functor f)
-  => Gen (f Void) -> (Gen t -> Gen (f t)) -> Algebra (->) Maybe (Gen t)
+genAlgebra ::
+  (Steppable (->) t f, Functor f) =>
+  Gen (f Void) ->
+  (Gen t -> Gen (f t)) ->
+  Algebra (->) Maybe (Gen t)
 genAlgebra leaf branch =
   maybe (fmap (embed . fmap absurd) leaf) (fmap embed . branch)
 

@@ -1,13 +1,12 @@
-{-# LANGUAGE DeriveTraversable
-           , TemplateHaskell #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- | The point of this module is that it should compile _without_ importing any
 --   other Yaya modules.
 module Test.Retrofit where
 
-import           Hedgehog
-
-import           Yaya.Retrofit
+import Hedgehog
+import Yaya.Retrofit
 
 data DExpr
   = Lit Int

@@ -4,12 +4,11 @@
 
 module Yaya.Hedgehog.Expr where
 
-import           Data.Eq.Deriving
-import           Hedgehog
+import Data.Eq.Deriving
+import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
-import           Text.Show.Deriving
-
+import Text.Show.Deriving
 import Yaya.Fold
 import Yaya.Fold.Native
 import Yaya.Hedgehog.Fold
