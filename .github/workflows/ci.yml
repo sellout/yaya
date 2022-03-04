@@ -18,6 +18,7 @@ jobs:
           - "8.10.1"
           - "8.10.7" # we have explicit conditionalization for this version
           - "9.0.1"
+          - "9.2.1"
     env:
       CONFIG: "--enable-tests --enable-benchmarks"
     steps:
