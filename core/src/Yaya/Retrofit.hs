@@ -55,6 +55,13 @@ type TyVarBndr' = TyVarBndr ()
 type TyVarBndr' = TyVarBndr
 #endif
 
+conP' :: Name -> [Pat] -> Pat
+#if MIN_VERSION_template_haskell(2, 18, 0)
+conP' n = ConP n []
+#else
+conP' = ConP
+#endif
+
 -- | Extract a pattern functor and relevant instances from a simply recursive type.
 --
 -- /e.g./
@@ -258,7 +265,7 @@ mkMorphism nFrom nTo =
         fs <- traverse (const $ newName "x") $ constructorFields ci
         pure $
           Match
-            (ConP (nFrom n) (map VarP fs)) -- pattern
+            (conP' (nFrom n) (map VarP fs)) -- pattern
             (NormalB $ foldl AppE (ConE $ nTo n) (map VarE fs)) -- body
             [] -- where dec
     )
