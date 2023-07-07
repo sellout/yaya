@@ -16,7 +16,12 @@ tested-with:         GHC == 8.6.1
                    , GHC == 8.10.1
                    , GHC == 8.10.7
                    , GHC == 9.0.1
+                   , GHC == 9.0.2
                    , GHC == 9.2.1
+                   , GHC == 9.2.8
+                   , GHC == 9.4.1
+                   , GHC == 9.4.5
+                   , GHC == 9.6.1
 
 test-suite yaya-unsafe-test
   type:                exitcode-stdio-1.0
