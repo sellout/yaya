@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: mrkkrp/ormolu-action@v5
+      - uses: mrkkrp/ormolu-action@v14
   lint:
     # Change to `ubuntu-latest` once rwe/actions-hlint-run#260 is fixed.
     runs-on: ubuntu-20.04
