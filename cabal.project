@@ -1,3 +1,6 @@
+program-options
+  ghc-options: -Werror
+
 tests: True
 
 packages:

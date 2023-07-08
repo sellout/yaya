@@ -52,7 +52,10 @@
         inputs.concat.lib.cabalProject2nix
         ./cabal.project
         pkgs
-        hpkgs (old: old);
+        hpkgs
+        (old: {
+          configureFlags = old.configureFlags ++ ["--ghc-options=-Werror"];
+        });
     in
       packages
       // {
