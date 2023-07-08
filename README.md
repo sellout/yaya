@@ -2,7 +2,7 @@
 
 Yet another … yet another recursion scheme library for Haskell.
 
-## Overview
+## overview
 
 Recursion schemes allow you to separate _any_ recursion from your business logic, writing step-wise operations that can be applied in a way that guarantees termination (or, dually, progress).
 
@@ -14,9 +14,39 @@ How is this possible? You can’t have totality _and_ Turing-completeness, can y
 * [`yaya-hedgehog`](hedgehog/README.md) – utilities for testing your Yaya-using code with [Hedgehog](https://github.com/hedgehogqa/haskell-hedgehog)
 * [`yaya-unsafe`](unsafe/README.md) – unsafe instances and operations
 
-## other libraries
+## versioning
+
+In the absolute, almost every change is a breaking change. This section describes how we mitigate that to provide minor updates and revisions compatible with [SemVer 2.0.0](https://semver.org/spec/v2.0.0.html).
+
+Here are some of the common changes that can have unintended effects:
+* adding instances can conflict with downstream orphans,
+* adding a module can conflict with a module from another package,
+* adding a definition to an existing module can conflict if there are unqualified imports, and
+* even small bugfixes can introduce breaking changes where downstream depended on the broken results.
+
+To mitigate some of those issues for versioning, we assume the following usage:
+* modules should be imported using `PackageImports`, so that adding modules is a _minor_ change;
+* modules should be imported qualified, so that adding definitions is a _minor_ change;
+* adding instances can't be mitigated in the same way, and it's not uncommon for downstream libraries to add orphans instances when they're omitted from upstream libraries. However, since these conflicts can only happen via direct dependencies, and represent an explicit downstream workaround, it is reasonable to expect a quick downstream update to remove or conditionalize the workaround. So, this is considered a _minor major_ change;
+* deprecation is considered a _revision_ change, however it will often be paired with _minor_ changes. `-Werror` can cause this to fail, but published libraries shouldn't be compiled with `-Werror`.
+
+## building & development
+
+### if you have `nix` installed
+
+`nix build` will build and test the project fully.
+
+`nix develop` will put you into an environment where the traditional build tooling works. If you also have `direnv` installed, then you should automatically be in that environment when you're in a directory in this project.
+
+### traditional build
+
+This project is built with [Cabal](https://cabal.readthedocs.io/en/stable/index.html). Individual packages will work with older versions, but ./cabal.package requires Cabal 3.6+.
+
+## comparisons
 
 ### [Turtles](https://github.com/sellout/turtles)
+
+**This project has been deprecated. Check out [Droste](https://github.com/higherkindness/droste) instead.**
 
 Yaya is a sister library to Turtles – the same approach, but implemented in
 Scala. Here are some differences to be aware of:
@@ -30,7 +60,7 @@ Scala. Here are some differences to be aware of:
   `Data.List` is lazy, so the `Corecursive` instance is in `Native` while the
   `Recursive` instance is in `Unsafe`.
 
-### Differences from [recursion-schemes](https://github.com/ekmett/recursion-schemes)
+### [recursion-schemes](https://github.com/ekmett/recursion-schemes)
 
 #### poly-kinded folds
 
@@ -114,7 +144,7 @@ different situations, so we try to avoid pigeon-holing them and rather trying to
 understand what the definition itself means, rather than in the context of a
 fold.
 
-### Differences from [compdata](https://github.com/pa-ba/compdata)
+### [compdata](https://github.com/pa-ba/compdata)
 
 I’m not as familiar with compdata, so I’ll have to look at it more before
 fleshing this out.
