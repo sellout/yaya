@@ -17,10 +17,11 @@ import qualified Control.Monad.Trans.Writer.Strict as W
 import Data.Bifunctor
 import Data.Functor.Compose (Compose (..))
 import Data.Functor.Product (Product (..))
+import Data.Kind (Type)
 
 -- | A functor from the category of endofunctors to *Hask*. The @D@ is meant to
 --   be a mnemonic for “down”, as we’re “lowering” from endofunctors to types.
-class DFunctor (d :: (* -> *) -> *) where
+class DFunctor (d :: (Type -> Type) -> Type) where
   dmap :: (forall x. f x -> g x) -> d f -> d g
 
 -- | This isn’t a Functor instance because of the position of the @a@, but you
@@ -36,7 +37,7 @@ firstMap f = dmap (first f)
 --  __NB__: This is similar to `Control.Monad.Morph.MFunctor` /
 --         `Control.Monad.Morph.hoist` from mmorph, but without the `Monad`
 --          constraint on `f`.
-class HFunctor (h :: (* -> *) -> * -> *) where
+class HFunctor (h :: (Type -> Type) -> Type -> Type) where
   hmap :: (forall x. f x -> g x) -> h f a -> h g a
 
 instance HFunctor (Ex.ExceptT e) where
