@@ -42,3 +42,6 @@ genNuExpr = expression
 
 genFixExpr :: Size -> Gen (Fix Expr)
 genFixExpr = expression
+
+genCofixExpr :: Size -> Gen (Cofix Expr)
+genCofixExpr = expression

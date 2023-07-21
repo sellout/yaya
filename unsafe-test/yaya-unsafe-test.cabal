@@ -1,5 +1,5 @@
 name:                yaya-unsafe-test
-version:             0.1.1.2
+version:             0.2.0.0
 synopsis:            Test suites for `yaya-unsafe`.
 description:         This package should not be depended on by anything.
 homepage:            https://github.com/sellout/yaya#readme
@@ -30,10 +30,14 @@ test-suite yaya-unsafe-test
   other-modules:       Test.Fold
   build-depends:       base >= 4.7 && < 5
                      , hedgehog
-                     , yaya >= 0.1.0
-                     , yaya-hedgehog >= 0.1.2
-                     , yaya-unsafe >= 0.1.0
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
+                     , yaya >= 0.5.0
+                     , yaya-hedgehog >= 0.2.1
+                     , yaya-unsafe >= 0.3.0
+  default-extensions:  FlexibleContexts
+                     , StrictData
+  -- NB: Need `-fno-omit-yields` so that `timeout` can interrupt native
+  --     recursion in non-termination tests.
+  ghc-options:         -fno-omit-yields -threaded -rtsopts -with-rtsopts=-N -Wall
   default-language:    Haskell2010
 
 source-repository head

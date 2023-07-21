@@ -21,13 +21,16 @@ import Yaya.Fold.Native
 import Yaya.Pattern
 import qualified Yaya.Unsafe.Fold as Unsafe
 
-instance Functor f => Recursive (->) (Fix f) f where
+instance Functor f => Corecursive (->) (Fix f) f where
+  ana = Unsafe.hylo embed
+
+instance Functor f => Recursive (->) (Cofix f) f where
   cata = flip Unsafe.hylo project
 
-instance (Functor f, Foldable f, Eq1 f) => Eq (Fix f) where
+instance (Functor f, Foldable f, Eq1 f) => Eq (Cofix f) where
   (==) = recursiveEq
 
-instance (Functor f, Show1 f) => Show (Fix f) where
+instance (Functor f, Show1 f) => Show (Cofix f) where
   showsPrec = recursiveShowsPrec
 
 instance Functor f => Corecursive (->) (Mu f) f where

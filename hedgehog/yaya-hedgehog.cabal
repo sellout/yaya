@@ -1,5 +1,5 @@
 name:                yaya-hedgehog
-version:             0.2.0.1
+version:             0.2.1.0
 synopsis:            Hedgehog testing support for the Yaya recursion scheme
                      library.
 description:         If you use Yaya in your own code and have tests written
@@ -30,7 +30,8 @@ tested-with:         GHC == 8.6.1
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Yaya.Hedgehog.Expr
+  exposed-modules:     Yaya.Hedgehog
+                     , Yaya.Hedgehog.Expr
                      , Yaya.Hedgehog.Fold
   build-depends:       base >= 4.7 && < 5
                      , deriving-compat
