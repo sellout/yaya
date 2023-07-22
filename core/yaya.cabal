@@ -53,6 +53,7 @@ library
                      , kan-extensions
                      , lens
                      , profunctors
+                     , strict
                      , template-haskell
                      , th-abstraction
                      , transformers
@@ -67,8 +68,8 @@ library
                      , RankNTypes
                      , ScopedTypeVariables
                      , StrictData
-                     , TupleSections
                      , TypeOperators
+                     , NoImplicitPrelude
   default-language:    Haskell2010
 
 source-repository head

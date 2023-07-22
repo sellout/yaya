@@ -4,6 +4,7 @@ module Yaya.Functor where
 
 import Control.Applicative.Backwards (Backwards (..))
 import Control.Applicative.Lift (Lift (..))
+import Control.Category (Category (..))
 import qualified Control.Monad.Trans.Except as Ex
 import qualified Control.Monad.Trans.Identity as I
 import qualified Control.Monad.Trans.Maybe as M
@@ -14,7 +15,9 @@ import qualified Control.Monad.Trans.State.Lazy as S
 import qualified Control.Monad.Trans.State.Strict as S'
 import qualified Control.Monad.Trans.Writer.Lazy as W'
 import qualified Control.Monad.Trans.Writer.Strict as W
-import Data.Bifunctor
+import Data.Bifunctor (Bifunctor, first)
+import Data.Function (($))
+import Data.Functor (Functor (..))
 import Data.Functor.Compose (Compose (..))
 import Data.Functor.Product (Product (..))
 import Data.Kind (Type)

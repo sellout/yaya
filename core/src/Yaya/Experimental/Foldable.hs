@@ -6,10 +6,14 @@
 --   class can be implemented in the as in @base@.
 module Yaya.Experimental.Foldable where
 
-import Control.Monad.Trans.Free
-import Yaya.Fold
-import Yaya.Fold.Common
-import Yaya.Pattern
+import Control.Category (Category (..))
+import Control.Monad.Trans.Free (Free, iter)
+import Data.Function (flip)
+import Data.Monoid (Monoid)
+import Data.String (String)
+import Yaya.Fold (Recursive (..))
+import Yaya.Fold.Common (lowerMonoid)
+import Yaya.Pattern (XNor (..))
 
 foldMap :: (Recursive (->) t (XNor a), Monoid m) => (a -> m) -> t -> m
 foldMap = cata . lowerMonoid

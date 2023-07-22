@@ -4,18 +4,50 @@
 --   you can always import this module and use the “common” name as well.
 module Yaya.Zoo where
 
-import Control.Arrow hiding (first)
-import Control.Comonad.Cofree
-import Control.Comonad.Env
-import Control.Monad
-import Data.Bifunctor
-import Data.Bitraversable
-import Data.Either.Combinators
-import Data.Profunctor
-import Data.Tuple
+import Control.Applicative (Applicative (..))
+import Control.Category (Category (..))
+import Control.Comonad (Comonad (..))
+import Control.Comonad.Cofree (Cofree)
+import Control.Comonad.Env (EnvT (..))
+import Control.Monad (Monad (..), (<=<))
+import Data.Bifunctor (Bifunctor (..))
+import Data.Bitraversable (Bitraversable (..), bisequence)
+import Data.Function (flip, ($))
+import Data.Functor (Functor (..))
+import Data.Profunctor (Profunctor (..))
+import Data.Traversable (Traversable (..))
 import Yaya.Fold
+  ( Algebra,
+    AlgebraM,
+    Corecursive (..),
+    DistributiveLaw,
+    GAlgebra,
+    GAlgebraM,
+    GCoalgebra,
+    Mu,
+    Nu,
+    Projectable (..),
+    Recursive (..),
+    Steppable (..),
+    distTuple,
+    elgotAna,
+    gana,
+    gcata,
+    seqEither,
+  )
+import Yaya.Fold.Common (diagonal, fromEither)
 import Yaya.Fold.Native (distCofreeT)
 import Yaya.Pattern
+  ( AndMaybe,
+    Either (..),
+    Maybe,
+    Pair (..),
+    XNor,
+    fst,
+    snd,
+    swap,
+    uncurry,
+  )
 
 -- | A recursion scheme that allows you to return a complete branch when
 --   unfolding.
@@ -36,11 +68,11 @@ cataM φ = cata (φ <=< sequenceA)
 --   of “comonadic folds”, but _would_ be covered by “adjoint folds”.
 mutu ::
   (Recursive (->) t f, Functor f) =>
-  GAlgebra (->) ((,) a) f b ->
-  GAlgebra (->) ((,) b) f a ->
+  GAlgebra (->) (Pair a) f b ->
+  GAlgebra (->) (Pair b) f a ->
   t ->
   a
-mutu φ' φ = extract . cata (φ' . fmap swap &&& φ)
+mutu φ' φ = extract . cata (bimap (φ' . fmap swap) φ . diagonal)
 
 gmutu ::
   (Comonad w, Comonad v, Recursive (->) t f, Functor f) =>
@@ -55,10 +87,10 @@ gmutu w v φ' φ = extract . mutu (lowerEnv w φ') (lowerEnv v φ)
     lowerEnv x φ'' =
       fmap φ''
         . x
-        . fmap (fmap (uncurry EnvT) . distProd . (extract *** duplicate))
+        . fmap (fmap (uncurry EnvT) . distProd . bimap extract duplicate)
     distProd p =
       let a = fst p
-       in fmap (a,) (snd p)
+       in fmap (a :!:) (snd p)
 
 -- | This could use a better name.
 comutu ::
@@ -67,7 +99,11 @@ comutu ::
   GCoalgebra (->) (Either b) f a ->
   a ->
   t
-comutu ψ' ψ = ana (fmap swapEither . ψ' ||| ψ) . pure
+comutu ψ' ψ = ana (fromEither . bimap (fmap swapEither . ψ') ψ) . pure
+  where
+    swapEither = \case
+      Left x -> Right x
+      Right y -> Left y
 
 -- gcomutu
 --   :: (Monad m, Monad n, Corecursive (->) t f, Functor f)
@@ -90,11 +126,11 @@ comutu ψ' ψ = ana (fmap swapEither . ψ' ||| ψ) . pure
 
 mutuM ::
   (Monad m, Recursive (->) t f, Traversable f) =>
-  GAlgebraM (->) m ((,) a) f b ->
-  GAlgebraM (->) m ((,) b) f a ->
+  GAlgebraM (->) m (Pair a) f b ->
+  GAlgebraM (->) m (Pair b) f a ->
   t ->
   m a
-mutuM φ' φ = fmap snd . cataM (bisequence . (φ' . fmap swap &&& φ))
+mutuM φ' φ = fmap snd . cataM (bisequence . bimap (φ' . fmap swap) φ . diagonal)
 
 histo :: (Recursive (->) t f, Functor f) => GAlgebra (->) (Cofree f) f a -> t -> a
 histo = gcata (distCofreeT id)
@@ -103,7 +139,7 @@ histo = gcata (distCofreeT id)
 --   fold. (A specialization of `zygo`.)
 para ::
   (Steppable (->) t f, Recursive (->) t f, Functor f) =>
-  GAlgebra (->) ((,) t) f a ->
+  GAlgebra (->) (Pair t) f a ->
   t ->
   a
 para = gcata (distTuple embed)
@@ -114,7 +150,7 @@ para = gcata (distTuple embed)
 zygo ::
   (Recursive (->) t f, Functor f) =>
   Algebra (->) f b ->
-  GAlgebra (->) ((,) b) f a ->
+  GAlgebra (->) (Pair b) f a ->
   t ->
   a
 zygo φ = gcata (distTuple φ)
@@ -125,7 +161,7 @@ zygo φ = gcata (distTuple φ)
 zygoM ::
   (Monad m, Recursive (->) t f, Traversable f) =>
   AlgebraM (->) m f b ->
-  GAlgebraM (->) m ((,) b) f a ->
+  GAlgebraM (->) m (Pair b) f a ->
   t ->
   m a
 zygoM φ' = mutuM (φ' . fmap snd)
@@ -160,17 +196,17 @@ instance Applicative Partial where
     flip insidePartial ff $
       elgotAna
         (seqEither project)
-        ((fromPartial . flip fmap fa +++ Right) . project)
+        (bimap (fromPartial . flip fmap fa) Right . project)
 
 instance Monad Partial where
   pa >>= f = join' (fmap f pa)
     where
       join' =
         insidePartial $
-          elgotAna (seqEither project) ((fromPartial +++ Right) . project)
+          elgotAna (seqEither project) (bimap fromPartial Right . project)
 
 -- | Always-infinite streams (as opposed to `Colist`, which _may_ terminate).
-type Stream a = Nu ((,) a)
+type Stream a = Nu (Pair a)
 
 -- | A more general implementation of `fmap`, because it can also work to, from,
 --   or within monomorphic structures, obviating the need for classes like

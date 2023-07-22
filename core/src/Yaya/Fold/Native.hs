@@ -4,15 +4,33 @@
 --   manner.
 module Yaya.Fold.Native where
 
-import Control.Arrow
-import Control.Comonad
-import Control.Comonad.Cofree
-import Control.Comonad.Trans.Env
-import Control.Monad.Trans.Free
+import Control.Applicative (Applicative)
+import Control.Category (Category (..))
+import Control.Comonad (Comonad (..))
+import Control.Comonad.Cofree (Cofree (..), unwrap)
+import Control.Comonad.Trans.Env (EnvT (..), runEnvT)
+import Control.Monad.Trans.Free (Free, FreeF (..), free)
+import Data.Bifunctor (Bifunctor (..))
+import Data.Bool (Bool)
+import Data.Foldable (Foldable)
+import Data.Function (($))
+import Data.Functor (Functor (..))
 import Data.List.NonEmpty
+import Data.Monoid (Monoid)
+import Data.Ord (Ord)
+import Data.Strict.Classes (Strict (..))
 import Numeric.Natural
+import Text.Show (Show)
 import Yaya.Fold
-import Yaya.Pattern
+  ( Corecursive (..),
+    DistributiveLaw,
+    Projectable (..),
+    Recursive (..),
+    Steppable (..),
+  )
+import Yaya.Fold.Common (diagonal)
+import Yaya.Pattern (AndMaybe (..), Maybe, XNor (..), uncurry)
+import Prelude (Integral)
 
 -- | A fixed-point constructor that uses Haskell's built-in recursion. This is
 --   lazy/corecursive.
@@ -56,10 +74,11 @@ instance Functor f => Corecursive (->) (Free f a) (FreeF f a) where
       . ψ
 
 instance Functor f => Corecursive (->) (Cofree f a) (EnvT a f) where
-  ana ψ = uncurry (:<) . fmap (fmap (ana ψ)) . runEnvT . ψ
+  ana ψ = uncurry (:<) . fmap (fmap (ana ψ)) . toStrict . runEnvT . ψ
 
 distCofreeT ::
   (Functor f, Functor h) =>
   DistributiveLaw (->) f h ->
   DistributiveLaw (->) f (Cofree h)
-distCofreeT k = ana $ uncurry EnvT . (fmap extract &&& k . fmap unwrap)
+distCofreeT k =
+  ana $ uncurry EnvT . bimap (fmap extract) (k . fmap unwrap) . diagonal

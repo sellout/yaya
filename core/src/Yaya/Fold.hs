@@ -2,25 +2,44 @@
 
 module Yaya.Fold where
 
-import Control.Applicative
-import Control.Arrow
-import Control.Comonad
-import Control.Comonad.Cofree
-import Control.Comonad.Trans.Env
+import Control.Applicative (Applicative (..), liftA2)
+import Control.Category (Category (..))
+import Control.Comonad (Comonad (..))
+import Control.Comonad.Cofree (Cofree (..))
+import Control.Comonad.Trans.Env (EnvT (..), ask, lowerEnvT, runEnvT)
 import Control.Lens hiding ((:<))
-import Control.Monad
-import Control.Monad.Trans.Free
-import Data.Bitraversable
-import Data.Either.Combinators
-import Data.Foldable
-import Data.Functor.Classes
-import Data.Functor.Day
+import Control.Monad (Monad, join, (<=<), (=<<))
+import Control.Monad.Trans.Free (Free, FreeF (..), free, runFree)
+import Data.Bifunctor (Bifunctor (..))
+import Data.Bitraversable (bisequence)
+import Data.Bool (Bool (..))
+import Data.Eq (Eq (..))
+import Data.Foldable (Foldable (..))
+import Data.Function (const, ($))
+import Data.Functor (Functor (..), (<$>))
+import Data.Functor.Classes (Eq1, Show1 (..))
+import Data.Functor.Day (Day (..))
+import Data.Int (Int)
 import Data.List.NonEmpty (NonEmpty (..))
-import Data.Void
-import Numeric.Natural
-import Yaya.Fold.Common
-import Yaya.Functor
+import Data.Strict.Classes (Strict (..))
+import Data.Traversable (sequenceA)
+import Data.Void (Void, absurd)
+import Numeric.Natural (Natural)
+import Text.Show (Show (..), ShowS, showParen)
+import Yaya.Fold.Common (diagonal, equal, fromEither)
+import Yaya.Functor (DFunctor (..))
 import Yaya.Pattern
+  ( AndMaybe (..),
+    Either (..),
+    Maybe (..),
+    Pair (..),
+    XNor (..),
+    fst,
+    maybe,
+    snd,
+    uncurry,
+  )
+import Prelude (Enum (..))
 
 type Algebra c f a = f a `c` a
 
@@ -170,8 +189,8 @@ instance Steppable (->) (Free f a) (FreeF f a) where
 
 -- | Combines two `Algebra`s with different carriers into a single tupled
 --  `Algebra`.
-zipAlgebras :: Functor f => Algebra (->) f a -> Algebra (->) f b -> Algebra (->) f (a, b)
-zipAlgebras f g = f . fmap fst &&& g . fmap snd
+zipAlgebras :: Functor f => Algebra (->) f a -> Algebra (->) f b -> Algebra (->) f (Pair a b)
+zipAlgebras f g = bimap (f . fmap fst) (g . fmap snd) . diagonal
 
 -- | Combines two `AlgebraM`s with different carriers into a single tupled
 --  `AlgebraM`.
@@ -179,8 +198,8 @@ zipAlgebraMs ::
   (Applicative m, Functor f) =>
   AlgebraM (->) m f a ->
   AlgebraM (->) m f b ->
-  AlgebraM (->) m f (a, b)
-zipAlgebraMs f g = uncurry (liftA2 (,)) . (f . fmap fst &&& g . fmap snd)
+  AlgebraM (->) m f (Pair a b)
+zipAlgebraMs f g = bisequence . bimap (f . fmap fst) (g . fmap snd) . diagonal
 
 -- | Algebras over Day convolution are convenient for binary operations, but
 --   aren’t directly handleable by `cata`.
@@ -254,19 +273,19 @@ elgotCataM ::
   ElgotAlgebraM (->) m w f a ->
   t ->
   m a
-elgotCataM w φ = φ <=< cata (fmap w . traverse (sequence . extend φ) <=< sequenceA)
+elgotCataM w φ = φ <=< cata (fmap w . traverse (sequenceA . extend φ) <=< sequenceA)
 
 ezygoM ::
   (Monad m, Recursive (->) t f, Traversable f) =>
   AlgebraM (->) m f b ->
-  ElgotAlgebraM (->) m ((,) b) f a ->
+  ElgotAlgebraM (->) m (Pair b) f a ->
   t ->
   m a
 ezygoM φ' φ =
   fmap snd
     . cata
-      ( (\x@(b, _) -> (b,) <$> φ x)
-          <=< bisequence . (φ' . fmap fst &&& pure . fmap snd)
+      ( (\x@(b :!: _) -> (b :!:) <$> φ x)
+          <=< bisequence . bimap (φ' . fmap fst) (pure . fmap snd) . diagonal
           <=< sequenceA
       )
 
@@ -284,7 +303,7 @@ elgotAna ::
   ElgotCoalgebra (->) m f a ->
   a ->
   t
-elgotAna k ψ = ana (fmap (>>= ψ) . k) . ψ
+elgotAna k ψ = ana (fmap (ψ =<<) . k) . ψ
 
 lambek :: (Steppable (->) t f, Recursive (->) t f, Functor f) => Coalgebra (->) f t
 lambek = cata (fmap embed)
@@ -306,18 +325,19 @@ distIdentity = Identity . fmap runIdentity
 seqIdentity :: Functor f => DistributiveLaw (->) Identity f
 seqIdentity = fmap Identity . runIdentity
 
-distTuple :: Functor f => Algebra (->) f a -> DistributiveLaw (->) f ((,) a)
-distTuple φ = φ . fmap fst &&& fmap snd
+distTuple :: Functor f => Algebra (->) f a -> DistributiveLaw (->) f (Pair a)
+distTuple φ = bimap (φ . fmap fst) (fmap snd) . diagonal
 
 distEnvT ::
   Functor f =>
   Algebra (->) f a ->
   DistributiveLaw (->) f w ->
   DistributiveLaw (->) f (EnvT a w)
-distEnvT φ k = uncurry EnvT . (φ . fmap ask &&& k . fmap lowerEnvT)
+distEnvT φ k =
+  uncurry EnvT . bimap (φ . fmap ask) (k . fmap lowerEnvT) . diagonal
 
 seqEither :: Functor f => Coalgebra (->) f a -> DistributiveLaw (->) (Either a) f
-seqEither ψ = fmap Left . ψ ||| fmap Right
+seqEither ψ = fromEither . bimap (fmap Left . ψ) (fmap Right)
 
 -- | Converts an `Algebra` to one that annotates the tree with the result for
 --   each node.
@@ -325,12 +345,13 @@ attributeAlgebra ::
   (Steppable (->) t (EnvT a f), Functor f) =>
   Algebra (->) f a ->
   Algebra (->) f t
-attributeAlgebra φ ft = embed $ EnvT (φ (fmap (fst . runEnvT . project) ft)) ft
+attributeAlgebra φ ft =
+  embed $ EnvT (φ (fmap (fst . toStrict . runEnvT . project) ft)) ft
 
 -- | Converts a `Coalgebra` to one that annotates the tree with the seed that
 --   generated each node.
 attributeCoalgebra :: Coalgebra (->) f a -> Coalgebra (->) (EnvT a f) a
-attributeCoalgebra ψ = uncurry EnvT . (id &&& ψ)
+attributeCoalgebra ψ = uncurry EnvT . second ψ . diagonal
 
 -- | This is just a more obvious name for composing `lowerEnvT` with your
 --   algebra directly.
@@ -412,4 +433,4 @@ recursivePrism ::
 recursivePrism alg =
   prism
     (ana (review alg))
-    (\t -> mapLeft (const t) $ cata (matching alg <=< sequenceA) t)
+    (\t -> first (const t) $ cata (matching alg <=< sequenceA) t)

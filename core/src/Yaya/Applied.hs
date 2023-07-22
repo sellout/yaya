@@ -1,10 +1,38 @@
 module Yaya.Applied where
 
-import Control.Monad.Trans.Free
-import Data.Functor.Identity
+import Control.Applicative (Applicative)
+import Control.Category (Category (..))
+import Control.Monad.Trans.Free (FreeF (..))
+import Data.Foldable (Foldable (..))
+import Data.Functor (Functor (..))
+import Data.Functor.Identity (Identity (..))
+import Data.Int (Int)
+import Data.Ord (Ord (..))
+import Data.Traversable (Traversable)
 import Yaya.Fold
+  ( Algebra,
+    Corecursive (..),
+    Mu,
+    Projectable (..),
+    Recursive (..),
+    Steppable (..),
+    cata2,
+  )
 import Yaya.Fold.Common
-import Yaya.Pattern
+  ( diagonal,
+    fromEither,
+    lucasSequence',
+    maybeTakeNext,
+    never,
+    takeAnother,
+    takeAvailable,
+    takeNext,
+    toRight,
+    truncate',
+    unarySequence,
+  )
+import Yaya.Pattern (Either (..), Maybe (..), Pair, XNor, maybe)
+import Prelude (Integral)
 
 now :: Steppable (->) t (Either a) => a -> t
 now = embed . Left
@@ -106,7 +134,7 @@ mersenne :: (Integral i, Corecursive (->) t ((,) i)) => t
 mersenne = lucasSequenceU 3 2
 
 -- | Creates an infinite stream of the provided value.
-constantly :: Corecursive (->) t ((,) a) => a -> t
+constantly :: Corecursive (->) t (Pair a) => a -> t
 constantly = ana diagonal
 
 -- | Lops off the branches of the tree below a certain depth, turning a

@@ -2,12 +2,36 @@
 --   laziness) can lead to non-termination.
 module Yaya.Unsafe.Fold where
 
-import Control.Arrow
-import Control.Comonad
-import Control.Lens
-import Control.Monad
-import Data.Functor.Compose
+import Control.Applicative (Applicative (..))
+import Control.Category (Category (..))
+import Control.Comonad (Comonad (..))
+import Control.Lens (Prism', matching, prism, review, (&))
+import Control.Monad (Monad, (<=<))
+import Data.Bifunctor (Bifunctor (..))
+import Data.Functor (Functor (..))
+import Data.Functor.Compose (Compose (..))
+import Data.Traversable (Traversable (..))
 import Yaya.Fold
+  ( Algebra,
+    AlgebraM,
+    Coalgebra,
+    CoalgebraM,
+    CoalgebraPrism,
+    Corecursive (..),
+    DistributiveLaw,
+    GAlgebra,
+    GAlgebraM,
+    GCoalgebra,
+    GCoalgebraM,
+    Projectable (..),
+    Recursive (..),
+    Steppable (..),
+    lowerAlgebra,
+    lowerAlgebraM,
+    lowerCoalgebra,
+    lowerCoalgebraM,
+  )
+import Yaya.Pattern (Maybe, Pair, maybe, uncurry)
 
 -- | This can’t be implemented in a total fashion. There is a _similar_ approach
 --   that can be total – with `ψ :: CoalgebraM (->) m f a`, `ana (Compose . ψ)`
@@ -63,7 +87,7 @@ ghyloM w n φ ψ =
 stream' ::
   (Projectable (->) t f, Steppable (->) u g, Functor g) =>
   CoalgebraM (->) Maybe g b ->
-  (b -> ((b -> b, t) -> u) -> f t -> u) ->
+  (b -> (Pair (b -> b) t -> u) -> f t -> u) ->
   b ->
   t ->
   u
@@ -83,7 +107,7 @@ stream' ψ f = go
 streamAna ::
   (Projectable (->) t f, Steppable (->) u g, Functor g) =>
   CoalgebraM (->) Maybe g b ->
-  AlgebraM (->) ((,) (b -> b)) f t ->
+  AlgebraM (->) (Pair (b -> b)) f t ->
   b ->
   t ->
   u
@@ -99,7 +123,7 @@ streamGApo ::
   (Projectable (->) t f, Steppable (->) u g, Corecursive (->) u g, Functor g) =>
   Coalgebra (->) g b ->
   CoalgebraM (->) Maybe g b ->
-  (f t -> Maybe (b -> b, t)) ->
+  (f t -> Maybe (Pair (b -> b) t)) ->
   b ->
   t ->
   u

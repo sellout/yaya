@@ -11,14 +11,30 @@
 --   to terminate.
 module Yaya.Unsafe.Fold.Instances where
 
-import Control.Comonad.Cofree
-import Control.Comonad.Env
-import Control.Monad.Trans.Free
-import Data.Functor.Classes
-import Data.List.NonEmpty
+import Control.Category (Category (..))
+import Control.Comonad.Cofree (Cofree)
+import Control.Comonad.Env (EnvT)
+import Control.Monad.Trans.Free (Free, FreeF (..), free)
+import Data.Eq (Eq (..))
+import Data.Foldable (Foldable)
+import Data.Function (flip)
+import Data.Functor (Functor, (<$>))
+import Data.Functor.Classes (Eq1, Show1)
+import Data.List.NonEmpty (NonEmpty)
+import Text.Show (Show (..))
 import Yaya.Fold
-import Yaya.Fold.Native
-import Yaya.Pattern
+  ( Corecursive (..),
+    DistributiveLaw,
+    Mu,
+    Nu,
+    Projectable (..),
+    Recursive (..),
+    Steppable (..),
+    recursiveEq,
+    recursiveShowsPrec,
+  )
+import Yaya.Fold.Native (Fix)
+import Yaya.Pattern (AndMaybe, XNor)
 import qualified Yaya.Unsafe.Fold as Unsafe
 
 instance Functor f => Recursive (->) (Fix f) f where

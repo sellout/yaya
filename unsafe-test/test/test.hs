@@ -1,6 +1,8 @@
-import Control.Monad
+import Control.Monad (unless)
+import Data.Foldable (and)
+import Data.Traversable (sequenceA)
 import System.Exit (exitFailure)
-import System.IO (BufferMode (..), hSetBuffering, stderr, stdout)
+import System.IO (BufferMode (..), IO, hSetBuffering, stderr, stdout)
 import qualified Test.Fold as Fold
 
 main :: IO ()
@@ -9,7 +11,7 @@ main = do
   hSetBuffering stderr LineBuffering
 
   results <-
-    sequence
+    sequenceA
       [ Fold.tests
       ]
 

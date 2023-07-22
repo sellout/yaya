@@ -3,13 +3,20 @@
 
 module Yaya.Hedgehog.Fold where
 
-import Control.Arrow
-import Data.Proxy
-import Data.Void
-import Hedgehog
-import Numeric.Natural
-import Yaya.Fold
+import Control.Category (Category (..))
+import Data.Bifunctor (Bifunctor (..))
+import Data.Eq (Eq)
+import Data.Functor (Functor (..))
+import Data.Proxy (Proxy (..))
+import Data.Void (Void, absurd)
+import Hedgehog (Gen, MonadTest, Size, (===))
+import Numeric.Natural (Natural)
+import Text.Show (Show)
+import Yaya.Fold (Algebra, Corecursive (..), Projectable (..), Recursive (..), Steppable (..))
+import Yaya.Fold.Common (diagonal)
 import Yaya.Fold.Native ()
+import Yaya.Pattern (Maybe, maybe, uncurry)
+import Prelude (fromIntegral)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -18,24 +25,29 @@ law_cataCancel ::
   Algebra (->) f a ->
   f t ->
   m ()
-law_cataCancel φ = uncurry (===) . (cata φ . embed &&& φ . fmap (cata φ))
+law_cataCancel φ =
+  uncurry (===) . bimap (cata φ . embed) (φ . fmap (cata φ)) . diagonal
 
 law_cataRefl ::
   (Eq t, Show t, Steppable (->) t f, Recursive (->) t f, MonadTest m) => t -> m ()
-law_cataRefl = uncurry (===) . (cata embed &&& id)
+law_cataRefl = uncurry (===) . first (cata embed) . diagonal
 
 -- | NB: Since this requires both a `Corecursive` and `Eq` instance on the same
 --       type, it _likely_ requires instances from yaya-unsafe.
 law_anaRefl ::
   (Eq t, Show t, Steppable (->) t f, Corecursive (->) t f, MonadTest m) => t -> m ()
-law_anaRefl = uncurry (===) . (ana project &&& id)
+law_anaRefl = uncurry (===) . first (ana project) . diagonal
 
--- law_cataFusion
---   :: (Eq a, Show a, Recursive (->) t f, Functor f, MonadTest m)
---   => (a -> a) -> Algebra (->) f a -> f a -> t -> m ()
+-- law_cataFusion ::
+--   (Eq a, Show a, Recursive (->) t f, Functor f, MonadTest m) =>
+--   (a -> a) ->
+--   Algebra (->) f a ->
+--   f a ->
+--   t ->
+--   m ()
 -- law_cataFusion f φ fa t =
---       uncurry (==) ((f . φ &&& φ . fmap f) fa)
---   ==> uncurry (===) ((f . cata φ &&& cata φ) t)
+--   uncurry (==) (bimap (f . φ) (φ . fmap f) $ diagonal fa)
+--     ==> uncurry (===) (bimap (f . cata φ) (cata φ) $ diagonal t)
 
 law_cataCompose ::
   forall t f u g m b.
@@ -45,8 +57,10 @@ law_cataCompose ::
   (forall a. f a -> g a) ->
   t ->
   m ()
-law_cataCompose _ φ ε =
-  uncurry (===) . (cata φ . cata (embed . ε :: f u -> u) &&& cata (φ . ε))
+law_cataCompose Proxy φ ε =
+  uncurry (===)
+    . bimap (cata φ . cata (embed . ε :: f u -> u)) (cata (φ . ε))
+    . diagonal
 
 -- | Creates a generator for any `Steppable` type whose pattern functor has
 --   terminal cases (e.g., not `Data.Functor.Identity` or `((,) a)`). @leaf@ can

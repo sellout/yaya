@@ -1,15 +1,39 @@
 module Yaya.Unsafe.Zoo where
 
-import Control.Arrow
-import Control.Comonad.Cofree
-import Control.Comonad.Env
-import Control.Monad.Trans.Free
-import Data.Bitraversable
-import Data.Functor.Compose
-import Data.Functor.Identity
+import Control.Applicative (Applicative (..))
+import Control.Category (Category (..))
+import Control.Comonad (Comonad)
+import Control.Comonad.Cofree (Cofree)
+import Control.Comonad.Env (EnvT)
+import Control.Monad (Monad)
+import Control.Monad.Trans.Free (Free)
+import Data.Bifunctor (Bifunctor (..))
+import Data.Bitraversable (Bitraversable (..))
+import Data.Function (const, flip)
+import Data.Functor (Functor (..))
+import Data.Functor.Compose (Compose (..))
+import Data.Functor.Identity (Identity (..))
+import Data.Traversable (Traversable)
 import Yaya.Fold
-import Yaya.Fold.Native
-import Yaya.Pattern
+  ( Algebra,
+    Coalgebra,
+    Corecursive (..),
+    DistributiveLaw,
+    ElgotAlgebra,
+    ElgotCoalgebra,
+    GAlgebra,
+    GCoalgebra,
+    Projectable (..),
+    Recursive (..),
+    Steppable (..),
+    distEnvT,
+    distIdentity,
+    gana,
+    seqIdentity,
+  )
+import Yaya.Fold.Common (diagonal, fromEither)
+import Yaya.Fold.Native (distCofreeT)
+import Yaya.Pattern (Either, Maybe (..), Pair (..), XNor (..))
 import qualified Yaya.Unsafe.Fold as Unsafe
 import qualified Yaya.Unsafe.Fold.Instances as Unsafe -- NB: extremely unsafe
 
@@ -32,12 +56,12 @@ dyna φ ψ = Unsafe.ghylo (distCofreeT id) seqIdentity φ (fmap Identity . ψ)
 --   way that allows information to move between them. The coalgebra can return,
 --   effectively, a pre-folded branch, short-circuiting parts of the process.
 elgot :: Functor f => Algebra (->) f b -> ElgotCoalgebra (->) (Either b) f a -> a -> b
-elgot φ ψ = Unsafe.hylo ((id ||| φ) . getCompose) (Compose . ψ)
+elgot φ ψ = Unsafe.hylo (fromEither . second φ . getCompose) (Compose . ψ)
 
 -- | The dual of `elgot`, `coelgot` allows the /algebra/ to short-circuit in
 --   some cases – operating directly on a part of the seed.
-coelgot :: Functor f => ElgotAlgebra (->) ((,) a) f b -> Coalgebra (->) f a -> a -> b
-coelgot φ ψ = Unsafe.hylo (φ . getCompose) (Compose . (id &&& ψ))
+coelgot :: Functor f => ElgotAlgebra (->) (Pair a) f b -> Coalgebra (->) f a -> a -> b
+coelgot φ ψ = Unsafe.hylo (φ . getCompose) (Compose . second ψ . diagonal)
 
 futu :: (Corecursive (->) t f, Functor f) => GCoalgebra (->) (Free f) f a -> a -> t
 futu = gana (Unsafe.seqFreeT id)
@@ -84,7 +108,7 @@ fstream f g h =
     )
     ( \case
         Neither -> Nothing
-        Both a x' -> Just (flip g a, x')
+        Both a x' -> Just (flip g a :!: x')
     )
 
 -- snoc :: [a] -> a -> [a]
