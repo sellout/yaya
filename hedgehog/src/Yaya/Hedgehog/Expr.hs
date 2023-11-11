@@ -2,21 +2,21 @@
 
 module Yaya.Hedgehog.Expr where
 
-import Control.Applicative (Applicative (..))
-import Data.Eq (Eq)
-import Data.Eq.Deriving (deriveEq1)
-import Data.Foldable (Foldable)
-import Data.Functor (Functor, (<$>))
-import Data.Int (Int)
-import Data.Traversable (Traversable)
-import Hedgehog (Gen, Size)
-import qualified Hedgehog.Gen as Gen
-import qualified Hedgehog.Range as Range
-import Text.Show (Show)
-import Text.Show.Deriving (deriveShow1)
-import Yaya.Fold (Mu, Nu, Steppable)
-import Yaya.Fold.Native (Fix)
-import Yaya.Hedgehog.Fold (embeddableOfHeight)
+import "base" Control.Applicative (Applicative (..))
+import "base" Data.Eq (Eq)
+import "deriving-compat" Data.Eq.Deriving (deriveEq1)
+import "base" Data.Foldable (Foldable)
+import "base" Data.Functor (Functor, (<$>))
+import "base" Data.Int (Int)
+import "base" Data.Traversable (Traversable)
+import "hedgehog" Hedgehog (Gen, Size)
+import qualified "hedgehog" Hedgehog.Gen as Gen
+import qualified "hedgehog" Hedgehog.Range as Range
+import "base" Text.Show (Show)
+import "deriving-compat" Text.Show.Deriving (deriveShow1)
+import "yaya" Yaya.Fold (Mu, Nu, Steppable)
+import "yaya" Yaya.Fold.Native (Fix)
+import "this" Yaya.Hedgehog.Fold (embeddableOfHeight)
 
 data Expr a
   = Lit Int

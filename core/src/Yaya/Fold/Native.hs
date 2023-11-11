@@ -4,33 +4,33 @@
 --   manner.
 module Yaya.Fold.Native where
 
-import Control.Applicative (Applicative)
-import Control.Category (Category (..))
-import Control.Comonad (Comonad (..))
-import Control.Comonad.Cofree (Cofree (..), unwrap)
-import Control.Comonad.Trans.Env (EnvT (..), runEnvT)
-import Control.Monad.Trans.Free (Free, FreeF (..), free)
-import Data.Bifunctor (Bifunctor (..))
-import Data.Bool (Bool)
-import Data.Foldable (Foldable)
-import Data.Function (($))
-import Data.Functor (Functor (..))
-import Data.List.NonEmpty
-import Data.Monoid (Monoid)
-import Data.Ord (Ord)
-import Data.Strict.Classes (Strict (..))
-import Numeric.Natural
-import Text.Show (Show)
-import Yaya.Fold
+import "base" Control.Applicative (Applicative)
+import "base" Control.Category (Category (..))
+import "comonad" Control.Comonad (Comonad (..))
+import "free" Control.Comonad.Cofree (Cofree (..), unwrap)
+import "comonad" Control.Comonad.Trans.Env (EnvT (..), runEnvT)
+import "free" Control.Monad.Trans.Free (Free, FreeF (..), free)
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Bool (Bool)
+import "base" Data.Foldable (Foldable)
+import "base" Data.Function (($))
+import "base" Data.Functor (Functor (..))
+import "base" Data.List.NonEmpty
+import "base" Data.Monoid (Monoid)
+import "base" Data.Ord (Ord)
+import "strict" Data.Strict.Classes (Strict (..))
+import "base" Numeric.Natural
+import "base" Text.Show (Show)
+import "this" Yaya.Fold
   ( Corecursive (..),
     DistributiveLaw,
     Projectable (..),
     Recursive (..),
     Steppable (..),
   )
-import Yaya.Fold.Common (diagonal)
-import Yaya.Pattern (AndMaybe (..), Maybe, XNor (..), uncurry)
-import Prelude (Integral)
+import "this" Yaya.Fold.Common (diagonal)
+import "this" Yaya.Pattern (AndMaybe (..), Maybe, XNor (..), uncurry)
+import "base" Prelude (Integral)
 
 -- | A fixed-point constructor that uses Haskell's built-in recursion. This is
 --   lazy/corecursive.

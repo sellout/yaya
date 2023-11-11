@@ -2,20 +2,25 @@
 
 module Test.Fold where
 
-import Control.Category (Category (..))
-import Control.Monad ((=<<))
-import Data.Bool (Bool)
-import Data.Function (($))
-import Data.Proxy (Proxy (..))
-import Hedgehog (Property, checkParallel, discover, forAll, property)
-import qualified Hedgehog.Gen as Gen
-import System.IO (IO)
-import Yaya.Fold (Nu)
-import Yaya.Fold.Common (size)
-import Yaya.Fold.Native (Fix)
-import Yaya.Hedgehog.Expr (Expr, genExpr, genFixExpr, genNuExpr)
-import Yaya.Hedgehog.Fold (law_anaRefl, law_cataCancel, law_cataCompose, law_cataRefl)
-import qualified Yaya.Unsafe.Fold.Instances ()
+import "base" Control.Category (Category (..))
+import "base" Control.Monad ((=<<))
+import "base" Data.Bool (Bool)
+import "base" Data.Function (($))
+import "base" Data.Proxy (Proxy (..))
+import "hedgehog" Hedgehog (Property, checkParallel, discover, forAll, property)
+import qualified "hedgehog" Hedgehog.Gen as Gen
+import "base" System.IO (IO)
+import "yaya" Yaya.Fold (Nu)
+import "yaya" Yaya.Fold.Common (size)
+import "yaya" Yaya.Fold.Native (Fix)
+import "yaya-hedgehog" Yaya.Hedgehog.Expr (Expr, genExpr, genFixExpr, genNuExpr)
+import "yaya-hedgehog" Yaya.Hedgehog.Fold
+  ( law_anaRefl,
+    law_cataCancel,
+    law_cataCompose,
+    law_cataRefl,
+  )
+import qualified "yaya-unsafe" Yaya.Unsafe.Fold.Instances ()
 
 -- | NB: Only in yaya-unsafe instead of yaya because the `Eq (Fix f)` instance
 --       is needed.

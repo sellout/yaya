@@ -43,6 +43,7 @@ library
                      , FunctionalDependencies
                      , LambdaCase
                      , MultiParamTypeClasses
+                     , PackageImports
                      , RankNTypes
                      , ScopedTypeVariables
                      , StrictData

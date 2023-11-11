@@ -207,7 +207,6 @@
     bash-strict-mode = {
       inputs = {
         flake-utils.follows = "flake-utils";
-        home-manager.follows = "home-manager";
         nixpkgs.follows = "nixpkgs";
       };
       url = "github:sellout/bash-strict-mode";

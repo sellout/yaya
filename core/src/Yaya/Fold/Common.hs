@@ -1,24 +1,24 @@
 -- | Common algebras that are useful when folding.
 module Yaya.Fold.Common where
 
-import Control.Applicative (Applicative (..))
-import Control.Category (Category (..))
-import Control.Monad (Monad, join)
-import Control.Monad.Trans.Free (FreeF (..))
-import Data.Bool (Bool (..), (&&))
-import Data.Eq (Eq (..))
-import Data.Foldable (Foldable (..), and)
-import Data.Function (($))
-import Data.Functor (Functor (..), void)
-import Data.Functor.Classes (Eq1 (..))
-import Data.Functor.Day (Day (..))
-import Data.Functor.Identity (Identity (..))
-import Data.List (zipWith)
-import Data.Monoid (Monoid (..))
-import Data.Ord (Ord (..))
-import Data.Semigroup (Semigroup (..))
-import Numeric.Natural (Natural)
-import Yaya.Pattern
+import "base" Control.Applicative (Applicative (..))
+import "base" Control.Category (Category (..))
+import "base" Control.Monad (Monad, join)
+import "free" Control.Monad.Trans.Free (FreeF (..))
+import "base" Data.Bool (Bool (..), (&&))
+import "base" Data.Eq (Eq (..))
+import "base" Data.Foldable (Foldable (..), and)
+import "base" Data.Function (($))
+import "base" Data.Functor (Functor (..), void)
+import "base" Data.Functor.Classes (Eq1 (..))
+import "kan-extensions" Data.Functor.Day (Day (..))
+import "base" Data.Functor.Identity (Identity (..))
+import "base" Data.List (zipWith)
+import "base" Data.Monoid (Monoid (..))
+import "base" Data.Ord (Ord (..))
+import "base" Data.Semigroup (Semigroup (..))
+import "base" Numeric.Natural (Natural)
+import "this" Yaya.Pattern
   ( AndMaybe (..),
     Either (..),
     Maybe (..),

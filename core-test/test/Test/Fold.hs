@@ -2,18 +2,22 @@
 
 module Test.Fold where
 
-import Control.Category (Category (..))
-import Control.Monad ((=<<))
-import Data.Bool (Bool)
-import Data.Function (($))
-import Data.Proxy (Proxy (..))
-import Hedgehog (Property, checkParallel, discover, forAll, property)
-import qualified Hedgehog.Gen as Gen
-import System.IO (IO)
-import Yaya.Fold (Mu)
-import Yaya.Fold.Common (size)
-import Yaya.Hedgehog.Expr (Expr, genExpr, genMuExpr)
-import Yaya.Hedgehog.Fold (law_cataCancel, law_cataCompose, law_cataRefl)
+import "base" Control.Category (Category (..))
+import "base" Control.Monad ((=<<))
+import "base" Data.Bool (Bool)
+import "base" Data.Function (($))
+import "base" Data.Proxy (Proxy (..))
+import "hedgehog" Hedgehog (Property, checkParallel, discover, forAll, property)
+import qualified "hedgehog" Hedgehog.Gen as Gen
+import "base" System.IO (IO)
+import "yaya" Yaya.Fold (Mu)
+import "yaya" Yaya.Fold.Common (size)
+import "yaya-hedgehog" Yaya.Hedgehog.Expr (Expr, genExpr, genMuExpr)
+import "yaya-hedgehog" Yaya.Hedgehog.Fold
+  ( law_cataCancel,
+    law_cataCompose,
+    law_cataRefl,
+  )
 
 prop_muCataCancel :: Property
 prop_muCataCancel =

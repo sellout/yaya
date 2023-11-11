@@ -3,20 +3,20 @@
 
 module Yaya.Hedgehog.Fold where
 
-import Control.Category (Category (..))
-import Data.Bifunctor (Bifunctor (..))
-import Data.Eq (Eq)
-import Data.Functor (Functor (..))
-import Data.Proxy (Proxy (..))
-import Data.Void (Void, absurd)
-import Hedgehog (Gen, MonadTest, Size, (===))
-import Numeric.Natural (Natural)
-import Text.Show (Show)
-import Yaya.Fold (Algebra, Corecursive (..), Projectable (..), Recursive (..), Steppable (..))
-import Yaya.Fold.Common (diagonal)
-import Yaya.Fold.Native ()
-import Yaya.Pattern (Maybe, maybe, uncurry)
-import Prelude (fromIntegral)
+import "base" Control.Category (Category (..))
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Eq (Eq)
+import "base" Data.Functor (Functor (..))
+import "base" Data.Proxy (Proxy (..))
+import "base" Data.Void (Void, absurd)
+import "hedgehog" Hedgehog (Gen, MonadTest, Size, (===))
+import "base" Numeric.Natural (Natural)
+import "base" Text.Show (Show)
+import "yaya" Yaya.Fold (Algebra, Corecursive (..), Projectable (..), Recursive (..), Steppable (..))
+import "yaya" Yaya.Fold.Common (diagonal)
+import "yaya" Yaya.Fold.Native ()
+import "yaya" Yaya.Pattern (Maybe, maybe, uncurry)
+import "base" Prelude (fromIntegral)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 

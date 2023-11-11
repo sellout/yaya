@@ -1,20 +1,20 @@
 module Yaya.Unsafe.Zoo where
 
-import Control.Applicative (Applicative (..))
-import Control.Category (Category (..))
-import Control.Comonad (Comonad)
-import Control.Comonad.Cofree (Cofree)
-import Control.Comonad.Env (EnvT)
-import Control.Monad (Monad)
-import Control.Monad.Trans.Free (Free)
-import Data.Bifunctor (Bifunctor (..))
-import Data.Bitraversable (Bitraversable (..))
-import Data.Function (const, flip)
-import Data.Functor (Functor (..))
-import Data.Functor.Compose (Compose (..))
-import Data.Functor.Identity (Identity (..))
-import Data.Traversable (Traversable)
-import Yaya.Fold
+import "base" Control.Applicative (Applicative (..))
+import "base" Control.Category (Category (..))
+import "comonad" Control.Comonad (Comonad)
+import "free" Control.Comonad.Cofree (Cofree)
+import "comonad" Control.Comonad.Env (EnvT)
+import "base" Control.Monad (Monad)
+import "free" Control.Monad.Trans.Free (Free)
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Bitraversable (Bitraversable (..))
+import "base" Data.Function (const, flip)
+import "base" Data.Functor (Functor (..))
+import "base" Data.Functor.Compose (Compose (..))
+import "base" Data.Functor.Identity (Identity (..))
+import "base" Data.Traversable (Traversable)
+import "yaya" Yaya.Fold
   ( Algebra,
     Coalgebra,
     Corecursive (..),
@@ -31,11 +31,11 @@ import Yaya.Fold
     gana,
     seqIdentity,
   )
-import Yaya.Fold.Common (diagonal, fromEither)
-import Yaya.Fold.Native (distCofreeT)
-import Yaya.Pattern (Either, Maybe (..), Pair (..), XNor (..))
-import qualified Yaya.Unsafe.Fold as Unsafe
-import qualified Yaya.Unsafe.Fold.Instances as Unsafe -- NB: extremely unsafe
+import "yaya" Yaya.Fold.Common (diagonal, fromEither)
+import "yaya" Yaya.Fold.Native (distCofreeT)
+import "yaya" Yaya.Pattern (Either, Maybe (..), Pair (..), XNor (..))
+import qualified "this" Yaya.Unsafe.Fold as Unsafe
+import qualified "this" Yaya.Unsafe.Fold.Instances as Unsafe -- NB: extremely unsafe
 
 chrono ::
   Functor f =>
