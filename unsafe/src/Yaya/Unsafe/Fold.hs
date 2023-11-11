@@ -2,16 +2,16 @@
 --   laziness) can lead to non-termination.
 module Yaya.Unsafe.Fold where
 
-import Control.Applicative (Applicative (..))
-import Control.Category (Category (..))
-import Control.Comonad (Comonad (..))
-import Control.Lens (Prism', matching, prism, review, (&))
-import Control.Monad (Monad, (<=<))
-import Data.Bifunctor (Bifunctor (..))
-import Data.Functor (Functor (..))
-import Data.Functor.Compose (Compose (..))
-import Data.Traversable (Traversable (..))
-import Yaya.Fold
+import "base" Control.Applicative (Applicative (..))
+import "base" Control.Category (Category (..))
+import "comonad" Control.Comonad (Comonad (..))
+import "lens" Control.Lens (Prism', matching, prism, review, (&))
+import "base" Control.Monad (Monad, (<=<))
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Functor (Functor (..))
+import "base" Data.Functor.Compose (Compose (..))
+import "base" Data.Traversable (Traversable (..))
+import "yaya" Yaya.Fold
   ( Algebra,
     AlgebraM,
     Coalgebra,
@@ -31,7 +31,7 @@ import Yaya.Fold
     lowerCoalgebra,
     lowerCoalgebraM,
   )
-import Yaya.Pattern (Maybe, Pair, maybe, uncurry)
+import "yaya" Yaya.Pattern (Maybe, Pair, maybe, uncurry)
 
 -- | This can’t be implemented in a total fashion. There is a _similar_ approach
 --   that can be total – with `ψ :: CoalgebraM (->) m f a`, `ana (Compose . ψ)`

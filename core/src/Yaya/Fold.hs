@@ -2,33 +2,33 @@
 
 module Yaya.Fold where
 
-import Control.Applicative (Applicative (..), liftA2)
-import Control.Category (Category (..))
-import Control.Comonad (Comonad (..))
-import Control.Comonad.Cofree (Cofree (..))
-import Control.Comonad.Trans.Env (EnvT (..), ask, lowerEnvT, runEnvT)
-import Control.Lens hiding ((:<))
-import Control.Monad (Monad, join, (<=<), (=<<))
-import Control.Monad.Trans.Free (Free, FreeF (..), free, runFree)
-import Data.Bifunctor (Bifunctor (..))
-import Data.Bitraversable (bisequence)
-import Data.Bool (Bool (..))
-import Data.Eq (Eq (..))
-import Data.Foldable (Foldable (..))
-import Data.Function (const, ($))
-import Data.Functor (Functor (..), (<$>))
-import Data.Functor.Classes (Eq1, Show1 (..))
-import Data.Functor.Day (Day (..))
-import Data.Int (Int)
-import Data.List.NonEmpty (NonEmpty (..))
-import Data.Strict.Classes (Strict (..))
-import Data.Traversable (sequenceA)
-import Data.Void (Void, absurd)
-import Numeric.Natural (Natural)
-import Text.Show (Show (..), ShowS, showParen)
-import Yaya.Fold.Common (diagonal, equal, fromEither)
-import Yaya.Functor (DFunctor (..))
-import Yaya.Pattern
+import "base" Control.Applicative (Applicative (..), liftA2)
+import "base" Control.Category (Category (..))
+import "comonad" Control.Comonad (Comonad (..))
+import "free" Control.Comonad.Cofree (Cofree (..))
+import "comonad" Control.Comonad.Trans.Env (EnvT (..), ask, lowerEnvT, runEnvT)
+import "lens" Control.Lens hiding ((:<))
+import "base" Control.Monad (Monad, join, (<=<), (=<<))
+import "free" Control.Monad.Trans.Free (Free, FreeF (..), free, runFree)
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Bitraversable (bisequence)
+import "base" Data.Bool (Bool (..))
+import "base" Data.Eq (Eq (..))
+import "base" Data.Foldable (Foldable (..))
+import "base" Data.Function (const, ($))
+import "base" Data.Functor (Functor (..), (<$>))
+import "base" Data.Functor.Classes (Eq1, Show1 (..))
+import "kan-extensions" Data.Functor.Day (Day (..))
+import "base" Data.Int (Int)
+import "base" Data.List.NonEmpty (NonEmpty (..))
+import "strict" Data.Strict.Classes (Strict (..))
+import "base" Data.Traversable (sequenceA)
+import "base" Data.Void (Void, absurd)
+import "base" Numeric.Natural (Natural)
+import "base" Text.Show (Show (..), ShowS, showParen)
+import "this" Yaya.Fold.Common (diagonal, equal, fromEither)
+import "this" Yaya.Functor (DFunctor (..))
+import "this" Yaya.Pattern
   ( AndMaybe (..),
     Either (..),
     Maybe (..),
@@ -39,7 +39,7 @@ import Yaya.Pattern
     snd,
     uncurry,
   )
-import Prelude (Enum (..))
+import "base" Prelude (Enum (..))
 
 type Algebra c f a = f a `c` a
 

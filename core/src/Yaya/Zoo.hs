@@ -4,19 +4,19 @@
 --   you can always import this module and use the “common” name as well.
 module Yaya.Zoo where
 
-import Control.Applicative (Applicative (..))
-import Control.Category (Category (..))
-import Control.Comonad (Comonad (..))
-import Control.Comonad.Cofree (Cofree)
-import Control.Comonad.Env (EnvT (..))
-import Control.Monad (Monad (..), (<=<))
-import Data.Bifunctor (Bifunctor (..))
-import Data.Bitraversable (Bitraversable (..), bisequence)
-import Data.Function (flip, ($))
-import Data.Functor (Functor (..))
-import Data.Profunctor (Profunctor (..))
-import Data.Traversable (Traversable (..))
-import Yaya.Fold
+import "base" Control.Applicative (Applicative (..))
+import "base" Control.Category (Category (..))
+import "comonad" Control.Comonad (Comonad (..))
+import "free" Control.Comonad.Cofree (Cofree)
+import "comonad" Control.Comonad.Env (EnvT (..))
+import "base" Control.Monad (Monad (..), (<=<))
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Bitraversable (Bitraversable (..), bisequence)
+import "base" Data.Function (flip, ($))
+import "base" Data.Functor (Functor (..))
+import "profunctors" Data.Profunctor (Profunctor (..))
+import "base" Data.Traversable (Traversable (..))
+import "this" Yaya.Fold
   ( Algebra,
     AlgebraM,
     Corecursive (..),
@@ -35,9 +35,9 @@ import Yaya.Fold
     gcata,
     seqEither,
   )
-import Yaya.Fold.Common (diagonal, fromEither)
-import Yaya.Fold.Native (distCofreeT)
-import Yaya.Pattern
+import "this" Yaya.Fold.Common (diagonal, fromEither)
+import "this" Yaya.Fold.Native (distCofreeT)
+import "this" Yaya.Pattern
   ( AndMaybe,
     Either (..),
     Maybe,

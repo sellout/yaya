@@ -1,15 +1,15 @@
 module Yaya.Applied where
 
-import Control.Applicative (Applicative)
-import Control.Category (Category (..))
-import Control.Monad.Trans.Free (FreeF (..))
-import Data.Foldable (Foldable (..))
-import Data.Functor (Functor (..))
-import Data.Functor.Identity (Identity (..))
-import Data.Int (Int)
-import Data.Ord (Ord (..))
-import Data.Traversable (Traversable)
-import Yaya.Fold
+import "base" Control.Applicative (Applicative)
+import "base" Control.Category (Category (..))
+import "free" Control.Monad.Trans.Free (FreeF (..))
+import "base" Data.Foldable (Foldable (..))
+import "base" Data.Functor (Functor (..))
+import "base" Data.Functor.Identity (Identity (..))
+import "base" Data.Int (Int)
+import "base" Data.Ord (Ord (..))
+import "base" Data.Traversable (Traversable)
+import "this" Yaya.Fold
   ( Algebra,
     Corecursive (..),
     Mu,
@@ -18,7 +18,7 @@ import Yaya.Fold
     Steppable (..),
     cata2,
   )
-import Yaya.Fold.Common
+import "this" Yaya.Fold.Common
   ( diagonal,
     fromEither,
     lucasSequence',
@@ -31,8 +31,8 @@ import Yaya.Fold.Common
     truncate',
     unarySequence,
   )
-import Yaya.Pattern (Either (..), Maybe (..), Pair, XNor, maybe)
-import Prelude (Integral)
+import "this" Yaya.Pattern (Either (..), Maybe (..), Pair, XNor, maybe)
+import "base" Prelude (Integral)
 
 now :: Steppable (->) t (Either a) => a -> t
 now = embed . Left

@@ -37,6 +37,7 @@ test-suite yaya-test
                      , yaya-hedgehog >= 0.2.0
   default-extensions:  LambdaCase
                      , MultiParamTypeClasses
+                     , PackageImports
                      , StrictData
                      , NoImplicitPrelude
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall

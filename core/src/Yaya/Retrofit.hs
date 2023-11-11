@@ -34,31 +34,31 @@ where
 --    `Maybe`, etc. is tied to emplate-haskell and does not involve recursion
 --     schemes.
 
-import Control.Applicative (Applicative (..))
-import Control.Category (Category (..))
-import Control.Exception (Exception (..), throw)
-import Control.Monad ((<=<))
-import Data.Bifunctor (Bifunctor (..))
-import Data.Bool (Bool (..), not, otherwise, (&&))
-import Data.Either (Either (..), either)
-import Data.Either.Validation (Validation (..), validationToEither)
-import Data.Eq (Eq (..))
-import Data.Foldable (Foldable (..))
-import Data.Function (const, flip, ($))
-import Data.Functor (Functor (..), (<$>))
-import Data.Functor.Identity (Identity (..))
-import Data.List (all, null, zip, zip3)
-import Data.List.NonEmpty (NonEmpty)
-import Data.Maybe (Maybe (..), maybe)
-import Data.Semigroup (Semigroup (..))
-import Data.String (String)
-import Data.Traversable (Traversable (..))
-import Language.Haskell.TH as TH
-import Language.Haskell.TH.Datatype as TH.Abs
-import Language.Haskell.TH.Syntax (mkNameG_tc)
-import Text.Read.Lex (isSymbolChar)
-import Text.Show (Show (..))
-import Yaya.Fold
+import "base" Control.Applicative (Applicative (..))
+import "base" Control.Category (Category (..))
+import "base" Control.Exception (Exception (..), throw)
+import "base" Control.Monad ((<=<))
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Bool (Bool (..), not, otherwise, (&&))
+import "base" Data.Either (Either (..), either)
+import "either" Data.Either.Validation (Validation (..), validationToEither)
+import "base" Data.Eq (Eq (..))
+import "base" Data.Foldable (Foldable (..))
+import "base" Data.Function (const, flip, ($))
+import "base" Data.Functor (Functor (..), (<$>))
+import "base" Data.Functor.Identity (Identity (..))
+import "base" Data.List (all, null, zip, zip3)
+import "base" Data.List.NonEmpty (NonEmpty)
+import "base" Data.Maybe (Maybe (..), maybe)
+import "base" Data.Semigroup (Semigroup (..))
+import "base" Data.String (String)
+import "base" Data.Traversable (Traversable (..))
+import "template-haskell" Language.Haskell.TH as TH
+import "th-abstraction" Language.Haskell.TH.Datatype as TH.Abs
+import "template-haskell" Language.Haskell.TH.Syntax (mkNameG_tc)
+import "base" Text.Read.Lex (isSymbolChar)
+import "base" Text.Show (Show (..))
+import "this" Yaya.Fold
   ( Corecursive (..),
     Projectable (..),
     Recursive (..),
@@ -66,7 +66,7 @@ import Yaya.Fold
     recursiveEq,
     recursiveShowsPrec,
   )
-import Prelude (error)
+import "base" Prelude (error)
 
 #if MIN_VERSION_template_haskell(2, 17, 0)
 type TyVarBndr' = TyVarBndr ()

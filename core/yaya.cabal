@@ -42,13 +42,8 @@ library
                      , Yaya.Zoo
                      , Yaya.Experimental.Foldable
   build-depends:       base >= 4.7 && < 5
-                     , bifunctors
                      , comonad
-                     , constraints
-                     , containers
-                     , distributive
                      , either
-                     , errors
                      , free
                      , kan-extensions
                      , lens
@@ -64,6 +59,7 @@ library
                      , FunctionalDependencies
                      , LambdaCase
                      , MultiParamTypeClasses
+                     , PackageImports
                      , PolyKinds
                      , RankNTypes
                      , ScopedTypeVariables

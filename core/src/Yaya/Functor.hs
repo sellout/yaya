@@ -2,25 +2,25 @@
 --   functor type classes between various categories.
 module Yaya.Functor where
 
-import Control.Applicative.Backwards (Backwards (..))
-import Control.Applicative.Lift (Lift (..))
-import Control.Category (Category (..))
-import qualified Control.Monad.Trans.Except as Ex
-import qualified Control.Monad.Trans.Identity as I
-import qualified Control.Monad.Trans.Maybe as M
-import qualified Control.Monad.Trans.RWS.Lazy as RWS
-import qualified Control.Monad.Trans.RWS.Strict as RWS'
-import qualified Control.Monad.Trans.Reader as R
-import qualified Control.Monad.Trans.State.Lazy as S
-import qualified Control.Monad.Trans.State.Strict as S'
-import qualified Control.Monad.Trans.Writer.Lazy as W'
-import qualified Control.Monad.Trans.Writer.Strict as W
-import Data.Bifunctor (Bifunctor, first)
-import Data.Function (($))
-import Data.Functor (Functor (..))
-import Data.Functor.Compose (Compose (..))
-import Data.Functor.Product (Product (..))
-import Data.Kind (Type)
+import "transformers" Control.Applicative.Backwards (Backwards (..))
+import "transformers" Control.Applicative.Lift (Lift (..))
+import "base" Control.Category (Category (..))
+import qualified "transformers" Control.Monad.Trans.Except as Ex
+import qualified "transformers" Control.Monad.Trans.Identity as I
+import qualified "transformers" Control.Monad.Trans.Maybe as M
+import qualified "transformers" Control.Monad.Trans.RWS.Lazy as RWS
+import qualified "transformers" Control.Monad.Trans.RWS.Strict as RWS'
+import qualified "transformers" Control.Monad.Trans.Reader as R
+import qualified "transformers" Control.Monad.Trans.State.Lazy as S
+import qualified "transformers" Control.Monad.Trans.State.Strict as S'
+import qualified "transformers" Control.Monad.Trans.Writer.Lazy as W'
+import qualified "transformers" Control.Monad.Trans.Writer.Strict as W
+import "base" Data.Bifunctor (Bifunctor, first)
+import "base" Data.Function (($))
+import "base" Data.Functor (Functor (..))
+import "base" Data.Functor.Compose (Compose (..))
+import "base" Data.Functor.Product (Product (..))
+import "base" Data.Kind (Type)
 
 -- | A functor from the category of endofunctors to *Hask*. The @D@ is meant to
 --   be a mnemonic for “down”, as we’re “lowering” from endofunctors to types.
