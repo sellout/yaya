@@ -4,13 +4,14 @@
   nixConfig = {
     ## https://github.com/NixOS/rfcs/blob/master/rfcs/0045-deprecate-url-syntax.md
     extra-experimental-features = ["no-url-literals"];
+    extra-substituters = ["https://cache.garnix.io"];
     extra-trusted-public-keys = [
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
     ];
-    extra-trusted-substituters = ["https://cache.garnix.io"];
     ## Isolate the build.
     registries = false;
-    sandbox = true;
+    ## TODO: Some checks currently don't work when sandboxed.
+    sandbox = false;
   };
 
   ### This is a complicated flake. Here’s the rundown:
@@ -32,20 +33,21 @@
   outputs = inputs: let
     pname = "yaya";
 
-    defaultCompiler = "ghc928";
     ## Test the oldest revision possible for each minor release. If it’s not
     ## available in nixpkgs, test the oldest available, then try an older one
-    ## via GitHub workflow. Additionallyj check any revisions that have explicit
+    ## via GitHub workflow. Additionally, check any revisions that have explicit
     ## conditionalization.
     supportedGhcVersions = [
-      # "ghc884" # dependency (compiler-rt-libc) broken in nixpkgs 23.05
+      # "ghc884" # dependency compiler-rt-libc is broken in nixpkgs 23.05
       "ghc8107"
       "ghc902"
       "ghc928"
       "ghc945"
       "ghc961"
-      # "ghcHEAD" # dependency (primitives) doesn’t yet support this wersion
+      # "ghcHEAD" # doctest doesn’t work on current HEAD
     ];
+
+    supportedSystems = inputs.flake-utils.lib.defaultSystems;
 
     cabalPackages = pkgs: hpkgs: let
       packages =
@@ -64,6 +66,19 @@
       };
   in
     {
+      schemas = {
+        inherit
+          (inputs.flaky.schemas)
+          overlays
+          homeConfigurations
+          packages
+          devShells
+          projectConfigurations
+          checks
+          formatter
+          ;
+      };
+
       # see these issues and discussions:
       # - NixOS/nixpkgs#16394
       # - NixOS/nixpkgs#25887
@@ -95,35 +110,21 @@
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (system: {
-            name = "${system}-example";
-            value = inputs.home-manager.lib.homeManagerConfiguration {
-              pkgs = import inputs.nixpkgs {
-                inherit system;
-                overlays = [inputs.self.overlays.default];
-              };
-
-              modules = [
-                ({pkgs, ...}: {
-                  home.packages = [
-                    (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
-                      hpkgs.yaya
-                      hpkgs.yaya-hedgehog
-                      hpkgs.yaya-unsafe
-                    ]))
-                  ];
-
-                  ## These attributes are simply required by home-manager.
-                  home = {
-                    homeDirectory = /tmp/${pname}-example;
-                    stateVersion = "23.05";
-                    username = "${pname}-example-user";
-                  };
-                })
-              ];
-            };
-          })
-          inputs.flake-utils.lib.defaultSystems);
+          (inputs.flaky.lib.homeConfigurations.example
+            pname
+            inputs.self
+            [
+              ({pkgs, ...}: {
+                home.packages = [
+                  (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
+                    hpkgs.${pname}
+                    hpkgs.yaya-hedgehog
+                    hpkgs.yaya-unsafe
+                  ]))
+                ];
+              })
+            ])
+          supportedSystems);
 
       ## TODO: Move upstream.
       lib = {
@@ -139,7 +140,8 @@
           });
       };
     }
-    // inputs.flake-utils.lib.eachDefaultSystem (system: let
+    // inputs.flake-utils.lib.eachSystem supportedSystems
+    (system: let
       pkgs = import inputs.nixpkgs {
         inherit system;
         ## NB: This uses `inputs.self.overlays.default` because packages need to
@@ -147,7 +149,8 @@
         overlays = [inputs.self.overlays.default];
       };
 
-      src = pkgs.lib.cleanSource ./.;
+      ## TODO: Extract this automatically from `pkgs.haskellPackages`.
+      defaultCompiler = "ghc928";
     in {
       packages =
         {default = inputs.self.packages.${system}."${defaultCompiler}_all";}
@@ -155,70 +158,31 @@
 
       devShells =
         {default = inputs.self.devShells.${system}.${defaultCompiler};}
-        // inputs.concat.lib.mkDevShells pkgs supportedGhcVersions cabalPackages
+        // inputs.concat.lib.mkDevShells
+        pkgs
+        supportedGhcVersions
+        cabalPackages
         (hpkgs: [
-          hpkgs.cabal-install
           hpkgs.haskell-language-server
+          pkgs.cabal-install
           pkgs.graphviz
         ]);
 
-      checks = {
-        format =
-          inputs.bash-strict-mode.lib.checkedDrv pkgs
-          (pkgs.runCommand "ormolu" {
-              inherit src;
-
-              ## Haskell source formatter, https://github.com/tweag/ormolu
-              nativeBuildInputs = [pkgs.ormolu];
-            } ''
-              find "$src" -name '*.hs' -exec ormolu --mode check {} +
-              mkdir -p "$out"
-            '');
-
-        lint =
-          inputs.bash-strict-mode.lib.checkedDrv pkgs
-          (pkgs.runCommand "hlint" {
-              inherit src;
-
-              ## Haskell linter, https://github.com/ndmitchell/hlint
-              nativeBuildInputs = [pkgs.hlint];
-            } ''
-              hlint "$src"
-              mkdir -p "$out"
-            '');
-
-        nix-fmt =
-          inputs.bash-strict-mode.lib.checkedDrv pkgs
-          (pkgs.runCommand "nix fmt" {
-              inherit src;
-
-              nativeBuildInputs = [inputs.self.formatter.${system}];
-            } ''
-              alejandra --check "$src"
-              mkdir -p "$out"
-            '');
+      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
+        inherit pkgs;
+        inherit (inputs) self;
       };
 
-      # Nix code formatter, https://github.com/kamadorueda/alejandra#readme
-      formatter = pkgs.alejandra;
+      checks = inputs.self.projectConfigurations.${system}.checks;
+      formatter = inputs.self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {
-    bash-strict-mode = {
-      inputs = {
-        flake-utils.follows = "flake-utils";
-        nixpkgs.follows = "nixpkgs";
-      };
-      url = "github:sellout/bash-strict-mode";
-    };
-
     # Currently contains our Haskell/Nix lib that should be extracted into its
     # own flake.
     concat = {
       inputs = {
-        bash-strict-mode.follows = "bash-strict-mode";
         flake-utils.follows = "flake-utils";
-        home-manager.follows = "home-manager";
         nixpkgs.follows = "nixpkgs";
       };
       url = "github:compiling-to-categories/concat";
@@ -226,9 +190,12 @@
 
     flake-utils.url = "github:numtide/flake-utils";
 
-    home-manager = {
-      inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:nix-community/home-manager/release-23.05";
+    flaky = {
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+      };
+      url = "github:sellout/flaky";
     };
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
