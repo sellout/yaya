@@ -1,20 +1,39 @@
 -- | Common algebras that are useful when folding.
 module Yaya.Fold.Common where
 
-import Control.Monad
-import Control.Monad.Trans.Free
-import Data.Foldable
-import Data.Functor.Classes
-import Data.Functor.Day
-import Data.Functor.Identity
-import Numeric.Natural
+import Control.Applicative (Applicative (..))
+import Control.Category (Category (..))
+import Control.Monad (Monad, join)
+import Control.Monad.Trans.Free (FreeF (..))
+import Data.Bool (Bool (..), (&&))
+import Data.Eq (Eq (..))
+import Data.Foldable (Foldable (..), and)
+import Data.Function (($))
+import Data.Functor (Functor (..), void)
+import Data.Functor.Classes (Eq1 (..))
+import Data.Functor.Day (Day (..))
+import Data.Functor.Identity (Identity (..))
+import Data.List (zipWith)
+import Data.Monoid (Monoid (..))
+import Data.Ord (Ord (..))
+import Data.Semigroup (Semigroup (..))
+import Numeric.Natural (Natural)
 import Yaya.Pattern
+  ( AndMaybe (..),
+    Either (..),
+    Maybe (..),
+    Pair (..),
+    XNor (..),
+    either,
+    maybe,
+  )
+import Prelude (Integer, Integral, Num (..))
 
 -- | Converts the free monoid (a list) into some other `Monoid`.
 lowerMonoid :: Monoid m => (a -> m) -> XNor a m -> m
 lowerMonoid f = \case
   Neither -> mempty
-  Both a b -> mappend (f a) b
+  Both a b -> f a <> b
 
 -- | Converts the free semigroup (a non-empty list) into some other `Semigroup`.
 lowerSemigroup :: Semigroup m => (a -> m) -> AndMaybe a m -> m
@@ -105,8 +124,8 @@ truncate' = \case
 
 -- | Converts a single value into a tuple with the same value on both sides.
 --   > x &&& y = (x *** y) . diagonal
-diagonal :: a -> (a, a)
-diagonal x = (x, x)
+diagonal :: a -> Pair a a
+diagonal x = x :!: x
 
 -- * sequence generators
 

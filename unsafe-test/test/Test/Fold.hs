@@ -2,14 +2,19 @@
 
 module Test.Fold where
 
-import Data.Proxy
-import Hedgehog
+import Control.Category (Category (..))
+import Control.Monad ((=<<))
+import Data.Bool (Bool)
+import Data.Function (($))
+import Data.Proxy (Proxy (..))
+import Hedgehog (Property, checkParallel, discover, forAll, property)
 import qualified Hedgehog.Gen as Gen
-import Yaya.Fold
-import Yaya.Fold.Common
-import Yaya.Fold.Native
-import Yaya.Hedgehog.Expr
-import Yaya.Hedgehog.Fold
+import System.IO (IO)
+import Yaya.Fold (Nu)
+import Yaya.Fold.Common (size)
+import Yaya.Fold.Native (Fix)
+import Yaya.Hedgehog.Expr (Expr, genExpr, genFixExpr, genNuExpr)
+import Yaya.Hedgehog.Fold (law_anaRefl, law_cataCancel, law_cataCompose, law_cataRefl)
 import qualified Yaya.Unsafe.Fold.Instances ()
 
 -- | NB: Only in yaya-unsafe instead of yaya because the `Eq (Fix f)` instance

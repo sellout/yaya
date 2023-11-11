@@ -1,17 +1,22 @@
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE StrictData #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Yaya.Hedgehog.Expr where
 
-import Data.Eq.Deriving
-import Hedgehog
+import Control.Applicative (Applicative (..))
+import Data.Eq (Eq)
+import Data.Eq.Deriving (deriveEq1)
+import Data.Foldable (Foldable)
+import Data.Functor (Functor, (<$>))
+import Data.Int (Int)
+import Data.Traversable (Traversable)
+import Hedgehog (Gen, Size)
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
-import Text.Show.Deriving
-import Yaya.Fold
-import Yaya.Fold.Native
-import Yaya.Hedgehog.Fold
+import Text.Show (Show)
+import Text.Show.Deriving (deriveShow1)
+import Yaya.Fold (Mu, Nu, Steppable)
+import Yaya.Fold.Native (Fix)
+import Yaya.Hedgehog.Fold (embeddableOfHeight)
 
 data Expr a
   = Lit Int

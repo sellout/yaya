@@ -37,6 +37,8 @@ test-suite yaya-test
                      , yaya-hedgehog >= 0.2.0
   default-extensions:  LambdaCase
                      , MultiParamTypeClasses
+                     , StrictData
+                     , NoImplicitPrelude
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
   default-language:    Haskell2010
 

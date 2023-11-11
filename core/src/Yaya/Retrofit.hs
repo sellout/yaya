@@ -30,16 +30,34 @@ module Yaya.Retrofit
   )
 where
 
+-- NB: This module does not use the strict library, because its use of `Either`,
+--    `Maybe`, etc. is tied to emplate-haskell and does not involve recursion
+--     schemes.
+
+import Control.Applicative (Applicative (..))
+import Control.Category (Category (..))
 import Control.Exception (Exception (..), throw)
 import Control.Monad ((<=<))
-import Data.Bifunctor (bimap)
+import Data.Bifunctor (Bifunctor (..))
+import Data.Bool (Bool (..), not, otherwise, (&&))
+import Data.Either (Either (..), either)
 import Data.Either.Validation (Validation (..), validationToEither)
+import Data.Eq (Eq (..))
+import Data.Foldable (Foldable (..))
+import Data.Function (const, flip, ($))
+import Data.Functor (Functor (..), (<$>))
 import Data.Functor.Identity (Identity (..))
+import Data.List (all, null, zip, zip3)
 import Data.List.NonEmpty (NonEmpty)
+import Data.Maybe (Maybe (..), maybe)
+import Data.Semigroup (Semigroup (..))
+import Data.String (String)
+import Data.Traversable (Traversable (..))
 import Language.Haskell.TH as TH
 import Language.Haskell.TH.Datatype as TH.Abs
 import Language.Haskell.TH.Syntax (mkNameG_tc)
 import Text.Read.Lex (isSymbolChar)
+import Text.Show (Show (..))
 import Yaya.Fold
   ( Corecursive (..),
     Projectable (..),
@@ -48,6 +66,7 @@ import Yaya.Fold
     recursiveEq,
     recursiveShowsPrec,
   )
+import Prelude (error)
 
 #if MIN_VERSION_template_haskell(2, 17, 0)
 type TyVarBndr' = TyVarBndr ()
@@ -134,8 +153,8 @@ toFName :: Name -> Name
 toFName = mkName . f . nameBase
   where
     f name
-      | isInfixName name = name ++ "$"
-      | otherwise = name ++ "F"
+      | isInfixName name = name <> "$"
+      | otherwise = name <> "F"
 
     isInfixName :: String -> Bool
     isInfixName = all isSymbolChar
@@ -208,7 +227,7 @@ makePrimForDI' ::
   PatternFunctorRules -> Bool -> Name -> [TyVarBndr'] -> [ConstructorInfo] -> Q [Dec]
 makePrimForDI' rules isNewtype tyName vars cons = do
   -- variable parameters
-  let vars' = map VarT (typeVars vars)
+  let vars' = fmap VarT (typeVars vars)
   -- Name of base functor
   let tyNameF = patternType rules tyName
   -- Recursive type
@@ -218,7 +237,7 @@ makePrimForDI' rules isNewtype tyName vars cons = do
   let r = VarT rName
 
   -- Vars
-  let varsF = vars ++ [plainTV rName]
+  let varsF = vars <> [plainTV rName]
 
   -- #33
   cons' <- traverse (conTypeTraversal resolveTypeSynonyms) cons
@@ -265,8 +284,8 @@ mkMorphism nFrom nTo =
         fs <- traverse (const $ newName "x") $ constructorFields ci
         pure $
           Match
-            (conP' (nFrom n) (map VarP fs)) -- pattern
-            (NormalB $ foldl AppE (ConE $ nTo n) (map VarE fs)) -- body
+            (conP' (nFrom n) (fmap VarP fs)) -- pattern
+            (NormalB $ foldl AppE (ConE $ nTo n) (fmap VarE fs)) -- body
             [] -- where dec
     )
 
@@ -323,7 +342,7 @@ over l f = runIdentity . l (Identity . f)
 
 -- | Extract type variables
 typeVars :: [TyVarBndr'] -> [Name]
-typeVars = map tvName
+typeVars = fmap tvName
 
 -- | Apply arguments to a type constructor.
 conAppsT :: Name -> [Type] -> Type
@@ -363,7 +382,7 @@ toCon
     | not (null vars && null ctxt) =
         error "makeBaseFunctor: GADTs are not currently supported."
     | otherwise =
-        let bangs = map toBang fstricts
+        let bangs = fmap toBang fstricts
          in case variant of
               NormalConstructor -> NormalC name $ zip bangs ftys
               RecordConstructor fnames -> RecC name $ zip3 fnames bangs ftys

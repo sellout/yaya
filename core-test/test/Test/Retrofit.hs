@@ -1,3 +1,4 @@
+-- These are both needed by `extractPatternFunctor`.
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -5,8 +6,13 @@
 --   other Yaya modules.
 module Test.Retrofit where
 
-import Hedgehog
-import Yaya.Retrofit
+import Data.Bool (Bool)
+import Data.Eq (Eq)
+import Data.Int (Int)
+import Hedgehog (checkParallel, discover)
+import System.IO (IO)
+import Text.Show (Show)
+import Yaya.Retrofit (defaultRules, extractPatternFunctor)
 
 data DExpr
   = Lit Int

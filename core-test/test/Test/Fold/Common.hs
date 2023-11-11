@@ -2,11 +2,19 @@
 
 module Test.Fold.Common where
 
-import Hedgehog
+import Control.Category (Category (..))
+import Control.Monad ((=<<))
+import Data.Bool (Bool)
+import Data.Functor (Functor (..))
+import Data.Ord (Ord (..))
+import Hedgehog (Property, assert, checkParallel, discover, forAll, property)
 import qualified Hedgehog.Gen as Gen
-import Yaya.Fold
-import Yaya.Fold.Common
-import Yaya.Hedgehog.Expr
+import System.IO (IO)
+import Yaya.Fold (Recursive (..), zipAlgebras)
+import Yaya.Fold.Common (height, size)
+import Yaya.Hedgehog.Expr (genMuExpr)
+import Yaya.Pattern (uncurry)
+import Prelude (Integral (..))
 
 prop_heightLtSize :: Property
 prop_heightLtSize =
