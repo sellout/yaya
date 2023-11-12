@@ -1,10 +1,8 @@
-# Direnv
-/.direnv
-
-# Nix build
-/outputs
 /result
 /source
-
-# Cabal build
 dist-newstyle
+/.cache/vale/*
+!/.cache/vale/Vocab/
+/.cache/vale/Vocab/*
+!/.cache/vale/Vocab/yaya/
+/.direnv/
