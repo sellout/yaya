@@ -1,4 +1,4 @@
-{lib, ...}: {
+{lib, self, ...}: {
   services.github.workflow."build.yml".text = lib.generators.toYAML {} {
     name = "CI";
     on = {
@@ -10,16 +10,12 @@
     };
     jobs.build = {
       runs-on = "ubuntu-latest";
-      ## TODO: Populate this as the difference between supported versions and
-      ##       available nix package sets.
-      strategy.matrix.ghc = [
-        "8.6.1"
-        "8.8.1"
-        "8.10.1"
-        "9.0.1"
-        "9.2.1"
-        "9.4.1"
-      ];
+      strategy = {
+        fail-fast = false;
+        ## TODO: Populate this as the difference between supported versions and
+        ##       available nix package sets.
+        matrix.ghc = self.lib.nonNixTestedGhcVersions;
+      };
       env.CONFIG = "--enable-tests --enable-benchmarks";
       steps = [
         {uses = "actions/checkout@v2";}

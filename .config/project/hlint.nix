@@ -2,7 +2,7 @@
   ## Haskell linter
   programs.treefmt.programs.hlint.enable = true;
   ## TODO: Wrap this to find our generated hlint config in the store.
-  project.packages = [pkgs.hlint];
+  project.devPackages = [pkgs.hlint];
   project.file.".hlint.yaml".text = lib.generators.toYAML {} [
     {group = {name = "dollar"; enabled = true;};}
     {group = {name = "future"; enabled = true;};}

@@ -14,16 +14,17 @@ module Yaya.Pattern
 where
 
 import "base" Control.Applicative (Applicative (..))
-import "comonad" Control.Comonad (Comonad (..))
 import "base" Control.Monad (Monad (..))
 import "base" Data.Bifunctor (Bifunctor (..))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
 import "base" Data.Functor (Functor)
-import "strict" Data.Strict.Either -- explicitly omitted import list
-import "strict" Data.Strict.Maybe -- explicitly omitted import list
-import "strict" Data.Strict.Tuple -- explicitly omitted import list
 import "base" Data.Traversable (Traversable)
+import "comonad" Control.Comonad (Comonad (..))
+-- explicitly omitted import list for `strict` modules
+import "strict" Data.Strict.Either
+import "strict" Data.Strict.Maybe
+import "strict" Data.Strict.Tuple
 
 -- | Isomorphic to 'Maybe (a, b)', it’s also the pattern functor for lists.
 data XNor a b = Neither | Both ~a b

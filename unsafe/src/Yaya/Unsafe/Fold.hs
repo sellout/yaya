@@ -4,13 +4,13 @@ module Yaya.Unsafe.Fold where
 
 import "base" Control.Applicative (Applicative (..))
 import "base" Control.Category (Category (..))
-import "comonad" Control.Comonad (Comonad (..))
-import "lens" Control.Lens (Prism', matching, prism, review, (&))
 import "base" Control.Monad (Monad, (<=<))
 import "base" Data.Bifunctor (Bifunctor (..))
 import "base" Data.Functor (Functor (..))
 import "base" Data.Functor.Compose (Compose (..))
 import "base" Data.Traversable (Traversable (..))
+import "comonad" Control.Comonad (Comonad (..))
+import "lens" Control.Lens (Prism', matching, prism, review, (&))
 import "yaya" Yaya.Fold
   ( Algebra,
     AlgebraM,
@@ -49,7 +49,7 @@ ganaM ::
 ganaM k ψ = anaM (lowerCoalgebraM k ψ) . pure
 
 -- | Fusion of an 'ana' and 'cata'.
-hylo :: Functor f => Algebra (->) f b -> Coalgebra (->) f a -> a -> b
+hylo :: (Functor f) => Algebra (->) f b -> Coalgebra (->) f a -> a -> b
 hylo φ ψ = go
   where
     go = φ . fmap go . ψ
