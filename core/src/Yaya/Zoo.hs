@@ -6,16 +6,16 @@ module Yaya.Zoo where
 
 import "base" Control.Applicative (Applicative (..))
 import "base" Control.Category (Category (..))
-import "comonad" Control.Comonad (Comonad (..))
-import "free" Control.Comonad.Cofree (Cofree)
-import "comonad" Control.Comonad.Env (EnvT (..))
 import "base" Control.Monad (Monad (..), (<=<))
 import "base" Data.Bifunctor (Bifunctor (..))
 import "base" Data.Bitraversable (Bitraversable (..), bisequence)
 import "base" Data.Function (flip, ($))
 import "base" Data.Functor (Functor (..))
-import "profunctors" Data.Profunctor (Profunctor (..))
 import "base" Data.Traversable (Traversable (..))
+import "comonad" Control.Comonad (Comonad (..))
+import "comonad" Control.Comonad.Env (EnvT (..))
+import "free" Control.Comonad.Cofree (Cofree)
+import "profunctors" Data.Profunctor (Profunctor (..))
 import "this" Yaya.Fold
   ( Algebra,
     AlgebraM,
@@ -60,10 +60,14 @@ apo = gana (seqEither project)
 
 -- | If you have a monadic algebra, you can fold it by distributing the monad
 --   over the algebra.
-cataM :: (Monad m, Recursive (->) t f, Traversable f) => AlgebraM (->) m f a -> t -> m a
+cataM ::
+  (Monad m, Recursive (->) t f, Traversable f) =>
+  AlgebraM (->) m f a ->
+  t ->
+  m a
 cataM φ = cata (φ <=< sequenceA)
 
--- | A recursion scheme that allows to algebras to see each others’ results. (A
+-- | A recursion scheme that allows two algebras to see each others’ results. (A
 --   generalization of `zygo`.) This is an example that falls outside the scope
 --   of “comonadic folds”, but _would_ be covered by “adjoint folds”.
 mutu ::

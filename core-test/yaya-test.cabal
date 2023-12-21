@@ -1,5 +1,5 @@
 name:                yaya-test
-version:             0.3.1.0
+version:             0.3.1.1
 synopsis:            Test suites for `yaya`.
 description:         This package should not be depended on by anything.
 homepage:            https://github.com/sellout/yaya#readme
@@ -12,16 +12,12 @@ category:            Recursion
 build-type:          Simple
 cabal-version:       >=1.10
 tested-with:         GHC == 8.6.1
-                   , GHC == 8.8.1
-                   , GHC == 8.10.1
-                   , GHC == 8.10.7
-                   , GHC == 9.0.1
-                   , GHC == 9.0.2
-                   , GHC == 9.2.1
-                   , GHC == 9.2.8
-                   , GHC == 9.4.1
-                   , GHC == 9.4.5
-                   , GHC == 9.6.1
+                   , GHC == 8.8.1, GHC == 8.8.4
+                   , GHC == 8.10.1, GHC == 8.10.7
+                   , GHC == 9.0.1, GHC == 9.0.2
+                   , GHC == 9.2.1, GHC == 9.2.4
+                   , GHC == 9.4.1, GHC == 9.4.2, GHC == 9.4.8
+                   , GHC == 9.6.1, GHC == 9.6.2
 
 test-suite yaya-test
   type:                exitcode-stdio-1.0

@@ -41,7 +41,6 @@ import "base" Control.Monad ((<=<))
 import "base" Data.Bifunctor (Bifunctor (..))
 import "base" Data.Bool (Bool (..), not, otherwise, (&&))
 import "base" Data.Either (Either (..), either)
-import "either" Data.Either.Validation (Validation (..), validationToEither)
 import "base" Data.Eq (Eq (..))
 import "base" Data.Foldable (Foldable (..))
 import "base" Data.Function (const, flip, ($))
@@ -53,11 +52,12 @@ import "base" Data.Maybe (Maybe (..), maybe)
 import "base" Data.Semigroup (Semigroup (..))
 import "base" Data.String (String)
 import "base" Data.Traversable (Traversable (..))
-import "template-haskell" Language.Haskell.TH as TH
-import "th-abstraction" Language.Haskell.TH.Datatype as TH.Abs
-import "template-haskell" Language.Haskell.TH.Syntax (mkNameG_tc)
 import "base" Text.Read.Lex (isSymbolChar)
 import "base" Text.Show (Show (..))
+import "either" Data.Either.Validation (Validation (..), validationToEither)
+import "template-haskell" Language.Haskell.TH as TH
+import "template-haskell" Language.Haskell.TH.Syntax (mkNameG_tc)
+import "th-abstraction" Language.Haskell.TH.Datatype as TH.Abs
 import "this" Yaya.Fold
   ( Corecursive (..),
     Projectable (..),
@@ -324,9 +324,9 @@ conTypeMap = over conTypeTraversal
 -- Lenses
 -------------------------------------------------------------------------------
 
-type Lens' s a = forall f. Functor f => (a -> f a) -> s -> f s
+type Lens' s a = forall f. (Functor f) => (a -> f a) -> s -> f s
 
-type Traversal' s a = forall f. Applicative f => (a -> f a) -> s -> f s
+type Traversal' s a = forall f. (Applicative f) => (a -> f a) -> s -> f s
 
 lens :: (s -> a) -> (s -> a -> s) -> Lens' s a
 lens sa sas afa s = sas s <$> afa (sa s)

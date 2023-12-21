@@ -4,20 +4,20 @@ module Yaya.Fold.Common where
 import "base" Control.Applicative (Applicative (..))
 import "base" Control.Category (Category (..))
 import "base" Control.Monad (Monad, join)
-import "free" Control.Monad.Trans.Free (FreeF (..))
 import "base" Data.Bool (Bool (..), (&&))
 import "base" Data.Eq (Eq (..))
 import "base" Data.Foldable (Foldable (..), and)
 import "base" Data.Function (($))
 import "base" Data.Functor (Functor (..), void)
 import "base" Data.Functor.Classes (Eq1 (..))
-import "kan-extensions" Data.Functor.Day (Day (..))
 import "base" Data.Functor.Identity (Identity (..))
 import "base" Data.List (zipWith)
 import "base" Data.Monoid (Monoid (..))
 import "base" Data.Ord (Ord (..))
 import "base" Data.Semigroup (Semigroup (..))
 import "base" Numeric.Natural (Natural)
+import "free" Control.Monad.Trans.Free (FreeF (..))
+import "kan-extensions" Data.Functor.Day (Day (..))
 import "this" Yaya.Pattern
   ( AndMaybe (..),
     Either (..),
@@ -30,19 +30,19 @@ import "this" Yaya.Pattern
 import Prelude (Integer, Integral, Num (..))
 
 -- | Converts the free monoid (a list) into some other `Monoid`.
-lowerMonoid :: Monoid m => (a -> m) -> XNor a m -> m
+lowerMonoid :: (Monoid m) => (a -> m) -> XNor a m -> m
 lowerMonoid f = \case
   Neither -> mempty
   Both a b -> f a <> b
 
 -- | Converts the free semigroup (a non-empty list) into some other `Semigroup`.
-lowerSemigroup :: Semigroup m => (a -> m) -> AndMaybe a m -> m
+lowerSemigroup :: (Semigroup m) => (a -> m) -> AndMaybe a m -> m
 lowerSemigroup f = \case
   Only a -> f a
   Indeed a b -> f a <> b
 
 -- | Converts the free monad into some other `Monad`.
-lowerMonad :: Monad m => (forall x. f x -> m x) -> FreeF f a (m a) -> m a
+lowerMonad :: (Monad m) => (forall x. f x -> m x) -> FreeF f a (m a) -> m a
 lowerMonad f = \case
   Pure a -> pure a
   Free fm -> join (f fm)
@@ -56,7 +56,7 @@ equal (Day f1 f2 fn) =
 -- TODO: Redefine this using `Natural`
 
 -- | When folded, returns the height of the data structure.
-height :: Foldable f => f Integer -> Integer
+height :: (Foldable f) => f Integer -> Integer
 height = (+ 1) . foldr max (-1)
 
 -- NB: It seems like this could be some more general notion of this, like
@@ -69,7 +69,7 @@ height = (+ 1) . foldr max (-1)
 --          @`length` xs + 1 == `cata` `size` xs@, because this is counting the
 --          nodes of the structure (how many `Neither`s and `Both`s), not how
 --          many elements (which would be equivalent to only counting `Both`s).
-size :: Foldable f => f Natural -> Natural
+size :: (Foldable f) => f Natural -> Natural
 size = foldr (+) 1
 
 -- | Converts a provably infinite structure into a `Yaya.Zoo.Partial` one (that
@@ -117,7 +117,7 @@ maybeTakeNext = \case
   Day (Just x) (Both _ t) f -> f x t
   Day _ Neither _ -> Nothing
 
-truncate' :: Functor f => Day Maybe f a -> FreeF f () a
+truncate' :: (Functor f) => Day Maybe f a -> FreeF f () a
 truncate' = \case
   Day Nothing _ _ -> Pure ()
   Day (Just n) fa f -> Free (fmap (f n) fa)
@@ -143,5 +143,5 @@ binarySequence f (a, b) = (a, (b, f a b))
 ternarySequence :: (a -> b -> c -> d) -> (a, b, c) -> (a, (b, c, d))
 ternarySequence f (a, b, c) = (a, (b, c, f a b c))
 
-lucasSequence' :: Integral i => i -> i -> (i, i) -> (i, (i, i))
+lucasSequence' :: (Integral i) => i -> i -> (i, i) -> (i, (i, i))
 lucasSequence' p q = binarySequence (\n2 n1 -> p * n1 - q * n2)

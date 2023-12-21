@@ -6,10 +6,6 @@ module Yaya.Fold.Native where
 
 import "base" Control.Applicative (Applicative)
 import "base" Control.Category (Category (..))
-import "comonad" Control.Comonad (Comonad (..))
-import "free" Control.Comonad.Cofree (Cofree (..), unwrap)
-import "comonad" Control.Comonad.Trans.Env (EnvT (..), runEnvT)
-import "free" Control.Monad.Trans.Free (Free, FreeF (..), free)
 import "base" Data.Bifunctor (Bifunctor (..))
 import "base" Data.Bool (Bool)
 import "base" Data.Foldable (Foldable)
@@ -18,9 +14,13 @@ import "base" Data.Functor (Functor (..))
 import "base" Data.List.NonEmpty
 import "base" Data.Monoid (Monoid)
 import "base" Data.Ord (Ord)
-import "strict" Data.Strict.Classes (Strict (..))
 import "base" Numeric.Natural
 import "base" Text.Show (Show)
+import "comonad" Control.Comonad (Comonad (..))
+import "comonad" Control.Comonad.Trans.Env (EnvT (..), runEnvT)
+import "free" Control.Comonad.Cofree (Cofree (..), unwrap)
+import "free" Control.Monad.Trans.Free (Free, FreeF (..), free)
+import "strict" Data.Strict.Classes (Strict (..))
 import "this" Yaya.Fold
   ( Corecursive (..),
     DistributiveLaw,
@@ -42,7 +42,7 @@ instance Projectable (->) (Fix f) f where
 instance Steppable (->) (Fix f) f where
   embed = Fix
 
-instance Functor f => Corecursive (->) (Fix f) f where
+instance (Functor f) => Corecursive (->) (Fix f) f where
   ana φ = embed . fmap (ana φ) . φ
 
 instance Recursive (->) Natural Maybe where
@@ -64,7 +64,7 @@ instance Corecursive (->) (NonEmpty a) (AndMaybe a) where
     )
       . ψ
 
-instance Functor f => Corecursive (->) (Free f a) (FreeF f a) where
+instance (Functor f) => Corecursive (->) (Free f a) (FreeF f a) where
   ana ψ =
     free
       . ( \case
@@ -73,7 +73,7 @@ instance Functor f => Corecursive (->) (Free f a) (FreeF f a) where
         )
       . ψ
 
-instance Functor f => Corecursive (->) (Cofree f a) (EnvT a f) where
+instance (Functor f) => Corecursive (->) (Cofree f a) (EnvT a f) where
   ana ψ = uncurry (:<) . fmap (fmap (ana ψ)) . toStrict . runEnvT . ψ
 
 distCofreeT ::

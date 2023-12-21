@@ -9,9 +9,9 @@ import "base" Data.Eq (Eq)
 import "base" Data.Functor (Functor (..))
 import "base" Data.Proxy (Proxy (..))
 import "base" Data.Void (Void, absurd)
-import "hedgehog" Hedgehog (Gen, MonadTest, Size, (===))
 import "base" Numeric.Natural (Natural)
 import "base" Text.Show (Show)
+import "hedgehog" Hedgehog (Gen, MonadTest, Size, (===))
 import "yaya" Yaya.Fold (Algebra, Corecursive (..), Projectable (..), Recursive (..), Steppable (..))
 import "yaya" Yaya.Fold.Common (diagonal)
 import "yaya" Yaya.Fold.Native ()
@@ -104,5 +104,5 @@ genAlgebra leaf branch =
   maybe (fmap (embed . fmap absurd) leaf) (fmap embed . branch)
 
 -- | Creates a generator for potentially-infinite values.
-genCorecursive :: Corecursive (->) t f => (a -> f a) -> Gen a -> Gen t
+genCorecursive :: (Corecursive (->) t f) => (a -> f a) -> Gen a -> Gen t
 genCorecursive = fmap . ana

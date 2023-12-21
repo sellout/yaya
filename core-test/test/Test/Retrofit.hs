@@ -9,9 +9,9 @@ module Test.Retrofit where
 import "base" Data.Bool (Bool)
 import "base" Data.Eq (Eq)
 import "base" Data.Int (Int)
-import "hedgehog" Hedgehog (checkParallel, discover)
 import "base" System.IO (IO)
 import "base" Text.Show (Show)
+import "hedgehog" Hedgehog (checkParallel, discover)
 import "yaya" Yaya.Retrofit (defaultRules, extractPatternFunctor)
 
 data DExpr
@@ -33,4 +33,4 @@ extractPatternFunctor defaultRules ''DExpr
 --   showsPrec = recursiveShowsPrec
 
 tests :: IO Bool
-tests = checkParallel $$(discover)
+tests = checkParallel $$discover

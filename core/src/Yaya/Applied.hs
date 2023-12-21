@@ -2,13 +2,13 @@ module Yaya.Applied where
 
 import "base" Control.Applicative (Applicative)
 import "base" Control.Category (Category (..))
-import "free" Control.Monad.Trans.Free (FreeF (..))
 import "base" Data.Foldable (Foldable (..))
 import "base" Data.Functor (Functor (..))
 import "base" Data.Functor.Identity (Identity (..))
 import "base" Data.Int (Int)
 import "base" Data.Ord (Ord (..))
 import "base" Data.Traversable (Traversable)
+import "free" Control.Monad.Trans.Free (FreeF (..))
 import "this" Yaya.Fold
   ( Algebra,
     Corecursive (..),
@@ -34,12 +34,12 @@ import "this" Yaya.Fold.Common
 import "this" Yaya.Pattern (Either (..), Maybe (..), Pair, XNor, maybe)
 import "base" Prelude (Integral)
 
-now :: Steppable (->) t (Either a) => a -> t
+now :: (Steppable (->) t (Either a)) => a -> t
 now = embed . Left
 
 -- | This will collapse all the intermediate steps to get to the value that must
 --   exist at the end.
-runToEnd :: Recursive (->) t (Either a) => t -> a
+runToEnd :: (Recursive (->) t (Either a)) => t -> a
 runToEnd = cata fromEither
 
 -- | Converts exceptional divergence to non-termination.
@@ -48,16 +48,16 @@ fromMaybe = maybe (ana (toRight . never) ()) now
 
 type Void = Mu Identity
 
-absurd :: Recursive (->) t Identity => t -> a
+absurd :: (Recursive (->) t Identity) => t -> a
 absurd = cata runIdentity
 
 vacuous :: (Functor f, Recursive (->) t Identity) => f t -> f a
 vacuous = fmap absurd
 
-zeroN :: Steppable (->) t Maybe => t
+zeroN :: (Steppable (->) t Maybe) => t
 zeroN = embed Nothing
 
-succN :: Steppable (->) t Maybe => t -> t
+succN :: (Steppable (->) t Maybe) => t -> t
 succN = embed . Just
 
 height :: (Foldable f, Steppable (->) n Maybe, Ord n) => f n -> n
@@ -112,7 +112,7 @@ reifyUpTo = cata maybeReify
 fibonacciPolynomials :: (Integral i, Corecursive (->) t ((,) i)) => i -> t
 fibonacciPolynomials x = lucasSequenceU x (-1)
 
-fibonacci :: Corecursive (->) t ((,) Int) => t
+fibonacci :: (Corecursive (->) t ((,) Int)) => t
 fibonacci = fibonacciPolynomials 1
 
 lucasSequenceU :: (Integral i, Corecursive (->) t ((,) i)) => i -> i -> t
@@ -121,7 +121,7 @@ lucasSequenceU p q = lucasSequence' p q `ana` (0, 1)
 lucasSequenceV :: (Integral i, Corecursive (->) t ((,) i)) => i -> i -> t
 lucasSequenceV p q = lucasSequence' p q `ana` (2, p)
 
-lucas :: Integral i => Corecursive (->) t ((,) i) => t
+lucas :: (Integral i) => (Corecursive (->) t ((,) i)) => t
 lucas = lucasSequenceV 1 (-1)
 
 pell :: (Integral i, Corecursive (->) t ((,) i)) => t
@@ -134,7 +134,7 @@ mersenne :: (Integral i, Corecursive (->) t ((,) i)) => t
 mersenne = lucasSequenceU 3 2
 
 -- | Creates an infinite stream of the provided value.
-constantly :: Corecursive (->) t (Pair a) => a -> t
+constantly :: (Corecursive (->) t (Pair a)) => a -> t
 constantly = ana diagonal
 
 -- | Lops off the branches of the tree below a certain depth, turning a

@@ -38,6 +38,8 @@ To mitigate some of those issues for versioning, we assume the following usage:
 
 ## building & development
 
+Especially if you are unfamiliar with the Haskell ecosystem, there is a Nix build (both with and without a flake). If you are unfamiliar with Nix, [Nix adjacent](...) can help you get things working in the shortest time and least effort possible.
+
 ### if you have `nix` installed
 
 `nix build` will build and test the project fully.
@@ -49,6 +51,8 @@ To mitigate some of those issues for versioning, we assume the following usage:
 This project is built with [Cabal](https://cabal.readthedocs.io/en/stable/index.html). Individual packages will work with older versions, but ./cabal.package requires Cabal 3.6+.
 
 ## comparisons
+
+Other projects similar to this one, and how they differ.
 
 ### [Turtles](https://github.com/sellout/turtles)
 

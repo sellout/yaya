@@ -10,8 +10,7 @@
     ];
     ## Isolate the build.
     registries = false;
-    ## TODO: Some checks currently don't work when sandboxed.
-    sandbox = false;
+    sandbox = "relaxed";
   };
 
   ### This is a complicated flake. Here’s the rundown:
@@ -30,28 +29,20 @@
   ###                  packages in cabal.project compiled for one GHC version
   ### };
   ### checks.format = verify that code matches Ormolu expectations
-  outputs = inputs: let
+  outputs = {
+    concat,
+    flake-utils,
+    flaky,
+    nixpkgs,
+    self,
+  }: let
     pname = "yaya";
 
-    ## Test the oldest revision possible for each minor release. If it’s not
-    ## available in nixpkgs, test the oldest available, then try an older one
-    ## via GitHub workflow. Additionally, check any revisions that have explicit
-    ## conditionalization.
-    supportedGhcVersions = [
-      # "ghc884" # dependency compiler-rt-libc is broken in nixpkgs 23.05
-      "ghc8107"
-      "ghc902"
-      "ghc928"
-      "ghc945"
-      "ghc961"
-      # "ghcHEAD" # doctest doesn’t work on current HEAD
-    ];
-
-    supportedSystems = inputs.flake-utils.lib.defaultSystems;
+    supportedSystems = flaky.lib.defaultSystems;
 
     cabalPackages = pkgs: hpkgs: let
       packages =
-        inputs.concat.lib.cabalProject2nix
+        concat.lib.cabalProject2nix
         ./cabal.project
         pkgs
         hpkgs
@@ -61,14 +52,15 @@
     in
       packages
       // {
-        yaya-test = inputs.self.lib.testOnly packages.yaya-test;
-        yaya-unsafe-test = inputs.self.lib.testOnly packages.yaya-unsafe-test;
+        "${pname}-test" = self.lib.testOnly packages."${pname}-test";
+        "${pname}-unsafe-test" =
+          self.lib.testOnly packages."${pname}-unsafe-test";
       };
   in
     {
       schemas = {
         inherit
-          (inputs.flaky.schemas)
+          (flaky.schemas)
           overlays
           homeConfigurations
           packages
@@ -86,48 +78,71 @@
       # - https://discourse.nixos.org/t/nix-haskell-development-2020/6170
       overlays = {
         default =
-          inputs.concat.lib.overlayHaskellPackages
-          supportedGhcVersions
-          inputs.self.overlays.haskell;
+          concat.lib.overlayHaskellPackages
+          (self.lib.supportedGhcVersions "")
+          (final: prev:
+            nixpkgs.lib.composeManyExtensions [
+              ## TODO: I think this overlay is only needed by formatters,
+              ##       devShells, etc., so it shouldn’t be included in the
+              ##       standard overlay.
+              (flaky.overlays.haskell-dependencies final prev)
+              (self.overlays.haskell final prev)
+              (self.overlays.haskellDependencies final prev)
+            ]);
 
-        haskell = final: prev: hfinal: hprev:
-          inputs.concat.lib.haskellOverlay cabalPackages final prev hfinal hprev
-          // {
-            ## hls-*-plugin tests fail with GHC 9.4.5 on x86_64-linux..
-            hls-cabal-plugin =
-              ## TODO: Only disable  checks for "ghc945".
-              if final.system == inputs.flake-utils.lib.system.x86_64-linux
-              then final.haskell.lib.dontCheck hprev.hls-cabal-plugin
-              else hprev.hls-cabal-plugin;
-            hls-floskell-plugin =
-              ## TODO: Only disable  checks for "ghc945".
-              if final.system == inputs.flake-utils.lib.system.x86_64-linux
-              then final.haskell.lib.dontCheck hprev.hls-floskell-plugin
-              else hprev.hls-floskell-plugin;
-          };
+        haskell = concat.lib.haskellOverlay cabalPackages;
+
+        haskellDependencies = final: prev: hfinal: hprev:
+          (
+            if nixpkgs.lib.versionAtLeast hprev.ghc.version "8.10.0"
+            then {}
+            else
+              {
+                ## NB: Fails a single test case under GHC 8.8.4.
+                doctest = final.haskell.lib.dontCheck hprev.doctest;
+                ## NB: Tests fail to build under GHC 8.8.4.
+                vector = final.haskell.lib.dontCheck hprev.vector;
+              }
+              // (
+                if final.system == "i686-linux"
+                then {
+                  ## NB: Fails `prop_double_assoc` under GHC 8.8.4 on i686-linux.
+                  QuickCheck = final.haskell.lib.dontCheck hprev.QuickCheck;
+                }
+                else {}
+              )
+          )
+          // (
+            if final.system == "i686-linux"
+            then {
+              enummapset = final.haskell.lib.dontCheck hprev.enummapset;
+              sqlite-simple = final.haskell.lib.dontCheck hprev.sqlite-simple;
+            }
+            else {}
+          );
       };
 
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (inputs.flaky.lib.homeConfigurations.example
+          (flaky.lib.homeConfigurations.example
             pname
-            inputs.self
+            self
             [
               ({pkgs, ...}: {
                 home.packages = [
                   (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
                     hpkgs.${pname}
-                    hpkgs.yaya-hedgehog
-                    hpkgs.yaya-unsafe
+                    hpkgs."${pname}-hedgehog"
+                    hpkgs."${pname}-unsafe"
                   ]))
                 ];
               })
             ])
           supportedSystems);
 
-      ## TODO: Move upstream.
       lib = {
+        ## TODO: Move upstream.
         ## Don’t install this Haskell package – it only contains test suites.
         testOnly = drv:
           drv.overrideAttrs (old: {
@@ -138,43 +153,94 @@
             '';
             outputs = ["out"];
           });
+
+        ## TODO: Extract this automatically from `pkgs.haskellPackages`.
+        defaultCompiler = "ghc948";
+
+        ## Test the oldest revision possible for each minor release. If it’s not
+        ## available in nixpkgs, test the oldest available, then try an older
+        ## one via GitHub workflow. Additionally, check any revisions that have
+        ## explicit conditionalization. And check whatever version `pkgs.ghc`
+        ## maps to in the nixpkgs we depend on.
+        testedGhcVersions = system:
+          [
+            self.lib.defaultCompiler
+            # "ghc981" # Hedgehog doesn’t yet support GHC 9.8.
+            # "ghcHEAD" # doctest doesn’t work on current HEAD
+          ]
+          ## dependency compiler-rt-libc-7.1.0 is broken in on aarch64-darwin.
+          ++ nixpkgs.lib.optional (system != "aarch64-darwin") "ghc884";
+
+        ## The versions that are older than those supported by Nix that we
+        ## prefer to test against.
+        nonNixTestedGhcVersions = [
+          "8.6.1"
+          "8.8.1"
+          "8.10.1"
+          "9.0.1"
+          "9.2.1"
+          "9.4.1"
+          "9.6.1"
+        ];
+
+        ## However, provide packages in the default overlay for _every_
+        ## supported version.
+        supportedGhcVersions = system:
+          self.lib.testedGhcVersions system
+          ++ [
+            "ghc8107"
+            "ghc902"
+            "ghc924"
+            "ghc925"
+            "ghc926"
+            "ghc927"
+            "ghc928"
+            "ghc942"
+            "ghc943"
+            "ghc944"
+            "ghc945"
+            "ghc946"
+            "ghc947"
+            "ghc948"
+            "ghc962"
+            "ghc963"
+          ];
       };
     }
-    // inputs.flake-utils.lib.eachSystem supportedSystems
+    // flake-utils.lib.eachSystem supportedSystems
     (system: let
-      pkgs = import inputs.nixpkgs {
+      pkgs = import nixpkgs {
         inherit system;
-        ## NB: This uses `inputs.self.overlays.default` because packages need to
+        ## NB: This uses `self.overlays.default` because packages need to
         ##     be able to find other packages in this flake as dependencies.
-        overlays = [inputs.self.overlays.default];
+        overlays = [self.overlays.default];
       };
-
-      ## TODO: Extract this automatically from `pkgs.haskellPackages`.
-      defaultCompiler = "ghc928";
     in {
       packages =
-        {default = inputs.self.packages.${system}."${defaultCompiler}_all";}
-        // inputs.concat.lib.mkPackages pkgs supportedGhcVersions cabalPackages;
+        {default = self.packages.${system}."${self.lib.defaultCompiler}_all";}
+        // concat.lib.mkPackages
+        pkgs
+        (self.lib.testedGhcVersions system)
+        cabalPackages;
+
+      projectConfigurations =
+        flaky.lib.projectConfigurations.default {inherit pkgs self;};
 
       devShells =
-        {default = inputs.self.devShells.${system}.${defaultCompiler};}
-        // inputs.concat.lib.mkDevShells
+        {default = self.devShells.${system}.${self.lib.defaultCompiler};}
+        // concat.lib.mkDevShells
         pkgs
-        supportedGhcVersions
+        (self.lib.testedGhcVersions system)
         cabalPackages
-        (hpkgs: [
-          hpkgs.haskell-language-server
-          pkgs.cabal-install
-          pkgs.graphviz
-        ]);
+        (hpkgs:
+          [self.projectConfigurations.${system}.packages.path]
+          ## NB: Haskell Language Server no longer supports GHC <9.
+          ++ nixpkgs.lib.optional
+          (nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9")
+          hpkgs.haskell-language-server);
 
-      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
-        inherit pkgs;
-        inherit (inputs) self;
-      };
-
-      checks = inputs.self.projectConfigurations.${system}.checks;
-      formatter = inputs.self.projectConfigurations.${system}.formatter;
+      checks = self.projectConfigurations.${system}.checks;
+      formatter = self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {
@@ -182,6 +248,8 @@
     # own flake.
     concat = {
       inputs = {
+        ## TODO: The version currently used by concat doesn’t support i686-linux.
+        bash-strict-mode.follows = "flaky/bash-strict-mode";
         flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
       };
@@ -198,6 +266,6 @@
       url = "github:sellout/flaky";
     };
 
-    nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
   };
 }

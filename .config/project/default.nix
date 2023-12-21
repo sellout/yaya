@@ -1,7 +1,12 @@
-{config, flaky, lib, ...}: {
+{config, flaky, lib, pkgs, self, ...}: {
   project = {
     name = "yaya";
     summary = "Yet another … yet another recursion scheme library for Haskell";
+
+    devPackages = [
+      pkgs.cabal-install
+      pkgs.graphviz
+    ];
   };
 
   imports = [
@@ -42,7 +47,6 @@
         "*.cabal"
         "*.hs"
         "*.lhs"
-        "./.gitattributes"
         "./cabal.project"
       ];
       formatSettings."*"."Microsoft.Auto" = "NO";
@@ -80,29 +84,24 @@
   ##        Need to improve module merging.
   services.github.settings.branches.main.protection.required_status_checks.contexts =
     lib.mkForce
-      (map (ghc: "CI / build (${ghc}) (pull_request)") [
-        "8.6.1"
-        "8.8.1"
-        "8.10.1"
-        "9.0.1"
-        "9.2.1"
-        "9.4.1"
-      ]
-      ++ lib.concatMap flaky.lib.garnixChecks (
-        lib.concatMap (ghc: [
-          (sys: "devShell ghc${ghc} [${sys}]")
-          (sys: "package ghc${sys}_all [${sys}]")
-        ])
-        ["8107" "902" "928" "945" "961"]
-        ++ [
-          (sys: "homeConfig ${sys}-${config.project.name}-example")
-          (sys: "package default [${sys}]")
-          ## FIXME: These are duplicated from the base config
-          (sys: "check formatter [${sys}]")
-          (sys: "devShell default [${sys}]")
-        ]));
+      (map (ghc: "CI / build (${ghc}) (pull_request)") self.lib.nonNixTestedGhcVersions
+       ++ lib.concatLists (lib.concatMap flaky.lib.garnixChecks [
+          (sys: lib.concatMap (ghc: [
+            "devShell ${ghc} [${sys}]"
+            "package ${ghc}_all [${sys}]"
+          ])
+            (self.lib.testedGhcVersions sys))
+          (sys: [
+            "homeConfig ${sys}-${config.project.name}-example"
+            "package default [${sys}]"
+            ## FIXME: These are duplicated from the base config
+            "check formatter [${sys}]"
+            "devShell default [${sys}]"
+          ])
+       ]));
 
   ## publishing
   services.flakehub.enable = true;
   services.github.enable = true;
+  services.github.settings.repository.topics = ["recursion-schemes"];
 }

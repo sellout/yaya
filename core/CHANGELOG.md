@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## 0.4.2.2 – 2023–12–21
+
+### Changed
+
+- updated formatting for newer Ormolu
+- fixed a Haddock typo
+
+## 0.4.2.1
+
+Unknown changes.
+
+## 0.4.2.0
+
+Unknown changes.
+
+## 0.4.1.0
+
+Unknown changes.
+
 ## 0.4.0.1 – 2020–12–08
 
 ### Changed

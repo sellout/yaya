@@ -7,9 +7,9 @@ import "base" Control.Monad ((=<<))
 import "base" Data.Bool (Bool)
 import "base" Data.Function (($))
 import "base" Data.Proxy (Proxy (..))
+import "base" System.IO (IO)
 import "hedgehog" Hedgehog (Property, checkParallel, discover, forAll, property)
 import qualified "hedgehog" Hedgehog.Gen as Gen
-import "base" System.IO (IO)
 import "yaya" Yaya.Fold (Nu)
 import "yaya" Yaya.Fold.Common (size)
 import "yaya" Yaya.Fold.Native (Fix)
@@ -21,6 +21,9 @@ import "yaya-hedgehog" Yaya.Hedgehog.Fold
     law_cataRefl,
   )
 import qualified "yaya-unsafe" Yaya.Unsafe.Fold.Instances ()
+
+-- TODO: For some reason HLint is complaining that TemplateHaskell is unused.
+{-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-}
 
 -- | NB: Only in yaya-unsafe instead of yaya because the `Eq (Fix f)` instance
 --       is needed.
@@ -63,4 +66,4 @@ prop_nuCataCompose =
       =<< forAll (Gen.sized genNuExpr)
 
 tests :: IO Bool
-tests = checkParallel $$(discover)
+tests = checkParallel $$discover
