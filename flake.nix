@@ -174,6 +174,7 @@
         ## The versions that are older than those supported by Nix that we
         ## prefer to test against.
         nonNixTestedGhcVersions = [
+          # `(->)` isn’t a type constructor before GHC 8.6.
           "8.6.1"
           "8.8.1"
           "8.10.1"
