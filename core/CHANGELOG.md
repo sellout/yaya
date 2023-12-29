@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## 0.4.2.3 – 2024–01–11
+
+### Changed
+
+- added CPP to support GHC 9.8
+
 ## 0.4.2.2 – 2023–12–21
 
 ### Changed
