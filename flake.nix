@@ -94,7 +94,30 @@
 
         haskellDependencies = final: prev: hfinal: hprev:
           (
-            if nixpkgs.lib.versionAtLeast hprev.ghc.version "8.10.0"
+            if nixpkgs.lib.versionAtLeast hprev.ghc.version "9.8.0"
+            then let
+              hspecVersion = "2_11_7";
+            in {
+              ## The default versions in Nixpkgs 23.11 don’t support GHC 9.8.
+              doctest = hfinal.doctest_0_22_2;
+              hedgehog = hfinal."hedgehog_1_4";
+              hspec = hfinal."hspec_${hspecVersion}";
+              hspec-core = hfinal."hspec-core_${hspecVersion}";
+              hspec-discover = hfinal."hspec-discover_${hspecVersion}";
+              hspec-meta = hfinal."hspec-meta_${hspecVersion}";
+              semigroupoids = hfinal.semigroupoids_6_0_0_1;
+              tagged = hfinal.tagged_0_8_8;
+              th-abstraction = hfinal.th-abstraction_0_6_0_0;
+              ## `Control.Monad.Trans.List` is gone with GHC 9.8, but
+              ## `lifted-base` hasn’t updated its tests to avoid it.
+              lifted-base = final.haskell.lib.dontCheck hprev.lifted-base;
+              ## The default versions in Nixpkgs 23.11 don’t support
+              ## th-abstraction 0.6.
+              aeson = final.haskell.lib.doJailbreak hprev.aeson;
+              bifunctors = hfinal.bifunctors_5_6_1;
+              free = hfinal.free_5_2;
+            }
+            else if nixpkgs.lib.versionAtLeast hprev.ghc.version "8.10.0"
             then {}
             else
               {
@@ -165,7 +188,7 @@
         testedGhcVersions = system:
           [
             self.lib.defaultCompiler
-            # "ghc981" # Hedgehog doesn’t yet support GHC 9.8.
+            "ghc981"
             # "ghcHEAD" # doctest doesn’t work on current HEAD
           ]
           ## dependency compiler-rt-libc-7.1.0 is broken in on aarch64-darwin.
@@ -174,6 +197,7 @@
         ## The versions that are older than those supported by Nix that we
         ## prefer to test against.
         nonNixTestedGhcVersions = [
+          # `(->)` isn’t a type constructor before GHC 8.6.
           "8.6.1"
           "8.8.1"
           "8.10.1"
@@ -235,8 +259,10 @@
         (hpkgs:
           [self.projectConfigurations.${system}.packages.path]
           ## NB: Haskell Language Server no longer supports GHC <9.
+          ## TODO: HLS also apparently broken on 9.8.1
           ++ nixpkgs.lib.optional
-          (nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9")
+          (nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9"
+            && builtins.compareVersions hpkgs.ghc.version "9.8.1" != 0)
           hpkgs.haskell-language-server);
 
       checks = self.projectConfigurations.${system}.checks;

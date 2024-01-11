@@ -9,13 +9,14 @@
       ];
     };
     jobs.build = {
-      runs-on = "ubuntu-latest";
       strategy = {
         fail-fast = false;
+        matrix.os = ["macos-13" "ubuntu-22.04" "windows-2022"];
         ## TODO: Populate this as the difference between supported versions and
         ##       available nix package sets.
         matrix.ghc = self.lib.nonNixTestedGhcVersions;
       };
+      runs-on = "\${{ matrix.os }}";
       env.CONFIG = "--enable-tests --enable-benchmarks";
       steps = [
         {uses = "actions/checkout@v2";}
