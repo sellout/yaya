@@ -1,1 +1,1 @@
-{"$schema":"https://docs.renovatebot.com/renovate-schema.json","extends":["config:base"],"nix":{"enabled":true}}
+{"$schema":"https://docs.renovatebot.com/renovate-schema.json","extends":["config:base"],"lockFileMaintenance":{"enabled":true},"nix":{"enabled":true}}

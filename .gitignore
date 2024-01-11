@@ -5,4 +5,6 @@ dist-newstyle
 !/.cache/vale/Vocab/
 /.cache/vale/Vocab/*
 !/.cache/vale/Vocab/yaya/
+/.local/state/project-manager/
+/.local/state/nix/profiles/
 /.cache/direnv/
