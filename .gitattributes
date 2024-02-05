@@ -1,6 +1,7 @@
 /.cache/git/config linguist-generated
 /.cache/git/hooks/pre-push linguist-generated
 /.cache/vale/Vocab/yaya/accept.txt linguist-generated
+/.cache/vale/config/vocabularies/yaya/accept.txt linguist-generated
 /.dir-locals.el linguist-generated
 /.editorconfig linguist-generated
 /.envrc linguist-generated
