@@ -19,7 +19,7 @@
       runs-on = "\${{ matrix.os }}";
       env.CONFIG = "--enable-tests --enable-benchmarks";
       steps = [
-        {uses = "actions/checkout@v2";}
+        {uses = "actions/checkout@v4";}
         {
           uses = "haskell-actions/setup@v2";
           id = "setup-haskell-cabal";
@@ -31,7 +31,7 @@
         {run = "cabal v2-update";}
         {run = "cabal v2-freeze $CONFIG";}
         {
-          uses = "actions/cache@v2";
+          uses = "actions/cache@v4";
           "with" = {
             path = ''
               ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
