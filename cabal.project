@@ -7,5 +7,6 @@ packages:
   ./core/yaya.cabal
   ./core-test/yaya-test.cabal
   ./hedgehog/yaya-hedgehog.cabal
+  ./quickcheck/yaya-quickcheck.cabal
   ./unsafe/yaya-unsafe.cabal
   ./unsafe-test/yaya-unsafe-test.cabal
