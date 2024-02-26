@@ -1,18 +1,29 @@
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ViewPatterns #-}
+
 module Yaya.Applied where
 
 import "base" Control.Applicative (Applicative)
 import "base" Control.Category (Category (..))
-import "base" Data.Foldable (Foldable (..))
+import "base" Data.Foldable (Foldable (foldr))
+import "base" Data.Function (flip)
 import "base" Data.Functor (Functor (..))
 import "base" Data.Functor.Identity (Identity (..))
 import "base" Data.Int (Int)
+import "base" Data.Monoid (Monoid (mempty))
 import "base" Data.Ord (Ord (..))
+import "base" Data.Semigroup (Semigroup ((<>)))
 import "base" Data.Traversable (Traversable)
+import "base" GHC.Exts (IsList)
+import qualified "base" GHC.Exts as IsList
+import "base" Numeric.Natural (Natural)
 import "free" Control.Monad.Trans.Free (FreeF (..))
 import "this" Yaya.Fold
   ( Algebra,
     Corecursive (..),
     Mu,
+    Nu,
     Projectable (..),
     Recursive (..),
     Steppable (..),
@@ -24,6 +35,7 @@ import "this" Yaya.Fold.Common
     lucasSequence',
     maybeTakeNext,
     never,
+    replaceNeither,
     takeAnother,
     takeAvailable,
     takeNext,
@@ -31,8 +43,15 @@ import "this" Yaya.Fold.Common
     truncate',
     unarySequence,
   )
-import "this" Yaya.Pattern (Either (..), Maybe (..), Pair, XNor, maybe)
-import "base" Prelude (Integral)
+import "this" Yaya.Fold.Native (Fix)
+import "this" Yaya.Pattern
+  ( Either (..),
+    Maybe (..),
+    Pair,
+    XNor (Both, Neither),
+    maybe,
+  )
+import "base" Prelude (Integral, fromIntegral)
 
 now :: (Steppable (->) t (Either a)) => a -> t
 now = embed . Left
@@ -66,10 +85,52 @@ height = foldr (max . succN) zeroN
 naturals :: (Steppable (->) n Maybe, Corecursive (->) t ((,) n)) => t
 naturals = ana (unarySequence succN) zeroN
 
+length :: (Recursive (->) t (XNor a), Steppable (->) n Maybe, Ord n) => t -> n
+length = cata height
+
+append :: (Recursive (->) t (XNor a), Steppable (->) u (XNor a)) => t -> u -> u
+append front back = cata (embed . replaceNeither (project back)) front
+
+instance Semigroup (Fix (XNor a)) where
+  (<>) = append
+
+instance Monoid (Fix (XNor a)) where
+  mempty = embed Neither
+
+instance Semigroup (Mu (XNor a)) where
+  (<>) = append
+
+instance Monoid (Mu (XNor a)) where
+  mempty = embed Neither
+
+drop' :: (Projectable (->) t (XNor a)) => Maybe (t -> t) -> t -> t
+drop' (Just fn) (project -> Both _ t) = fn t
+drop' _ t = t
+
+drop :: (Recursive (->) n Maybe, Projectable (->) t (XNor a)) => n -> t -> t
+drop = cata drop'
+
+tail :: (Projectable (->) t (XNor a)) => t -> t
+tail = drop (1 :: Natural)
+
+reverse' ::
+  (Steppable (->) t (XNor a)) =>
+  XNor a (XNor a t -> XNor a t) ->
+  XNor a t ->
+  XNor a t
+reverse' Neither = id
+reverse' (Both a fn) = fn . Both a . embed
+
+reverse :: (Recursive (->) t (XNor a), Steppable (->) u (XNor a)) => t -> u
+reverse = embed . flip (cata reverse') Neither
+
 -- | Extracts _no more than_ @n@ elements from the possibly-infinite sequence
 --  @s@.
 takeUpTo ::
-  (Recursive (->) n Maybe, Projectable (->) s (XNor a), Steppable (->) l (XNor a)) =>
+  ( Recursive (->) n Maybe,
+    Projectable (->) s (XNor a),
+    Steppable (->) l (XNor a)
+  ) =>
   n ->
   s ->
   l
@@ -77,19 +138,22 @@ takeUpTo = cata2 (embed . takeAvailable)
 
 -- | Extracts _exactly_ @n@ elements from the infinite stream @s@.
 take ::
-  (Recursive (->) n Maybe, Projectable (->) s ((,) a), Steppable (->) l (XNor a)) =>
+  ( Recursive (->) n Maybe,
+    Projectable (->) s ((,) a),
+    Steppable (->) l (XNor a)
+  ) =>
   n ->
   s ->
   l
 take = cata2 (embed . takeAnother)
 
--- | Extracts the element at a finite index of an infinite sequence (a `!!` that
---   can't fail).
+-- | Extracts the element at a finite index of an infinite sequence (a
+--  `Data.List.!!` that can't fail).
 at :: (Recursive (->) n Maybe, Projectable (->) s ((,) a)) => n -> s -> a
 at = cata2 takeNext
 
--- | Extracts the element at a finite index of a (co)list (a `!!` that fails
---   with `Nothing`).
+-- | Extracts the element at a finite index of a (co)list (a `Data.List.!!` that
+--   fails with `Nothing`).
 atMay ::
   (Recursive (->) n Maybe, Projectable (->) s (XNor a)) => n -> s -> Maybe a
 atMay = cata2 maybeTakeNext
@@ -103,7 +167,11 @@ maybeReify Nothing = embed . Pure
 maybeReify (Just f) = embed . Free . fmap f . project
 
 reifyUpTo ::
-  (Recursive (->) n Maybe, Projectable (->) s f, Steppable (->) l (FreeF f s), Functor f) =>
+  ( Recursive (->) n Maybe,
+    Projectable (->) s f,
+    Steppable (->) l (FreeF f s),
+    Functor f
+  ) =>
   n ->
   s ->
   l
@@ -141,8 +209,39 @@ constantly = ana diagonal
 --   potentially-infinite structure into a finite one. Like a generalized
 --  `Yaya.Applied.take`.
 truncate ::
-  (Recursive (->) n Maybe, Projectable (->) t f, Steppable (->) u (FreeF f ()), Functor f) =>
+  ( Recursive (->) n Maybe,
+    Projectable (->) t f,
+    Steppable (->) u (FreeF f ()),
+    Functor f
+  ) =>
   n ->
   t ->
   u
 truncate = cata2 (embed . truncate')
+
+-- | An implementation of `IsList.toList` for `Corecursive` fixed-points of
+--  `XNor`.
+fromList :: (Corecursive (->) t (XNor a)) => [a] -> t
+fromList = ana project
+
+-- | An implementation of `IsList.fromListN` for `Steppable` fixed-points of
+--  `XNor`.
+--
+--   This should return an empty structure if the `Int` is negative.
+--
+--   If the target structure isn’t `Steppable` or the target structure is
+--  `Corecursive` (i.e., `Yaya.Unsafe.Fold.Applied.unsafeFromList` isn’t used),
+--   then the default definition for `fromListN` should suffice.
+fromListN :: (Steppable (->) t (XNor a)) => Int -> [a] -> t
+fromListN = cata2 (embed . takeAvailable) . fromIntegral @_ @Natural
+
+-- | An implementation of `IsList.toList` for `Projectable` fixed-points of
+--  `XNor`.
+toList :: (Projectable (->) t (XNor a)) => t -> [a]
+toList = ana project
+
+-- | This instance is safe, since both structures are lazy.
+instance IsList (Nu (XNor a)) where
+  type Item (Nu (XNor a)) = a
+  fromList = fromList
+  toList = toList

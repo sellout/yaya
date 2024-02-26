@@ -38,8 +38,8 @@ firstMap f = dmap (first f)
 -- | An endofunctor in the category of endofunctors.
 --
 --  __NB__: This is similar to `Control.Monad.Morph.MFunctor` /
---         `Control.Monad.Morph.hoist` from mmorph, but without the `Monad`
---          constraint on `f`.
+--         `Control.Monad.Morph.hoist` from mmorph, but without the
+--         `Control.Monad.Monad` constraint on @f@.
 class HFunctor (h :: (Type -> Type) -> Type -> Type) where
   hmap :: (forall x. f x -> g x) -> h f a -> h g a
 

@@ -1,19 +1,14 @@
-name:                yaya-unsafe
-version:             0.3.1.0
-synopsis:            Non-total extensions to the Yaya recursion scheme library.
-description:         Yaya is designed as a _total_ library. However, it is often
-                     expedient to use partial operations in some cases, and this
-                     package extends Yaya to provide those operations. It’s in a
-                     separate package (and modules) in order to make sure its
-                     use is very intentional and also relatively obvious to
-                     those reading your code. It’s recommended that you import
-                     these modules qualified and, in particular, all the type
-                     class instances here have been pulled into a separate
-                     module to avoid accidentally bringing them into scope.
+name:                yaya-quickcheck
+version:             0.1.0.0
+synopsis:            QuickCheck testing support for the Yaya recursion scheme
+                     library.
+description:         If you use Yaya in your own code and have tests written
+                     using QuickCheck, then this library will help you with
+                     generating trees, verifying type class instances, etc.
 homepage:            https://github.com/sellout/yaya#readme
 author:              Greg Pfeil
 maintainer:          greg@technomadic.org
-copyright:           2017 Greg Pfeil
+copyright:           2024 Greg Pfeil
 license:             AGPL-3
 license-file:        LICENSE
 category:            Recursion
@@ -32,16 +27,10 @@ tested-with:         GHC == 8.6.1
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Yaya.Unsafe.Applied
-                     , Yaya.Unsafe.Fold
-                     , Yaya.Unsafe.Fold.Instances
-                     , Yaya.Unsafe.Zoo
-  build-depends:       base >= 4.7 && < 5
-                     , bifunctors
-                     , comonad
-                     , free
-                     , lens
-                     , yaya >= 0.5.1
+  exposed-modules:     Yaya.QuickCheck.Fold
+  build-depends:       QuickCheck
+                     , base >= 4.7 && < 5
+                     , yaya >= 0.5.0
   default-extensions:  ConstraintKinds
                      , DeriveTraversable
                      , FlexibleContexts

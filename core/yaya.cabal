@@ -1,5 +1,5 @@
 name:                yaya
-version:             0.5.0.0
+version:             0.5.1.0
 synopsis:            Total recursion schemes.
 description:         Recursion schemes allow you to separate recursion from your
                      business logic – making your own operations simpler, more
@@ -41,7 +41,6 @@ library
   other-modules:       Yaya.Fold.Native.Internal
   build-depends:       base >= 4.7 && < 5
                      , comonad
-                     , deriving-compat
                      , either
                      , free
                      , kan-extensions
@@ -52,6 +51,7 @@ library
                      , th-abstraction
                      , transformers
   default-extensions:  ConstraintKinds
+                     , DeriveGeneric
                      , DeriveTraversable
                      , FlexibleContexts
                      , FlexibleInstances

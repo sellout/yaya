@@ -312,12 +312,11 @@ colambek :: (Projectable (->) t f, Corecursive (->) t f, Functor f) => Algebra (
 colambek = ana (fmap project)
 
 -- | There are a number of distributive laws, including
---  `Data.Traversable.sequenceA`, `Data.Distributive.distribute`, and
---  `Data.Align.sequenceL`. Yaya also provides others for specific recursion
---   schemes.
+--  `sequenceA`, `Data.Distributive.distribute`, and `Data.Align.sequenceL`.
+--   Yaya also provides others for specific recursion schemes.
 type DistributiveLaw c f g = forall a. f (g a) `c` g (f a)
 
--- | A less-constrained `distribute` for `Identity`.
+-- | A less-constrained `Data.Distributive.distribute` for `Identity`.
 distIdentity :: (Functor f) => DistributiveLaw (->) f Identity
 distIdentity = Identity . fmap runIdentity
 
