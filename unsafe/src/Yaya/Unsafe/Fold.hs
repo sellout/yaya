@@ -6,6 +6,7 @@ import "base" Control.Applicative (Applicative (..))
 import "base" Control.Category (Category (..))
 import "base" Control.Monad (Monad, (<=<))
 import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Function (flip)
 import "base" Data.Functor (Functor (..))
 import "base" Data.Functor.Compose (Compose (..))
 import "base" Data.Traversable (Traversable (..))
@@ -33,7 +34,33 @@ import "yaya" Yaya.Fold
   )
 import "yaya" Yaya.Pattern (Maybe, Pair, maybe, uncurry)
 
--- | This can’t be implemented in a total fashion. There is a _similar_ approach
+-- | Instances leak transitively, so while "Yaya.Unsafe.Fold.Instances" exists,
+--   it should only be used when it is unavoidable. If you are explicitly
+--   folding a structure unsafely, use this function instead of importing that
+--   module.
+unsafeAna :: (Steppable (->) t f, Functor f) => Coalgebra (->) f a -> a -> t
+unsafeAna = hylo embed
+
+-- | Instances leak transitively, so while "Yaya.Unsafe.Fold.Instances" exists,
+--   it should only be used when it is unavoidable. If you are explicitly
+--   unfolding a structure unsafely, use this function instead of importing that
+--   module.
+--
+--   Should one prefer `unsafeAna` or `unsafeCata` in cases where both are
+--   applicable?
+-- - one may provide weaker constraints than the other in certain cases (e.g.,
+--   on its own, `unsafeCata` only requires `Projectable` on the source, but
+--  `unsafeAna` requires `Steppable` on the target. Depending on what other
+--   constraints already exist on the function, either one may ultimately be
+--   less constrained.
+-- - they may fail differently: `unsafeCata` (folding a potentially-infinite
+--   structure) is likely to result in non-termination, whereas `unsafeAna`
+--   (building a potentially-infinite structure strictly) is likely to use up
+--   the memory or overflow the stack.
+unsafeCata :: (Projectable (->) t f, Functor f) => Algebra (->) f a -> t -> a
+unsafeCata = flip hylo project
+
+-- | This can’t be implemented in a total fashion. There is a /similar/ approach
 --   that can be total – with `ψ :: CoalgebraM (->) m f a`, `ana (Compose . ψ)`
 --   results in something like `Nu (Compose m f)` which is akin to an effectful
 --   stream.

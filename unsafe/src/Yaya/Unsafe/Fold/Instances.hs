@@ -3,11 +3,11 @@
 -- | Type class instances that use direct recursion in a potentially partial
 --   way. This is separated from the rest of `Yaya.Unsafe.Fold` because you can
 --   neither control nor qualify the import of instances. Therefore this module
---   is _extra_ dangerous, as having these instances available applies to the
+--   is /extra/ dangerous, as having these instances available applies to the
 --   entire module they’re imported into.
 --
---   This contains instances that you might _expect_ to see, but which aren’t
---   actually total. For example, folding a lazy list `[a]` is _not_ guaranteed
+--   This contains instances that you might /expect/ to see, but which aren’t
+--   actually total. For example, folding a lazy list @[a]@ is /not/ guaranteed
 --   to terminate.
 module Yaya.Unsafe.Fold.Instances where
 
@@ -50,10 +50,10 @@ instance (Functor f, Show1 f) => Show (Cofix f) where
   showsPrec = recursiveShowsPrec
 
 instance (Functor f) => Corecursive (->) (Mu f) f where
-  ana = Unsafe.hylo embed
+  ana = Unsafe.unsafeAna
 
 instance (Functor f) => Recursive (->) (Nu f) f where
-  cata = flip Unsafe.hylo project
+  cata = Unsafe.unsafeCata
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
   (==) = recursiveEq
@@ -62,16 +62,16 @@ instance (Functor f, Show1 f) => Show (Nu f) where
   showsPrec = recursiveShowsPrec
 
 instance Recursive (->) [a] (XNor a) where
-  cata = flip Unsafe.hylo project
+  cata = Unsafe.unsafeCata
 
 instance Recursive (->) (NonEmpty a) (AndMaybe a) where
-  cata = flip Unsafe.hylo project
+  cata = Unsafe.unsafeCata
 
 instance (Functor f) => Recursive (->) (Cofree f a) (EnvT a f) where
-  cata = flip Unsafe.hylo project
+  cata = Unsafe.unsafeCata
 
 instance (Functor f) => Recursive (->) (Free f a) (FreeF f a) where
-  cata = flip Unsafe.hylo project
+  cata = Unsafe.unsafeCata
 
 -- TODO: If we can generalize this to an arbitrary 'Recursive (->) t (FreeF h a)'
 --       then it would no longer be unsafe.
