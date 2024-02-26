@@ -30,17 +30,35 @@ module Yaya.Retrofit
   )
 where
 
-import Control.Exception (Exception (..), throw)
-import Control.Monad ((<=<))
-import Data.Bifunctor (bimap)
-import Data.Either.Validation (Validation (..), validationToEither)
-import Data.Functor.Identity (Identity (..))
-import Data.List.NonEmpty (NonEmpty)
-import Language.Haskell.TH as TH
-import Language.Haskell.TH.Datatype as TH.Abs
-import Language.Haskell.TH.Syntax (mkNameG_tc)
-import Text.Read.Lex (isSymbolChar)
-import Yaya.Fold
+-- NB: This module does not use the strict library, because its use of `Either`,
+--    `Maybe`, etc. is tied to emplate-haskell and does not involve recursion
+--     schemes.
+
+import "base" Control.Applicative (Applicative (..))
+import "base" Control.Category (Category (..))
+import "base" Control.Exception (Exception (..), throw)
+import "base" Control.Monad ((<=<))
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Bool (Bool (..), not, otherwise, (&&))
+import "base" Data.Either (Either (..), either)
+import "base" Data.Eq (Eq (..))
+import "base" Data.Foldable (Foldable (..))
+import "base" Data.Function (const, flip, ($))
+import "base" Data.Functor (Functor (..), (<$>))
+import "base" Data.Functor.Identity (Identity (..))
+import "base" Data.List (all, null, zip, zip3)
+import "base" Data.List.NonEmpty (NonEmpty)
+import "base" Data.Maybe (Maybe (..), maybe)
+import "base" Data.Semigroup (Semigroup (..))
+import "base" Data.String (String)
+import "base" Data.Traversable (Traversable (..))
+import "base" Text.Read.Lex (isSymbolChar)
+import "base" Text.Show (Show (..))
+import "either" Data.Either.Validation (Validation (..), validationToEither)
+import "template-haskell" Language.Haskell.TH as TH
+import "template-haskell" Language.Haskell.TH.Syntax (mkNameG_tc)
+import "th-abstraction" Language.Haskell.TH.Datatype as TH.Abs
+import "this" Yaya.Fold
   ( Corecursive (..),
     Projectable (..),
     Recursive (..),
@@ -48,8 +66,11 @@ import Yaya.Fold
     recursiveEq,
     recursiveShowsPrec,
   )
+import "base" Prelude (error)
 
-#if MIN_VERSION_template_haskell(2, 17, 0)
+#if MIN_VERSION_template_haskell(2, 21, 0)
+type TyVarBndr' = TyVarBndr BndrVis
+#elif MIN_VERSION_template_haskell(2, 17, 0)
 type TyVarBndr' = TyVarBndr ()
 #else
 type TyVarBndr' = TyVarBndr
@@ -134,8 +155,8 @@ toFName :: Name -> Name
 toFName = mkName . f . nameBase
   where
     f name
-      | isInfixName name = name ++ "$"
-      | otherwise = name ++ "F"
+      | isInfixName name = name <> "$"
+      | otherwise = name <> "F"
 
     isInfixName :: String -> Bool
     isInfixName = all isSymbolChar
@@ -208,7 +229,7 @@ makePrimForDI' ::
   PatternFunctorRules -> Bool -> Name -> [TyVarBndr'] -> [ConstructorInfo] -> Q [Dec]
 makePrimForDI' rules isNewtype tyName vars cons = do
   -- variable parameters
-  let vars' = map VarT (typeVars vars)
+  let vars' = fmap VarT (typeVars vars)
   -- Name of base functor
   let tyNameF = patternType rules tyName
   -- Recursive type
@@ -218,7 +239,7 @@ makePrimForDI' rules isNewtype tyName vars cons = do
   let r = VarT rName
 
   -- Vars
-  let varsF = vars ++ [plainTV rName]
+  let varsF = vars <> [plainTV rName]
 
   -- #33
   cons' <- traverse (conTypeTraversal resolveTypeSynonyms) cons
@@ -265,8 +286,8 @@ mkMorphism nFrom nTo =
         fs <- traverse (const $ newName "x") $ constructorFields ci
         pure $
           Match
-            (conP' (nFrom n) (map VarP fs)) -- pattern
-            (NormalB $ foldl AppE (ConE $ nTo n) (map VarE fs)) -- body
+            (conP' (nFrom n) (fmap VarP fs)) -- pattern
+            (NormalB $ foldl AppE (ConE $ nTo n) (fmap VarE fs)) -- body
             [] -- where dec
     )
 
@@ -305,9 +326,9 @@ conTypeMap = over conTypeTraversal
 -- Lenses
 -------------------------------------------------------------------------------
 
-type Lens' s a = forall f. Functor f => (a -> f a) -> s -> f s
+type Lens' s a = forall f. (Functor f) => (a -> f a) -> s -> f s
 
-type Traversal' s a = forall f. Applicative f => (a -> f a) -> s -> f s
+type Traversal' s a = forall f. (Applicative f) => (a -> f a) -> s -> f s
 
 lens :: (s -> a) -> (s -> a -> s) -> Lens' s a
 lens sa sas afa s = sas s <$> afa (sa s)
@@ -323,7 +344,7 @@ over l f = runIdentity . l (Identity . f)
 
 -- | Extract type variables
 typeVars :: [TyVarBndr'] -> [Name]
-typeVars = map tvName
+typeVars = fmap tvName
 
 -- | Apply arguments to a type constructor.
 conAppsT :: Name -> [Type] -> Type
@@ -363,7 +384,7 @@ toCon
     | not (null vars && null ctxt) =
         error "makeBaseFunctor: GADTs are not currently supported."
     | otherwise =
-        let bangs = map toBang fstricts
+        let bangs = fmap toBang fstricts
          in case variant of
               NormalConstructor -> NormalC name $ zip bangs ftys
               RecordConstructor fnames -> RecC name $ zip3 fnames bangs ftys

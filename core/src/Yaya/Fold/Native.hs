@@ -1,23 +1,46 @@
--- NB: We disable @StrictData@ here in order for `Cofix` to be lazy. I don’t
---     think there is any way to explicitly add @~@ patterns that has the
---     correct semantics.
-{-# LANGUAGE NoStrictData #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Uses of recursion schemes that use Haskell’s built-in recursion in a total
 --   manner.
-module Yaya.Fold.Native where
+module Yaya.Fold.Native
+  ( module Yaya.Fold.Native.Internal,
+    Fix (..),
+    distCofreeT,
+  )
+where
 
-import Control.Arrow
-import Control.Comonad
-import Control.Comonad.Cofree
-import Control.Comonad.Trans.Env
-import Control.Monad.Trans.Free
-import Data.Functor.Classes
-import Data.List.NonEmpty
-import Numeric.Natural
-import Yaya.Fold
-import Yaya.Pattern
+import "base" Control.Applicative (Applicative)
+import "base" Control.Category (Category (..))
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Bool (Bool)
+import "base" Data.Eq (Eq ((==)))
+import "base" Data.Foldable (Foldable)
+import "base" Data.Function (($))
+import "base" Data.Functor (Functor (..))
+import "base" Data.Functor.Classes (Eq1, Show1)
+import "base" Data.List.NonEmpty
+import "base" Data.Monoid (Monoid)
+import "base" Data.Ord (Ord)
+import "base" Numeric.Natural
+import "base" Text.Show (Show (showsPrec))
+import "comonad" Control.Comonad (Comonad (..))
+import "comonad" Control.Comonad.Trans.Env (EnvT (..), runEnvT)
+import "free" Control.Comonad.Cofree (Cofree (..), unwrap)
+import "free" Control.Monad.Trans.Free (Free, FreeF (..), free)
+import "strict" Data.Strict.Classes (Strict (..))
+import "this" Yaya.Fold
+  ( Corecursive (..),
+    DistributiveLaw,
+    Projectable (..),
+    Recursive (..),
+    Steppable (..),
+    recursiveEq,
+    recursiveShowsPrec,
+  )
+import "this" Yaya.Fold.Common (diagonal)
+import "this" Yaya.Fold.Native.Internal (Cofix (unCofix))
+import "this" Yaya.Pattern (AndMaybe (..), Maybe, XNor (..), uncurry)
+import "base" Prelude (Integral)
 
 -- | A fixed-point constructor that uses Haskell's built-in recursion. This is
 --   strict/recursive.
@@ -29,7 +52,7 @@ instance Projectable (->) (Fix f) f where
 instance Steppable (->) (Fix f) f where
   embed = Fix
 
-instance Functor f => Recursive (->) (Fix f) f where
+instance (Functor f) => Recursive (->) (Fix f) f where
   cata ɸ = ɸ . fmap (cata ɸ) . project
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Fix f) where
@@ -37,20 +60,6 @@ instance (Functor f, Foldable f, Eq1 f) => Eq (Fix f) where
 
 instance (Functor f, Show1 f) => Show (Fix f) where
   showsPrec = recursiveShowsPrec
-
--- | A fixed-point constructor that uses Haskell's built-in recursion. This is
---   lazy/corecursive.
-data Cofix f = Cofix {unCofix :: f (Cofix f)}
-{-# ANN Cofix "HLint: ignore Use newtype instead of data" #-}
-
-instance Projectable (->) (Cofix f) f where
-  project = unCofix
-
-instance Steppable (->) (Cofix f) f where
-  embed = Cofix
-
-instance Functor f => Corecursive (->) (Cofix f) f where
-  ana φ = embed . fmap (ana φ) . φ
 
 instance Recursive (->) Natural Maybe where
   cata ɸ = ɸ . fmap (cata ɸ) . project
@@ -71,7 +80,7 @@ instance Corecursive (->) (NonEmpty a) (AndMaybe a) where
     )
       . ψ
 
-instance Functor f => Corecursive (->) (Free f a) (FreeF f a) where
+instance (Functor f) => Corecursive (->) (Free f a) (FreeF f a) where
   ana ψ =
     free
       . ( \case
@@ -80,11 +89,12 @@ instance Functor f => Corecursive (->) (Free f a) (FreeF f a) where
         )
       . ψ
 
-instance Functor f => Corecursive (->) (Cofree f a) (EnvT a f) where
-  ana ψ = uncurry (:<) . fmap (fmap (ana ψ)) . runEnvT . ψ
+instance (Functor f) => Corecursive (->) (Cofree f a) (EnvT a f) where
+  ana ψ = uncurry (:<) . fmap (fmap (ana ψ)) . toStrict . runEnvT . ψ
 
 distCofreeT ::
   (Functor f, Functor h) =>
   DistributiveLaw (->) f h ->
   DistributiveLaw (->) f (Cofree h)
-distCofreeT k = ana $ uncurry EnvT . (fmap extract &&& k . fmap unwrap)
+distCofreeT k =
+  ana $ uncurry EnvT . bimap (fmap extract) (k . fmap unwrap) . diagonal

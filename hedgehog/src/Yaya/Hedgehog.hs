@@ -2,12 +2,16 @@
 
 module Yaya.Hedgehog where
 
-import Control.Monad ((<=<))
-import Control.Monad.IO.Class (MonadIO)
-import GHC.IO (evaluate)
-import GHC.Stack (HasCallStack)
-import Hedgehog
-import System.Timeout (timeout)
+import "base" Control.Category (Category ((.)))
+import "base" Control.Monad ((<=<))
+import "base" Control.Monad.IO.Class (MonadIO)
+import "base" Data.Function (const)
+import "base" Data.Maybe (maybe)
+import "base" GHC.IO (evaluate)
+import "base" GHC.Stack (HasCallStack)
+import "base" System.Timeout (timeout)
+import "base" Text.Show (Show)
+import "hedgehog" Hedgehog
 
 -- | Returns success if the expression doesn’t terminate, failure otherwise.
 --   Termination is just checked with a 1 second timeout, so this isn’t

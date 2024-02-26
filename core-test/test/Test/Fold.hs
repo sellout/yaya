@@ -2,13 +2,25 @@
 
 module Test.Fold where
 
-import Data.Proxy
-import Hedgehog
-import qualified Hedgehog.Gen as Gen
-import Yaya.Fold
-import Yaya.Fold.Common
-import Yaya.Hedgehog.Expr
-import Yaya.Hedgehog.Fold
+import "base" Control.Category (Category (..))
+import "base" Control.Monad ((=<<))
+import "base" Data.Bool (Bool)
+import "base" Data.Function (($))
+import "base" Data.Proxy (Proxy (..))
+import "base" System.IO (IO)
+import "hedgehog" Hedgehog (Property, checkParallel, discover, forAll, property)
+import qualified "hedgehog" Hedgehog.Gen as Gen
+import "yaya" Yaya.Fold (Mu)
+import "yaya" Yaya.Fold.Common (size)
+import "yaya-hedgehog" Yaya.Hedgehog.Expr (Expr, genExpr, genMuExpr)
+import "yaya-hedgehog" Yaya.Hedgehog.Fold
+  ( law_cataCancel,
+    law_cataCompose,
+    law_cataRefl,
+  )
+
+-- TODO: For some reason HLint is complaining that TemplateHaskell is unused.
+{-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-}
 
 prop_muCataCancel :: Property
 prop_muCataCancel =
@@ -25,4 +37,4 @@ prop_muCataCompose =
       =<< forAll (Gen.sized genMuExpr)
 
 tests :: IO Bool
-tests = checkParallel $$(discover)
+tests = checkParallel $$discover

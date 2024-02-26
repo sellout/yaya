@@ -1,26 +1,35 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Common pattern functors (and instances for them).
-module Yaya.Pattern where
+--
+--   This re-exports the functors from the strict library because it also adds
+--   some orphan instances for them.
+module Yaya.Pattern
+  ( module Data.Strict.Either,
+    module Data.Strict.Maybe,
+    module Data.Strict.Tuple,
+    XNor (..),
+    AndMaybe (..),
+  )
+where
 
-import Data.Bifunctor (Bifunctor (..))
 import Text.Show.Deriving (deriveShow1, deriveShow2)
-
--- | A version of `(,)` that is strict in its second parameter.
-data Pair a b = Pair {car :: ~a, cdr :: b}
-  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
-
-deriveShow1 ''Pair
-deriveShow2 ''Pair
-
-instance Bifunctor Pair where
-  bimap f g (Pair a b) = Pair (f a) (g b)
-
--- | A strict version of `Maybe`
-data Optional a = None | Some a
-  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
-
-deriveShow1 ''Optional
+import "base" Control.Applicative (Applicative (..))
+import "base" Control.Monad (Monad (..))
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Eq (Eq)
+import "base" Data.Foldable (Foldable)
+import "base" Data.Function (($))
+import "base" Data.Functor (Functor)
+import "base" Data.Ord (Ord)
+import "base" Data.Traversable (Traversable)
+import "base" Text.Show (Show)
+import "comonad" Control.Comonad (Comonad (..))
+-- explicitly omitted import list for @strict@ modules
+import "strict" Data.Strict.Either
+import "strict" Data.Strict.Maybe
+import "strict" Data.Strict.Tuple
 
 -- | Isomorphic to 'Maybe (a, b)', it’s also the pattern functor for lists.
 data XNor a b = Neither | Both ~a b
@@ -46,3 +55,32 @@ instance Bifunctor AndMaybe where
   bimap f g = \case
     Only a -> Only (f a)
     Indeed a b -> Indeed (f a) (g b)
+
+-- * orphan instances for types from the strict library
+
+-- TODO: Explain why these instances are actually legit (fast & loose).
+
+instance Applicative (Either a) where
+  pure = Right
+  liftA2 f = curry $ \case
+    Right x :!: Right y -> Right $ f x y
+    Right _ :!: Left a -> Left a
+    Left a :!: _ -> Left a
+
+instance Monad (Either a) where
+  Left a >>= _ = Left a
+  Right b >>= f = f b
+
+instance Applicative Maybe where
+  pure = Just
+  liftA2 f = curry $ \case
+    Just x :!: Just y -> Just $ f x y
+    _ :!: _ -> Nothing
+
+instance Monad Maybe where
+  Nothing >>= _ = Nothing
+  Just a >>= f = f a
+
+instance Comonad (Pair a) where
+  extract = snd
+  duplicate x@(a :!: _) = a :!: x

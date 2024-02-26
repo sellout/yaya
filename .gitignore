@@ -1,10 +1,15 @@
-# Direnv
-/.direnv
-
-# Nix build
-/outputs
 /result
 /source
-
-# Cabal build
 dist-newstyle
+/.cache/vale/*
+!/.cache/vale/config/
+/.cache/vale/config/*
+!/.cache/vale/config/vocabularies/
+/.cache/vale/config/vocabularies/*
+!/.cache/vale/config/vocabularies/yaya/
+!/.cache/vale/Vocab/
+/.cache/vale/Vocab/*
+!/.cache/vale/Vocab/yaya/
+/.local/state/project-manager/
+/.local/state/nix/profiles/
+/.cache/direnv/

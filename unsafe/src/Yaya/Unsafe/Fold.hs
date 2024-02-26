@@ -2,18 +2,46 @@
 --   laziness) can lead to non-termination.
 module Yaya.Unsafe.Fold where
 
-import Control.Arrow
-import Control.Comonad
-import Control.Lens
-import Control.Monad
-import Data.Functor.Compose
-import Yaya.Fold
+import "base" Control.Applicative (Applicative (..))
+import "base" Control.Category (Category (..))
+import "base" Control.Monad (Monad, (<=<))
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Functor (Functor (..))
+import "base" Data.Functor.Compose (Compose (..))
+import "base" Data.Traversable (Traversable (..))
+import "comonad" Control.Comonad (Comonad (..))
+import "lens" Control.Lens (Prism', matching, prism, review, (&))
+import "yaya" Yaya.Fold
+  ( Algebra,
+    AlgebraM,
+    Coalgebra,
+    CoalgebraM,
+    CoalgebraPrism,
+    Corecursive (..),
+    DistributiveLaw,
+    GAlgebra,
+    GAlgebraM,
+    GCoalgebra,
+    GCoalgebraM,
+    Projectable (..),
+    Recursive (..),
+    Steppable (..),
+    lowerAlgebra,
+    lowerAlgebraM,
+    lowerCoalgebra,
+    lowerCoalgebraM,
+  )
+import "yaya" Yaya.Pattern (Maybe, Pair, maybe, uncurry)
 
 -- | This can’t be implemented in a total fashion. There is a _similar_ approach
 --   that can be total – with `ψ :: CoalgebraM (->) m f a`, `ana (Compose . ψ)`
 --   results in something like `Nu (Compose m f)` which is akin to an effectful
 --   stream.
-anaM :: (Monad m, Steppable (->) t f, Traversable f) => CoalgebraM (->) m f a -> a -> m t
+anaM ::
+  (Monad m, Steppable (->) t f, Traversable f) =>
+  CoalgebraM (->) m f a ->
+  a ->
+  m t
 anaM = hyloM (pure . embed)
 
 ganaM ::
@@ -25,7 +53,7 @@ ganaM ::
 ganaM k ψ = anaM (lowerCoalgebraM k ψ) . pure
 
 -- | Fusion of an 'ana' and 'cata'.
-hylo :: Functor f => Algebra (->) f b -> Coalgebra (->) f a -> a -> b
+hylo :: (Functor f) => Algebra (->) f b -> Coalgebra (->) f a -> a -> b
 hylo φ ψ = go
   where
     go = φ . fmap go . ψ
@@ -63,7 +91,7 @@ ghyloM w n φ ψ =
 stream' ::
   (Projectable (->) t f, Steppable (->) u g, Functor g) =>
   CoalgebraM (->) Maybe g b ->
-  (b -> ((b -> b, t) -> u) -> f t -> u) ->
+  (b -> (Pair (b -> b) t -> u) -> f t -> u) ->
   b ->
   t ->
   u
@@ -83,7 +111,7 @@ stream' ψ f = go
 streamAna ::
   (Projectable (->) t f, Steppable (->) u g, Functor g) =>
   CoalgebraM (->) Maybe g b ->
-  AlgebraM (->) ((,) (b -> b)) f t ->
+  AlgebraM (->) (Pair (b -> b)) f t ->
   b ->
   t ->
   u
@@ -99,7 +127,7 @@ streamGApo ::
   (Projectable (->) t f, Steppable (->) u g, Corecursive (->) u g, Functor g) =>
   Coalgebra (->) g b ->
   CoalgebraM (->) Maybe g b ->
-  (f t -> Maybe (b -> b, t)) ->
+  (f t -> Maybe (Pair (b -> b) t)) ->
   b ->
   t ->
   u
@@ -107,7 +135,11 @@ streamGApo flush process accum =
   stream' process (\c f -> maybe (ana flush c) f . accum)
 
 corecursivePrism ::
-  (Steppable (->) t f, Recursive (->) t f, Corecursive (->) t f, Traversable f) =>
+  ( Steppable (->) t f,
+    Recursive (->) t f,
+    Corecursive (->) t f,
+    Traversable f
+  ) =>
   CoalgebraPrism f a ->
   Prism' a t
 corecursivePrism alg = prism (cata (review alg)) (anaM (matching alg))

@@ -11,20 +11,36 @@
 --   to terminate.
 module Yaya.Unsafe.Fold.Instances where
 
-import Control.Comonad.Cofree
-import Control.Comonad.Env
-import Control.Monad.Trans.Free
-import Data.Functor.Classes
-import Data.List.NonEmpty
-import Yaya.Fold
-import Yaya.Fold.Native
-import Yaya.Pattern
-import qualified Yaya.Unsafe.Fold as Unsafe
+import "base" Control.Category (Category (..))
+import "base" Data.Eq (Eq (..))
+import "base" Data.Foldable (Foldable)
+import "base" Data.Function (flip)
+import "base" Data.Functor (Functor, (<$>))
+import "base" Data.Functor.Classes (Eq1, Show1)
+import "base" Data.List.NonEmpty (NonEmpty)
+import "base" Text.Show (Show (..))
+import "comonad" Control.Comonad.Env (EnvT)
+import "free" Control.Comonad.Cofree (Cofree)
+import "free" Control.Monad.Trans.Free (Free, FreeF (..), free)
+import "yaya" Yaya.Fold
+  ( Corecursive (..),
+    DistributiveLaw,
+    Mu,
+    Nu,
+    Projectable (..),
+    Recursive (..),
+    Steppable (..),
+    recursiveEq,
+    recursiveShowsPrec,
+  )
+import "yaya" Yaya.Fold.Native (Cofix, Fix)
+import "yaya" Yaya.Pattern (AndMaybe, XNor)
+import qualified "this" Yaya.Unsafe.Fold as Unsafe
 
-instance Functor f => Corecursive (->) (Fix f) f where
+instance (Functor f) => Corecursive (->) (Fix f) f where
   ana = Unsafe.hylo embed
 
-instance Functor f => Recursive (->) (Cofix f) f where
+instance (Functor f) => Recursive (->) (Cofix f) f where
   cata = flip Unsafe.hylo project
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Cofix f) where
@@ -33,10 +49,10 @@ instance (Functor f, Foldable f, Eq1 f) => Eq (Cofix f) where
 instance (Functor f, Show1 f) => Show (Cofix f) where
   showsPrec = recursiveShowsPrec
 
-instance Functor f => Corecursive (->) (Mu f) f where
+instance (Functor f) => Corecursive (->) (Mu f) f where
   ana = Unsafe.hylo embed
 
-instance Functor f => Recursive (->) (Nu f) f where
+instance (Functor f) => Recursive (->) (Nu f) f where
   cata = flip Unsafe.hylo project
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
@@ -51,10 +67,10 @@ instance Recursive (->) [a] (XNor a) where
 instance Recursive (->) (NonEmpty a) (AndMaybe a) where
   cata = flip Unsafe.hylo project
 
-instance Functor f => Recursive (->) (Cofree f a) (EnvT a f) where
+instance (Functor f) => Recursive (->) (Cofree f a) (EnvT a f) where
   cata = flip Unsafe.hylo project
 
-instance Functor f => Recursive (->) (Free f a) (FreeF f a) where
+instance (Functor f) => Recursive (->) (Free f a) (FreeF f a) where
   cata = flip Unsafe.hylo project
 
 -- TODO: If we can generalize this to an arbitrary 'Recursive (->) t (FreeF h a)'

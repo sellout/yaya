@@ -12,16 +12,13 @@ category:            Recursion
 build-type:          Simple
 cabal-version:       >=1.10
 tested-with:         GHC == 8.6.1
-                   , GHC == 8.8.1
+                   , GHC == 8.8.1, GHC == 8.8.4
                    , GHC == 8.10.1
-                   , GHC == 8.10.7
                    , GHC == 9.0.1
-                   , GHC == 9.0.2
                    , GHC == 9.2.1
-                   , GHC == 9.2.8
-                   , GHC == 9.4.1
-                   , GHC == 9.4.5
+                   , GHC == 9.4.1, GHC == 9.4.8
                    , GHC == 9.6.1
+                   , GHC == 9.8.1
 
 test-suite yaya-unsafe-test
   type:                exitcode-stdio-1.0
@@ -34,7 +31,9 @@ test-suite yaya-unsafe-test
                      , yaya-hedgehog >= 0.2.1
                      , yaya-unsafe >= 0.3.0
   default-extensions:  FlexibleContexts
+                     , PackageImports
                      , StrictData
+                     , NoImplicitPrelude
   -- NB: Need `-fno-omit-yields` so that `timeout` can interrupt native
   --     recursion in non-termination tests.
   ghc-options:         -fno-omit-yields -threaded -rtsopts -with-rtsopts=-N -Wall

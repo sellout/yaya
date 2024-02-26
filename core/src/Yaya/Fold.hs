@@ -2,25 +2,44 @@
 
 module Yaya.Fold where
 
-import Control.Applicative
-import Control.Arrow
-import Control.Comonad
-import Control.Comonad.Cofree
-import Control.Comonad.Trans.Env
-import Control.Lens hiding ((:<))
-import Control.Monad
-import Control.Monad.Trans.Free
-import Data.Bitraversable
-import Data.Either.Combinators
-import Data.Foldable
-import Data.Functor.Classes
-import Data.Functor.Day
-import Data.List.NonEmpty (NonEmpty (..))
-import Data.Void
-import Numeric.Natural
-import Yaya.Fold.Common
-import Yaya.Functor
-import Yaya.Pattern
+import "base" Control.Applicative (Applicative (..), liftA2)
+import "base" Control.Category (Category (..))
+import "base" Control.Monad (Monad, join, (<=<), (=<<))
+import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Bitraversable (bisequence)
+import "base" Data.Bool (Bool (..))
+import "base" Data.Eq (Eq (..))
+import "base" Data.Foldable (Foldable (..))
+import "base" Data.Function (const, ($))
+import "base" Data.Functor (Functor (..), (<$>))
+import "base" Data.Functor.Classes (Eq1, Show1 (..))
+import "base" Data.Int (Int)
+import "base" Data.List.NonEmpty (NonEmpty (..))
+import "base" Data.Traversable (sequenceA)
+import "base" Data.Void (Void, absurd)
+import "base" Numeric.Natural (Natural)
+import "base" Text.Show (Show (..), ShowS, showParen)
+import "comonad" Control.Comonad (Comonad (..))
+import "comonad" Control.Comonad.Trans.Env (EnvT (..), ask, lowerEnvT, runEnvT)
+import "free" Control.Comonad.Cofree (Cofree (..))
+import "free" Control.Monad.Trans.Free (Free, FreeF (..), free, runFree)
+import "kan-extensions" Data.Functor.Day (Day (..))
+import "lens" Control.Lens hiding ((:<))
+import "strict" Data.Strict.Classes (Strict (..))
+import "this" Yaya.Fold.Common (diagonal, equal, fromEither)
+import "this" Yaya.Functor (DFunctor (..))
+import "this" Yaya.Pattern
+  ( AndMaybe (..),
+    Either (..),
+    Maybe (..),
+    Pair (..),
+    XNor (..),
+    fst,
+    maybe,
+    snd,
+    uncurry,
+  )
+import "base" Prelude (Enum (..))
 
 type Algebra c f a = f a `c` a
 
@@ -55,7 +74,7 @@ class Projectable c t f | t -> f where
   project :: Coalgebra c f t
 
 -- | Structures you can walk through step-by-step.
-class Projectable c t f => Steppable c t f | t -> f where
+class (Projectable c t f) => Steppable c t f | t -> f where
   embed :: Algebra c f t
 
 -- | Inductive structures that can be reasoned about in the way we usually do –
@@ -90,10 +109,10 @@ recursiveShowsPrec prec =
 --       @-XStrictData@ can help with this a lot.
 newtype Mu f = Mu (forall a. Algebra (->) f a -> a)
 
-instance Functor f => Projectable (->) (Mu f) f where
+instance (Functor f) => Projectable (->) (Mu f) f where
   project = lambek
 
-instance Functor f => Steppable (->) (Mu f) f where
+instance (Functor f) => Steppable (->) (Mu f) f where
   embed m = Mu (\f -> f (fmap (cata f) m))
 
 instance Recursive (->) (Mu f) f where
@@ -102,7 +121,7 @@ instance Recursive (->) (Mu f) f where
 instance DFunctor Mu where
   dmap f (Mu run) = Mu (\φ -> run (φ . f))
 
-instance Show1 f => Show (Mu f) where
+instance (Show1 f) => Show (Mu f) where
   showsPrec = recursiveShowsPrec
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Mu f) where
@@ -112,10 +131,10 @@ instance (Functor f, Foldable f, Eq1 f) => Eq (Mu f) where
 --   structures.
 data Nu f where Nu :: Coalgebra (->) f a -> a -> Nu f
 
-instance Functor f => Projectable (->) (Nu f) f where
+instance (Functor f) => Projectable (->) (Nu f) f where
   project (Nu f a) = Nu f <$> f a
 
-instance Functor f => Steppable (->) (Nu f) f where
+instance (Functor f) => Steppable (->) (Nu f) f where
   embed = colambek
 
 instance Corecursive (->) (Nu f) f where
@@ -170,8 +189,8 @@ instance Steppable (->) (Free f a) (FreeF f a) where
 
 -- | Combines two `Algebra`s with different carriers into a single tupled
 --  `Algebra`.
-zipAlgebras :: Functor f => Algebra (->) f a -> Algebra (->) f b -> Algebra (->) f (a, b)
-zipAlgebras f g = f . fmap fst &&& g . fmap snd
+zipAlgebras :: (Functor f) => Algebra (->) f a -> Algebra (->) f b -> Algebra (->) f (Pair a b)
+zipAlgebras f g = bimap (f . fmap fst) (g . fmap snd) . diagonal
 
 -- | Combines two `AlgebraM`s with different carriers into a single tupled
 --  `AlgebraM`.
@@ -179,12 +198,12 @@ zipAlgebraMs ::
   (Applicative m, Functor f) =>
   AlgebraM (->) m f a ->
   AlgebraM (->) m f b ->
-  AlgebraM (->) m f (a, b)
-zipAlgebraMs f g = uncurry (liftA2 (,)) . (f . fmap fst &&& g . fmap snd)
+  AlgebraM (->) m f (Pair a b)
+zipAlgebraMs f g = bisequence . bimap (f . fmap fst) (g . fmap snd) . diagonal
 
 -- | Algebras over Day convolution are convenient for binary operations, but
 --   aren’t directly handleable by `cata`.
-lowerDay :: Projectable (->) t g => Algebra (->) (Day f g) a -> Algebra (->) f (t -> a)
+lowerDay :: (Projectable (->) t g) => Algebra (->) (Day f g) a -> Algebra (->) f (t -> a)
 lowerDay φ fta t = φ (Day fta (project t) ($))
 
 -- | By analogy with `liftA2` (which also relies on `Day`, at least
@@ -254,19 +273,19 @@ elgotCataM ::
   ElgotAlgebraM (->) m w f a ->
   t ->
   m a
-elgotCataM w φ = φ <=< cata (fmap w . traverse (sequence . extend φ) <=< sequenceA)
+elgotCataM w φ = φ <=< cata (fmap w . traverse (sequenceA . extend φ) <=< sequenceA)
 
 ezygoM ::
   (Monad m, Recursive (->) t f, Traversable f) =>
   AlgebraM (->) m f b ->
-  ElgotAlgebraM (->) m ((,) b) f a ->
+  ElgotAlgebraM (->) m (Pair b) f a ->
   t ->
   m a
 ezygoM φ' φ =
   fmap snd
     . cata
-      ( (\x@(b, _) -> (b,) <$> φ x)
-          <=< bisequence . (φ' . fmap fst &&& pure . fmap snd)
+      ( (\x@(b :!: _) -> (b :!:) <$> φ x)
+          <=< bisequence . bimap (φ' . fmap fst) (pure . fmap snd) . diagonal
           <=< sequenceA
       )
 
@@ -284,7 +303,7 @@ elgotAna ::
   ElgotCoalgebra (->) m f a ->
   a ->
   t
-elgotAna k ψ = ana (fmap (>>= ψ) . k) . ψ
+elgotAna k ψ = ana (fmap (ψ =<<) . k) . ψ
 
 lambek :: (Steppable (->) t f, Recursive (->) t f, Functor f) => Coalgebra (->) f t
 lambek = cata (fmap embed)
@@ -299,25 +318,26 @@ colambek = ana (fmap project)
 type DistributiveLaw c f g = forall a. f (g a) `c` g (f a)
 
 -- | A less-constrained `distribute` for `Identity`.
-distIdentity :: Functor f => DistributiveLaw (->) f Identity
+distIdentity :: (Functor f) => DistributiveLaw (->) f Identity
 distIdentity = Identity . fmap runIdentity
 
 -- | A less-constrained `sequenceA` for `Identity`.
-seqIdentity :: Functor f => DistributiveLaw (->) Identity f
+seqIdentity :: (Functor f) => DistributiveLaw (->) Identity f
 seqIdentity = fmap Identity . runIdentity
 
-distTuple :: Functor f => Algebra (->) f a -> DistributiveLaw (->) f ((,) a)
-distTuple φ = φ . fmap fst &&& fmap snd
+distTuple :: (Functor f) => Algebra (->) f a -> DistributiveLaw (->) f (Pair a)
+distTuple φ = bimap (φ . fmap fst) (fmap snd) . diagonal
 
 distEnvT ::
-  Functor f =>
+  (Functor f) =>
   Algebra (->) f a ->
   DistributiveLaw (->) f w ->
   DistributiveLaw (->) f (EnvT a w)
-distEnvT φ k = uncurry EnvT . (φ . fmap ask &&& k . fmap lowerEnvT)
+distEnvT φ k =
+  uncurry EnvT . bimap (φ . fmap ask) (k . fmap lowerEnvT) . diagonal
 
-seqEither :: Functor f => Coalgebra (->) f a -> DistributiveLaw (->) (Either a) f
-seqEither ψ = fmap Left . ψ ||| fmap Right
+seqEither :: (Functor f) => Coalgebra (->) f a -> DistributiveLaw (->) (Either a) f
+seqEither ψ = fromEither . bimap (fmap Left . ψ) (fmap Right)
 
 -- | Converts an `Algebra` to one that annotates the tree with the result for
 --   each node.
@@ -325,12 +345,13 @@ attributeAlgebra ::
   (Steppable (->) t (EnvT a f), Functor f) =>
   Algebra (->) f a ->
   Algebra (->) f t
-attributeAlgebra φ ft = embed $ EnvT (φ (fmap (fst . runEnvT . project) ft)) ft
+attributeAlgebra φ ft =
+  embed $ EnvT (φ (fmap (fst . toStrict . runEnvT . project) ft)) ft
 
 -- | Converts a `Coalgebra` to one that annotates the tree with the seed that
 --   generated each node.
 attributeCoalgebra :: Coalgebra (->) f a -> Coalgebra (->) (EnvT a f) a
-attributeCoalgebra ψ = uncurry EnvT . (id &&& ψ)
+attributeCoalgebra ψ = uncurry EnvT . second ψ . diagonal
 
 -- | This is just a more obvious name for composing `lowerEnvT` with your
 --   algebra directly.
@@ -342,7 +363,7 @@ ignoringAttribute φ = φ . lowerEnvT
 --   pass to `Yaya.Zoo.apo`) with @η . project@, but the desired `Algebra` is
 --   more likely to be @cata unFree . η@ than @embed . η@. See yaya-streams for
 --   some examples of this.
-unFree :: Steppable (->) t f => Algebra (->) (FreeF f t) t
+unFree :: (Steppable (->) t f) => Algebra (->) (FreeF f t) t
 unFree = \case
   Pure t -> t
   Free ft -> embed ft
@@ -396,7 +417,7 @@ type AlgebraPrism f a = Prism' (f a) a
 
 type CoalgebraPrism f a = Prism' a (f a)
 
-steppableIso :: Steppable (->) t f => BialgebraIso f t
+steppableIso :: (Steppable (->) t f) => BialgebraIso f t
 steppableIso = iso embed project
 
 birecursiveIso ::
@@ -412,4 +433,4 @@ recursivePrism ::
 recursivePrism alg =
   prism
     (ana (review alg))
-    (\t -> mapLeft (const t) $ cata (matching alg <=< sequenceA) t)
+    (\t -> first (const t) $ cata (matching alg <=< sequenceA) t)
