@@ -15,7 +15,7 @@ import "hedgehog" Hedgehog (Gen, Size)
 import qualified "hedgehog" Hedgehog.Gen as Gen
 import qualified "hedgehog" Hedgehog.Range as Range
 import "yaya" Yaya.Fold (Mu, Nu, Steppable)
-import "yaya" Yaya.Fold.Native (Fix)
+import "yaya" Yaya.Fold.Native (Cofix, Fix)
 import "this" Yaya.Hedgehog.Fold (embeddableOfHeight)
 
 data Expr a
@@ -47,3 +47,6 @@ genNuExpr = expression
 
 genFixExpr :: Size -> Gen (Fix Expr)
 genFixExpr = expression
+
+genCofixExpr :: Size -> Gen (Cofix Expr)
+genCofixExpr = expression

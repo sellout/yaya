@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Common pattern functors (and instances for them).
@@ -13,22 +14,29 @@ module Yaya.Pattern
   )
 where
 
+import Text.Show.Deriving (deriveShow1, deriveShow2)
 import "base" Control.Applicative (Applicative (..))
 import "base" Control.Monad (Monad (..))
 import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Eq (Eq)
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
 import "base" Data.Functor (Functor)
+import "base" Data.Ord (Ord)
 import "base" Data.Traversable (Traversable)
+import "base" Text.Show (Show)
 import "comonad" Control.Comonad (Comonad (..))
--- explicitly omitted import list for `strict` modules
+-- explicitly omitted import list for @strict@ modules
 import "strict" Data.Strict.Either
 import "strict" Data.Strict.Maybe
 import "strict" Data.Strict.Tuple
 
 -- | Isomorphic to 'Maybe (a, b)', it’s also the pattern functor for lists.
 data XNor a b = Neither | Both ~a b
-  deriving (Functor, Foldable, Traversable)
+  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
+
+deriveShow1 ''XNor
+deriveShow2 ''XNor
 
 instance Bifunctor XNor where
   bimap f g = \case
@@ -38,7 +46,10 @@ instance Bifunctor XNor where
 -- | Isomorphic to `(a, Maybe b)`, it’s also the pattern functor for non-empty
 --   lists.
 data AndMaybe a b = Only a | Indeed ~a b
-  deriving (Functor, Foldable, Traversable)
+  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
+
+deriveShow1 ''AndMaybe
+deriveShow2 ''AndMaybe
 
 instance Bifunctor AndMaybe where
   bimap f g = \case

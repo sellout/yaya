@@ -1,27 +1,51 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Yaya.Hedgehog.Fold where
 
 import "base" Control.Category (Category (..))
 import "base" Data.Bifunctor (Bifunctor (..))
 import "base" Data.Eq (Eq)
+import "base" Data.Function (($))
 import "base" Data.Functor (Functor (..))
 import "base" Data.Proxy (Proxy (..))
+import qualified "base" Data.Tuple as Tuple
 import "base" Data.Void (Void, absurd)
 import "base" Numeric.Natural (Natural)
 import "base" Text.Show (Show)
-import "hedgehog" Hedgehog (Gen, MonadTest, Size, (===))
-import "yaya" Yaya.Fold (Algebra, Corecursive (..), Projectable (..), Recursive (..), Steppable (..))
+import "hedgehog" Hedgehog
+  ( Gen,
+    MonadTest,
+    Property,
+    Size,
+    property,
+    withTests,
+    (===),
+  )
+import "yaya" Yaya.Fold
+  ( Algebra,
+    Corecursive (..),
+    Projectable (..),
+    Recursive (..),
+    Steppable (..),
+  )
 import "yaya" Yaya.Fold.Common (diagonal)
 import "yaya" Yaya.Fold.Native ()
-import "yaya" Yaya.Pattern (Maybe, maybe, uncurry)
+import "yaya" Yaya.Pattern (Maybe, Pair ((:!:)), fst, maybe, uncurry)
+import "this" Yaya.Hedgehog (evalNonterminating)
 import "base" Prelude (fromIntegral)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
 law_cataCancel ::
-  (Eq a, Show a, Steppable (->) t f, Recursive (->) t f, Functor f, MonadTest m) =>
+  ( Eq a,
+    Show a,
+    Steppable (->) t f,
+    Recursive (->) t f,
+    Functor f,
+    MonadTest m
+  ) =>
   Algebra (->) f a ->
   f t ->
   m ()
@@ -29,13 +53,17 @@ law_cataCancel φ =
   uncurry (===) . bimap (cata φ . embed) (φ . fmap (cata φ)) . diagonal
 
 law_cataRefl ::
-  (Eq t, Show t, Steppable (->) t f, Recursive (->) t f, MonadTest m) => t -> m ()
+  (Eq t, Show t, Steppable (->) t f, Recursive (->) t f, MonadTest m) =>
+  t ->
+  m ()
 law_cataRefl = uncurry (===) . first (cata embed) . diagonal
 
 -- | NB: Since this requires both a `Corecursive` and `Eq` instance on the same
 --       type, it _likely_ requires instances from yaya-unsafe.
 law_anaRefl ::
-  (Eq t, Show t, Steppable (->) t f, Corecursive (->) t f, MonadTest m) => t -> m ()
+  (Eq t, Show t, Steppable (->) t f, Corecursive (->) t f, MonadTest m) =>
+  t ->
+  m ()
 law_anaRefl = uncurry (===) . first (ana project) . diagonal
 
 -- law_cataFusion ::
@@ -51,7 +79,13 @@ law_anaRefl = uncurry (===) . first (ana project) . diagonal
 
 law_cataCompose ::
   forall t f u g m b.
-  (Eq b, Show b, Recursive (->) t f, Steppable (->) u g, Recursive (->) u g, MonadTest m) =>
+  ( Eq b,
+    Show b,
+    Recursive (->) t f,
+    Steppable (->) u g,
+    Recursive (->) u g,
+    MonadTest m
+  ) =>
   Proxy u ->
   Algebra (->) g b ->
   (forall a. f a -> g a) ->
@@ -106,3 +140,49 @@ genAlgebra leaf branch =
 -- | Creates a generator for potentially-infinite values.
 genCorecursive :: (Corecursive (->) t f) => (a -> f a) -> Gen a -> Gen t
 genCorecursive = fmap . ana
+
+-- | Show that using a `Recursive` structure corecursively can lead to
+--   non-termination.
+corecursiveIsUnsafe ::
+  forall t a.
+  ( Corecursive (->) (t (Pair a)) (Pair a),
+    Projectable (->) (t (Pair a)) (Pair a),
+    Corecursive (->) (t ((,) a)) ((,) a),
+    Projectable (->) (t ((,) a)) ((,) a),
+    Eq a,
+    Show a
+  ) =>
+  Proxy t ->
+  a ->
+  Property
+corecursiveIsUnsafe Proxy x =
+  withTests 1 . property $ do
+    -- a properly-finite data structure will diverge on infinite unfolding
+    evalNonterminating . fst . project @_ @(t (Pair a)) $ ana (\y -> y :!: y) x
+    -- but using a lazy functor loses this property
+    Tuple.fst (project @_ @(t ((,) a)) $ ana (\y -> (y, y)) x) === x
+
+-- | Show that using a `Corecursive` structure recursively can lead to
+--   non-termination.
+recursiveIsUnsafe ::
+  forall t a.
+  ( Corecursive (->) (t (Pair a)) (Pair a),
+    Projectable (->) (t (Pair a)) (Pair a),
+    Recursive (->) (t (Pair a)) (Pair a),
+    Corecursive (->) (t ((,) a)) ((,) a),
+    Recursive (->) (t ((,) a)) ((,) a),
+    Eq a,
+    Show a
+  ) =>
+  Proxy t ->
+  a ->
+  Property
+recursiveIsUnsafe Proxy x =
+  withTests 1 . property $ do
+    -- We can easily get the first element of a corecursive infinite sequence
+    fst (project $ ana @_ @(t (Pair a)) (\y -> y :!: y) x) === x
+    -- Of course, you can’t fold it.
+    evalNonterminating . cata fst $ ana @_ @(t (Pair a)) (\y -> y :!: y) x
+    -- But again, if you use a lazy functor, you lose that property, and you can
+    -- short-circuit.
+    cata Tuple.fst (ana @_ @(t ((,) a)) (\y -> (y, y)) x) === x

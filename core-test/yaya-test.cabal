@@ -26,11 +26,12 @@ test-suite yaya-test
   main-is:             test.hs
   other-modules:       Test.Fold
                      , Test.Fold.Common
+                     , Test.Fold.Native
                      , Test.Retrofit
   build-depends:       base >= 4.7 && < 5
                      , deriving-compat
                      , hedgehog
-                     , yaya >= 0.3.1
+                     , yaya >= 0.5.0
                      , yaya-hedgehog >= 0.2.0
   default-extensions:  LambdaCase
                      , MultiParamTypeClasses

@@ -37,7 +37,11 @@ import "yaya" Yaya.Pattern (Maybe, Pair, maybe, uncurry)
 --   that can be total – with `ψ :: CoalgebraM (->) m f a`, `ana (Compose . ψ)`
 --   results in something like `Nu (Compose m f)` which is akin to an effectful
 --   stream.
-anaM :: (Monad m, Steppable (->) t f, Traversable f) => CoalgebraM (->) m f a -> a -> m t
+anaM ::
+  (Monad m, Steppable (->) t f, Traversable f) =>
+  CoalgebraM (->) m f a ->
+  a ->
+  m t
 anaM = hyloM (pure . embed)
 
 ganaM ::
@@ -131,7 +135,11 @@ streamGApo flush process accum =
   stream' process (\c f -> maybe (ana flush c) f . accum)
 
 corecursivePrism ::
-  (Steppable (->) t f, Recursive (->) t f, Corecursive (->) t f, Traversable f) =>
+  ( Steppable (->) t f,
+    Recursive (->) t f,
+    Corecursive (->) t f,
+    Traversable f
+  ) =>
   CoalgebraPrism f a ->
   Prism' a t
 corecursivePrism alg = prism (cata (review alg)) (anaM (matching alg))

@@ -1,5 +1,5 @@
 name:                yaya
-version:             0.4.2.3
+version:             0.5.0.0
 synopsis:            Total recursion schemes.
 description:         Recursion schemes allow you to separate recursion from your
                      business logic – making your own operations simpler, more
@@ -38,8 +38,10 @@ library
                      , Yaya.Applied
                      , Yaya.Zoo
                      , Yaya.Experimental.Foldable
+  other-modules:       Yaya.Fold.Native.Internal
   build-depends:       base >= 4.7 && < 5
                      , comonad
+                     , deriving-compat
                      , either
                      , free
                      , kan-extensions
