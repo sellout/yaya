@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Type class instances that use direct recursion in a potentially partial
@@ -18,6 +19,7 @@ import "base" Data.Function (flip)
 import "base" Data.Functor (Functor, (<$>))
 import "base" Data.Functor.Classes (Eq1, Show1)
 import "base" Data.List.NonEmpty (NonEmpty)
+import "base" GHC.Exts (IsList (Item, fromList, fromListN, toList))
 import "base" Text.Show (Show (..))
 import "comonad" Control.Comonad.Env (EnvT)
 import "free" Control.Comonad.Cofree (Cofree)
@@ -35,6 +37,7 @@ import "yaya" Yaya.Fold
   )
 import "yaya" Yaya.Fold.Native (Cofix, Fix)
 import "yaya" Yaya.Pattern (AndMaybe, XNor)
+import "this" Yaya.Unsafe.Applied (unsafeFromList)
 import qualified "this" Yaya.Unsafe.Fold as Unsafe
 
 instance (Functor f) => Corecursive (->) (Fix f) f where
@@ -85,3 +88,25 @@ seqFreeT k =
         Pure a -> free . Pure <$> a
         Free ft -> free . Free <$> k ft
     )
+
+-- | `fromList` in this instance is unsafe, but `fromListN` is safe, because we
+--   have a finite length to fold.
+--
+--   This means that most uses of @OverloadedLists@ should be fine, but not the
+--   range (`..`) syntax.
+instance IsList (Fix (XNor a)) where
+  type Item (Fix (XNor a)) = a
+  fromList = unsafeFromList
+  fromListN = fromListN
+  toList = toList
+
+-- | `fromList` in this instance is unsafe, but `fromListN` is safe, because we
+--   have a finite length to fold.
+--
+--   This means that most uses of @OverloadedLists@ should be fine, but not the
+--   range (`..`) syntax.
+instance IsList (Mu (XNor a)) where
+  type Item (Mu (XNor a)) = a
+  fromList = unsafeFromList
+  fromListN = fromListN
+  toList = toList

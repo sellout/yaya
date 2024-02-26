@@ -1,5 +1,5 @@
 name:                yaya-unsafe
-version:             0.3.0.0
+version:             0.3.1.0
 synopsis:            Non-total extensions to the Yaya recursion scheme library.
 description:         Yaya is designed as a _total_ library. However, it is often
                      expedient to use partial operations in some cases, and this
@@ -32,7 +32,8 @@ tested-with:         GHC == 8.6.1
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Yaya.Unsafe.Fold
+  exposed-modules:     Yaya.Unsafe.Applied
+                     , Yaya.Unsafe.Fold
                      , Yaya.Unsafe.Fold.Instances
                      , Yaya.Unsafe.Zoo
   build-depends:       base >= 4.7 && < 5
@@ -40,7 +41,7 @@ library
                      , comonad
                      , free
                      , lens
-                     , yaya >= 0.5.0
+                     , yaya >= 0.5.1
   default-extensions:  ConstraintKinds
                      , DeriveTraversable
                      , FlexibleContexts

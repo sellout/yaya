@@ -96,6 +96,11 @@ le = \case
   Day (Just a) (Just b) f -> f a b
   Day (Just _) Nothing _ -> False
 
+replaceNeither :: XNor a b -> XNor a b -> XNor a b
+replaceNeither replacement = \case
+  Neither -> replacement
+  next -> next
+
 takeAnother :: Day Maybe ((,) a) b -> XNor a b
 takeAnother = \case
   Day Nothing _ _ -> Neither
@@ -143,5 +148,5 @@ binarySequence f (a, b) = (a, (b, f a b))
 ternarySequence :: (a -> b -> c -> d) -> (a, b, c) -> (a, (b, c, d))
 ternarySequence f (a, b, c) = (a, (b, c, f a b c))
 
-lucasSequence' :: (Integral i) => i -> i -> (i, i) -> (i, (i, i))
+lucasSequence' :: (Num n) => n -> n -> (n, n) -> (n, (n, n))
 lucasSequence' p q = binarySequence (\n2 n1 -> p * n1 - q * n2)
