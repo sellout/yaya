@@ -227,7 +227,6 @@
             "ghc945"
             "ghc946"
             "ghc947"
-            "ghc948"
             "ghc962"
             "ghc963"
           ];
@@ -246,7 +245,7 @@
         {default = self.packages.${system}."${self.lib.defaultCompiler}_all";}
         // concat.lib.mkPackages
         pkgs
-        (self.lib.testedGhcVersions system)
+        (self.lib.supportedGhcVersions system)
         cabalPackages;
 
       projectConfigurations =
@@ -256,7 +255,7 @@
         {default = self.devShells.${system}.${self.lib.defaultCompiler};}
         // concat.lib.mkDevShells
         pkgs
-        (self.lib.testedGhcVersions system)
+        (self.lib.supportedGhcVersions system)
         cabalPackages
         (hpkgs:
           [self.projectConfigurations.${system}.packages.path]

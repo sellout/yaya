@@ -1,4 +1,11 @@
-{config, flaky, lib, pkgs, self, ...}: {
+{
+  config,
+  flaky,
+  lib,
+  pkgs,
+  self,
+  ...
+}: {
   project = {
     name = "yaya";
     summary = "Yet another … yet another recursion scheme library for Haskell";
@@ -75,32 +82,56 @@
   ## CI
   services.garnix = {
     enable = true;
-    builds.exclude = [
-      # TODO: Remove once garnix-io/garnix#285 is fixed.
-      "homeConfigurations.x86_64-darwin-${config.project.name}-example"
-    ];
+    builds = {
+      exclude = [
+        # TODO: Remove once garnix-io/garnix#285 is fixed.
+        "homeConfigurations.x86_64-darwin-${config.project.name}-example"
+      ];
+      include = lib.mkForce (
+        [
+          "homeConfigurations.*"
+          "nixosConfigurations.*"
+        ]
+        ++ lib.concatLists (
+          flaky.lib.garnixChecks
+          (
+            sys:
+              [
+                "checks.${sys}.*"
+                "packages.${sys}.default"
+              ]
+              ++ lib.concatMap (ghc: [
+                "devShells.${sys}.${ghc}"
+                "packages.${sys}.${ghc}_all"
+              ])
+              (self.lib.testedGhcVersions sys)
+          )
+        )
+      );
+    };
   };
   ## FIXME: Shouldn’t need `mkForce` here (or to duplicate the base contexts).
   ##        Need to improve module merging.
   services.github.settings.branches.main.protection.required_status_checks.contexts =
     lib.mkForce
-      (map (ghc: "CI / build (${ghc}) (pull_request)") self.lib.nonNixTestedGhcVersions
-       ++ lib.concatLists (lib.concatMap flaky.lib.garnixChecks [
-          (sys: lib.concatMap (ghc: [
+    (map (ghc: "CI / build (${ghc}) (pull_request)") self.lib.nonNixTestedGhcVersions
+      ++ lib.concatLists (lib.concatMap flaky.lib.garnixChecks [
+        (sys:
+          lib.concatMap (ghc: [
             "devShell ${ghc} [${sys}]"
             "package ${ghc}_all [${sys}]"
           ])
-            (self.lib.testedGhcVersions sys))
-          (sys: [
-            "homeConfig ${sys}-${config.project.name}-example"
-            "package default [${sys}]"
-            ## FIXME: These are duplicated from the base config
-            "check formatter [${sys}]"
-            "check project-manager-files [${sys}]"
-            "check vale [${sys}]"
-            "devShell default [${sys}]"
-          ])
-       ]));
+          (self.lib.testedGhcVersions sys))
+        (sys: [
+          "homeConfig ${sys}-${config.project.name}-example"
+          "package default [${sys}]"
+          ## FIXME: These are duplicated from the base config
+          "check formatter [${sys}]"
+          "check project-manager-files [${sys}]"
+          "check vale [${sys}]"
+          "devShell default [${sys}]"
+        ])
+      ]));
 
   ## publishing
   services.flakehub.enable = true;
