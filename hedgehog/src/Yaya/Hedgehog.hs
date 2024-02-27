@@ -1,16 +1,16 @@
-{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE Unsafe #-}
 
 module Yaya.Hedgehog where
 
-import "base" Control.Category (Category ((.)))
-import "base" Control.Monad ((<=<))
-import "base" Control.Monad.IO.Class (MonadIO)
-import "base" Data.Function (const)
-import "base" Data.Maybe (maybe)
+import safe "base" Control.Category (Category ((.)))
+import safe "base" Control.Monad ((<=<))
+import safe "base" Control.Monad.IO.Class (MonadIO)
+import safe "base" Data.Function (const)
+import safe "base" Data.Maybe (maybe)
 import "base" GHC.IO (evaluate)
-import "base" GHC.Stack (HasCallStack)
-import "base" System.Timeout (timeout)
-import "base" Text.Show (Show)
+import safe "base" GHC.Stack (HasCallStack)
+import safe "base" System.Timeout (timeout)
+import safe "base" Text.Show (Show)
 import "hedgehog" Hedgehog
 
 -- | Returns success if the expression doesn’t terminate, failure otherwise.

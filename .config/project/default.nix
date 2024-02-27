@@ -96,6 +96,8 @@
             "package default [${sys}]"
             ## FIXME: These are duplicated from the base config
             "check formatter [${sys}]"
+            "check project-manager-files [${sys}]"
+            "check vale [${sys}]"
             "devShell default [${sys}]"
           ])
        ]));

@@ -1,5 +1,6 @@
 program-options
-  ghc-options: -Werror
+  ghc-options:
+    -Werror
 
 tests: True
 

@@ -1,3 +1,5 @@
+{-# LANGUAGE Safe #-}
+
 -- | Definitions and instances that use direct recursion, which (because of
 --   laziness) can lead to non-termination.
 module Yaya.Unsafe.Fold where

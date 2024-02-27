@@ -1,3 +1,5 @@
+{-# LANGUAGE Safe #-}
+
 -- | Common algebras that are useful when folding.
 module Yaya.Fold.Common where
 
@@ -27,7 +29,7 @@ import "this" Yaya.Pattern
     either,
     maybe,
   )
-import Prelude (Integer, Integral, Num (..))
+import Prelude (Integer, Num (..))
 
 -- | Converts the free monoid (a list) into some other `Monoid`.
 lowerMonoid :: (Monoid m) => (a -> m) -> XNor a m -> m

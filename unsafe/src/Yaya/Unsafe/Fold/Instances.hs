@@ -1,3 +1,13 @@
+{-# LANGUAGE CPP #-}
+
+-- __NB__: base-4.17 moves `IsList` to its own module, which avoids the unsafety
+--         of importing "GHC.Exts". With prior versions of base, we at least
+--         mark the module @Trustworthy@.
+#if MIN_VERSION_base(4, 17, 0)
+{-# LANGUAGE Safe #-}
+#else
+{-# LANGUAGE Trustworthy #-}
+#endif
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -12,19 +22,25 @@
 --   to terminate.
 module Yaya.Unsafe.Fold.Instances where
 
-import "base" Control.Category (Category (..))
-import "base" Data.Eq (Eq (..))
-import "base" Data.Foldable (Foldable)
-import "base" Data.Function (flip)
-import "base" Data.Functor (Functor, (<$>))
-import "base" Data.Functor.Classes (Eq1, Show1)
-import "base" Data.List.NonEmpty (NonEmpty)
+import safe "base" Control.Category (Category (..))
+import safe "base" Data.Eq (Eq (..))
+import safe "base" Data.Foldable (Foldable)
+import safe "base" Data.Function (flip)
+import safe "base" Data.Functor (Functor, (<$>))
+import safe "base" Data.Functor.Classes (Eq1, Show1)
+import safe "base" Data.List.NonEmpty (NonEmpty)
+
+-- See comment on @{-# LANGUAGE Safe #-}@ above.
+#if MIN_VERSION_base(4, 17, 0)
+import "base" GHC.IsList (IsList (Item, fromList, fromListN, toList))
+#else
 import "base" GHC.Exts (IsList (Item, fromList, fromListN, toList))
-import "base" Text.Show (Show (..))
-import "comonad" Control.Comonad.Env (EnvT)
-import "free" Control.Comonad.Cofree (Cofree)
-import "free" Control.Monad.Trans.Free (Free, FreeF (..), free)
-import "yaya" Yaya.Fold
+#endif
+import safe "base" Text.Show (Show (..))
+import safe "comonad" Control.Comonad.Env (EnvT)
+import safe "free" Control.Comonad.Cofree (Cofree)
+import safe "free" Control.Monad.Trans.Free (Free, FreeF (..), free)
+import safe "yaya" Yaya.Fold
   ( Corecursive (..),
     DistributiveLaw,
     Mu,
@@ -35,10 +51,10 @@ import "yaya" Yaya.Fold
     recursiveEq,
     recursiveShowsPrec,
   )
-import "yaya" Yaya.Fold.Native (Cofix, Fix)
-import "yaya" Yaya.Pattern (AndMaybe, XNor)
-import "this" Yaya.Unsafe.Applied (unsafeFromList)
-import qualified "this" Yaya.Unsafe.Fold as Unsafe
+import safe "yaya" Yaya.Fold.Native (Cofix, Fix)
+import safe "yaya" Yaya.Pattern (AndMaybe, XNor)
+import safe "this" Yaya.Unsafe.Applied (unsafeFromList)
+import safe qualified "this" Yaya.Unsafe.Fold as Unsafe
 
 instance (Functor f) => Corecursive (->) (Fix f) f where
   ana = Unsafe.hylo embed

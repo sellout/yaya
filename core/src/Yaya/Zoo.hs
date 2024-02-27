@@ -1,3 +1,5 @@
+{-# LANGUAGE Safe #-}
+
 -- | Contains all the commonly-named folds that aren’t core to the library. In
 --   general, this can be seen as a mapping from names you may have heard or
 --   read in a paper to how Yaya expects you to achieve the same end. Of course,

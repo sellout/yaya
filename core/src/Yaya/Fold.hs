@@ -1,8 +1,9 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE Safe #-}
 
 module Yaya.Fold where
 
-import "base" Control.Applicative (Applicative (..), liftA2)
+import "base" Control.Applicative (Applicative (..))
 import "base" Control.Category (Category (..))
 import "base" Control.Monad (Monad, join, (<=<), (=<<))
 import "base" Data.Bifunctor (Bifunctor (..))
@@ -206,8 +207,8 @@ zipAlgebraMs f g = bisequence . bimap (f . fmap fst) (g . fmap snd) . diagonal
 lowerDay :: (Projectable (->) t g) => Algebra (->) (Day f g) a -> Algebra (->) f (t -> a)
 lowerDay φ fta t = φ (Day fta (project t) ($))
 
--- | By analogy with `liftA2` (which also relies on `Day`, at least
---   conceptually).
+-- | By analogy with `Control.Applicative.liftA2` (which also relies on `Day`,
+--   at least conceptually).
 cata2 :: (Recursive (->) t f, Projectable (->) u g) => Algebra (->) (Day f g) a -> t -> u -> a
 cata2 = cata . lowerDay
 

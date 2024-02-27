@@ -1,44 +1,149 @@
-name:                yaya-unsafe-test
-version:             0.2.0.0
-synopsis:            Test suites for `yaya-unsafe`.
-description:         This package should not be depended on by anything.
-homepage:            https://github.com/sellout/yaya#readme
-author:              Greg Pfeil
-maintainer:          greg@technomadic.org
-copyright:           2017 Greg Pfeil
-license:             AGPL-3
-license-file:        LICENSE
-category:            Recursion
-build-type:          Simple
-cabal-version:       >=1.10
-tested-with:         GHC == 8.6.1
-                   , GHC == 8.8.1, GHC == 8.8.4
-                   , GHC == 8.10.1
-                   , GHC == 9.0.1
-                   , GHC == 9.2.1
-                   , GHC == 9.4.1, GHC == 9.4.8
-                   , GHC == 9.6.1
-                   , GHC == 9.8.1
+cabal-version:  3.0
 
-test-suite yaya-unsafe-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             test.hs
-  other-modules:       Test.Fold
-  build-depends:       base >= 4.7 && < 5
-                     , hedgehog
-                     , yaya >= 0.5.0
-                     , yaya-hedgehog >= 0.2.1
-                     , yaya-unsafe >= 0.3.0
-  default-extensions:  FlexibleContexts
-                     , PackageImports
-                     , StrictData
-                     , NoImplicitPrelude
-  -- NB: Need `-fno-omit-yields` so that `timeout` can interrupt native
-  --     recursion in non-termination tests.
-  ghc-options:         -fno-omit-yields -threaded -rtsopts -with-rtsopts=-N -Wall
-  default-language:    Haskell2010
+name:        yaya-unsafe-test
+version:     0.2.0.1
+synopsis:    Test suites for `yaya-unsafe`.
+description: This package should not be depended on by anything.
+author:      Greg Pfeil <greg@technomadic.org>
+maintainer:  Greg Pfeil <greg@technomadic.org>
+copyright:   2017 Greg Pfeil
+homepage:    https://github.com/sellout/yaya#readme
+bug-reports: https://github.com/sellout/yaya/issues
+category:    Recursion
+build-type:  Simple
+license:     AGPL-3.0-or-later
+license-files:
+  LICENSE
+tested-with:
+  GHC == {
+--  GHCup   Nixpkgs
+    8.6.1,
+    8.8.1,  8.8.4,
+    8.10.1,
+    9.0.1,
+    9.2.1,
+    9.4.1,  9.4.8,
+    9.6.1,
+            9.8.1
+  }
 
 source-repository head
-  type:     git
+  type: git
   location: https://github.com/sellout/yaya
+
+-- This mimics the GHC2021 extension
+-- (https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/control.html?highlight=doandifthenelse#extension-GHC2021),
+-- but supporting compilers back to GHC 7.10. If the oldest supported compiler
+-- is GHC 9.2, then this stanza can be removed and `import: GHC2021` can be
+-- replaced by `default-language: GHC2021`.
+common GHC2021
+  default-language: Haskell2010
+  default-extensions:
+    BangPatterns
+    BinaryLiterals
+    ConstraintKinds
+    DeriveDataTypeable
+    DeriveGeneric
+    -- DeriveLift -- uncomment if the oldest supported version is GHC 8.10.1+
+    DeriveTraversable
+    DerivingStrategies
+    DoAndIfThenElse
+    EmptyCase
+    ExistentialQuantification
+    FlexibleContexts
+    FlexibleInstances
+    GADTSyntax
+    GeneralizedNewtypeDeriving
+    HexFloatLiterals
+    -- ImportQualifiedPost -- uncomment if the oldest supported version is GHC 8.10.1+
+    InstanceSigs
+    LambdaCase
+    MagicHash
+    MonadComprehensions
+    MonomorphismRestriction
+    MultiParamTypeClasses
+    NamedFieldPuns
+    NamedWildCards
+    NumericUnderscores
+    PolyKinds
+    PostfixOperators
+    RankNTypes
+    ScopedTypeVariables
+    StandaloneDeriving
+    -- StandaloneKindSignatures -- uncomment if the oldest supported version is GHC 8.10.1+
+    TupleSections
+    TypeApplications
+    TypeOperators
+    UnicodeSyntax
+    NoExplicitNamespaces
+
+common defaults
+  import: GHC2021
+  build-depends:
+    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
+  ghc-options:
+    -Wall
+    -Wtrustworthy-safe
+    -fpackage-trust
+  if impl(ghc >= 8.10.1)
+    ghc-options:
+      -Wmissing-safe-haskell-mode
+  default-extensions:
+    DefaultSignatures
+    ExplicitNamespaces
+    FunctionalDependencies
+    LiberalTypeSynonyms
+    -- replace with `LexicalNegation` if the oldest supported version is GHC 9.0.1+
+    NegativeLiterals
+    PackageImports
+    ParallelListComp
+    -- QualifiedDo - uncomment if the oldest supported version is GHC 9.0.1+
+    RecursiveDo
+    -- RequiredTypeArguments - uncomment if the oldest supported version is GHC 9.10.1+
+    StrictData
+    TemplateHaskellQuotes
+    TransformListComp
+    NoGeneralizedNewtypeDeriving
+    NoImplicitPrelude
+    NoMonomorphismRestriction
+    NoPatternGuards
+    NoTypeApplications
+
+test-suite yaya-unsafe-test
+  import: defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs:
+    test
+  main-is: test.hs
+  other-modules:
+    Test.Fold
+  build-depends:
+    hedgehog,
+    yaya >= 0.5.0,
+    yaya-hedgehog >= 0.2.1,
+    yaya-unsafe >= 0.3.0,
+  ghc-options:
+    -- NB: Need `-fno-omit-yields` so that `timeout` can interrupt native
+    --     recursion in non-termination tests.
+    -fno-omit-yields
+    -rtsopts
+    -threaded
+    -trust adjunctions
+    -trust array
+    -trust base
+    -trust base-orphans
+    -trust binary
+    -trust bytestring
+    -trust containers
+    -trust distributive
+    -trust exceptions
+    -trust foldable1-classes-compat
+    -trust ghc-prim
+    -trust lens
+    -trust profunctors
+    -trust semigroupoids
+    -trust stm
+    -trust template-haskell
+    -trust text
+    -trust transformers-compat
+    -with-rtsopts=-N

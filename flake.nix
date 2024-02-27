@@ -156,7 +156,9 @@
                 home.packages = [
                   (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
                     hpkgs.${pname}
+                    hpkgs."${pname}-containers"
                     hpkgs."${pname}-hedgehog"
+                    hpkgs."${pname}-quickcheck"
                     hpkgs."${pname}-unsafe"
                   ]))
                 ];

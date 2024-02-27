@@ -3,6 +3,6 @@
   "name":"yaya",
   "repo":"sellout/yaya",
   "summary":"Yet another … yet another recursion scheme library for Haskell",
-  "version":"0.1.0"},
+  "version":"0.1.0.0"},
   "type":{"name":"haskell"}
   }

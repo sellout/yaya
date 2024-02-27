@@ -1,3 +1,5 @@
+{-# LANGUAGE Safe #-}
+
 -- | This shows how `Data.Foldable.Foldable` is basically `Recursive`
 --   specialized to lists. The true operation of `Data.Foldable.Foldable` is
 --  `Data.Foldable.toList`.
@@ -9,7 +11,6 @@ module Yaya.Experimental.Foldable where
 import "base" Control.Category (Category (..))
 import "base" Data.Function (flip)
 import "base" Data.Monoid (Monoid)
-import "base" Data.String (String)
 import "free" Control.Monad.Trans.Free (Free, iter)
 import "this" Yaya.Fold (Recursive (..))
 import "this" Yaya.Fold.Common (lowerMonoid)
