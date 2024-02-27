@@ -41,7 +41,6 @@ where
 
 import safe "base" Control.Applicative (Applicative (..))
 import safe "base" Control.Category (Category (..))
-import safe "base" Control.Exception (Exception (..), throw)
 import safe "base" Control.Monad ((<=<))
 import safe "base" Control.Monad.Fail (MonadFail (fail))
 import safe "base" Data.Bifunctor (Bifunctor (..))
@@ -141,7 +140,8 @@ conP' = ConP
 --   In future, we should check the strictness of the recursive parameter and generate only the appropriate one (unless overridden by a rule).
 extractPatternFunctor :: PatternFunctorRules -> Name -> Q [Dec]
 extractPatternFunctor rules =
-  either throw id . makePrimForDI rules <=< TH.Abs.reifyDatatype
+  either (fail . displayUnsupportedDatatype) id . makePrimForDI rules
+    <=< TH.Abs.reifyDatatype
 
 -- | Rules of renaming data names
 data PatternFunctorRules = PatternFunctorRules
@@ -172,15 +172,20 @@ toFName = mkName . f . nameBase
 data UnsupportedDatatype
   = UnsupportedInstTypes (NonEmpty Type)
   | UnsupportedVariant TH.Abs.DatatypeVariant
+  | UnsupportedGADT [TyVarBndrUnit] Cxt
+  | NonBinaryInfixConstructor [(Bang, Type)]
+  deriving (Show)
 
-instance Show UnsupportedDatatype where
-  show = \case
+displayUnsupportedDatatype :: UnsupportedDatatype -> String
+displayUnsupportedDatatype =
+  ("extractPatternFunctor: " <>) . \case
     UnsupportedInstTypes tys ->
-      "extractPatternFunctor: Couldn't process the following types " <> show tys
-    UnsupportedVariant _variant ->
-      "extractPatternFunctor: Data families are currently not supported."
-
-instance Exception UnsupportedDatatype
+      "Couldn't process the following types " <> show tys
+    UnsupportedVariant _variant -> "Data families are currently not supported."
+    UnsupportedGADT _vars _context -> "GADTs are not currently supported."
+    NonBinaryInfixConstructor bts ->
+      "internal error: wrong number of BangTypes for InfixConstructor; expected 2, but got "
+        <> show (length bts)
 
 makePrimForDI ::
   PatternFunctorRules ->
@@ -213,8 +218,6 @@ makePrimForDI
       toTyVarBndr (SigT (VarT n) k) = pure $ kindedTV n k
       toTyVarBndr _ = Nothing
 
--- TH 2.12.O means GHC 8.2.1, otherwise, we work back to GHC 8.0.1
-#if MIN_VERSION_template_haskell(2, 12, 0)
 deriveds :: [DerivClause]
 deriveds =
   pure $
@@ -224,14 +227,6 @@ deriveds =
         ConT foldableTypeName,
         ConT traversableTypeName
       ]
-#else
-deriveds :: [TH.Type]
-deriveds =
-  [ ConT functorTypeName,
-    ConT foldableTypeName,
-    ConT traversableTypeName
-  ]
-#endif
 
 -- | A restricted version of `TH.Abs.DatatypeVariant` that excludes data family
 --   declarations.
@@ -296,7 +291,7 @@ makePrimForDI' rules safeVariant tyName vars cons = do
   -- ekmett/recursion-schemes#33
   cons' <- traverse (conTypeTraversal TH.Abs.resolveTypeSynonyms) cons
   consF <-
-    either fail pure $
+    either (fail . displayUnsupportedDatatype) pure $
       traverse
         ( toCon
             . conNameMap (patternCon rules)
@@ -419,7 +414,7 @@ substType a b = go
     -- Rest are unchanged
     go x = x
 
-toCon :: TH.Abs.ConstructorInfo -> Either String Con
+toCon :: TH.Abs.ConstructorInfo -> Either UnsupportedDatatype Con
 toCon
   ( TH.Abs.ConstructorInfo
       { TH.Abs.constructorName = name,
@@ -439,8 +434,8 @@ toCon
                 pure . RecC name $ zip3 fnames bangs ftys
               TH.Abs.InfixConstructor -> case zip bangs ftys of
                 [bt1, bt2] -> pure $ InfixC bt1 name bt2
-                _ -> Left "wrong number of BangTypes for InfixConstructor"
-      else Left "GADTs are not currently supported."
+                bts -> Left $ NonBinaryInfixConstructor bts
+      else Left $ UnsupportedGADT vars ctxt
     where
       toBang (TH.Abs.FieldStrictness upkd strct) =
         Bang
