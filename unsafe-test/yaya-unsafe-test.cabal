@@ -137,7 +137,6 @@ test-suite yaya-unsafe-test
     -trust containers
     -trust distributive
     -trust exceptions
-    -trust foldable1-classes-compat
     -trust ghc-prim
     -trust lens
     -trust profunctors
@@ -147,3 +146,6 @@ test-suite yaya-unsafe-test
     -trust text
     -trust transformers-compat
     -with-rtsopts=-N
+  if impl(ghc < 9.6)
+    ghc-options:
+      -trust foldable1-classes-compat
