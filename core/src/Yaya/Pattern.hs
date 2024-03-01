@@ -1,3 +1,4 @@
+{-# LANGUAGE Safe #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Common pattern functors (and instances for them).

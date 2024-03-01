@@ -1,18 +1,17 @@
--- These are both needed by `extractPatternFunctor`.
-{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE Unsafe #-}
 
 -- | The point of this module is that it should compile _without_ importing any
 --   other Yaya modules.
 module Test.Retrofit where
 
-import "base" Data.Bool (Bool)
-import "base" Data.Eq (Eq)
-import "base" Data.Int (Int)
-import "base" System.IO (IO)
-import "base" Text.Show (Show)
-import "hedgehog" Hedgehog (checkParallel, discover)
-import "yaya" Yaya.Retrofit (defaultRules, extractPatternFunctor)
+import safe "base" Data.Bool (Bool)
+import safe "base" Data.Eq (Eq)
+import safe "base" Data.Int (Int)
+import safe "base" System.IO (IO)
+import safe "base" Text.Show (Show)
+import safe "hedgehog" Hedgehog (checkParallel, discover)
+import safe "yaya" Yaya.Retrofit (defaultRules, extractPatternFunctor)
 
 data DExpr
   = Lit Int

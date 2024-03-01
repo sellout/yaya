@@ -2,7 +2,7 @@
 
 [![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2Fyaya)](https://garnix.io)
 [![Packaging status](https://repology.org/badge/tiny-repos/haskell:yaya.svg)](https://repology.org/project/haskell:yaya/versions)
-[![latest packaged version(s)](https://repology.org/badge/latest-versions/haskell:yaya.svg)](https://repology.org/project/haskell:yaya/versions)
+[![latest packaged versions](https://repology.org/badge/latest-versions/haskell:yaya.svg)](https://repology.org/project/haskell:yaya/versions)
 
 Yet another … yet another recursion scheme library for Haskell
 
@@ -33,7 +33,7 @@ To mitigate some of those issues for versioning, we assume the following usage:
 
 - modules should be imported using `PackageImports`, so that adding modules is a _minor_ change;
 - modules should be imported qualified, so that adding definitions is a _minor_ change;
-- adding instances can't be mitigated in the same way, and it's not uncommon for downstream libraries to add orphans instances when they're omitted from upstream libraries. However, since these conflicts can only happen via direct dependencies, and represent an explicit downstream workaround, it's reasonable to expect a quick downstream update to remove or conditionalize the workaround. So, this is considered a _minor major_ change;
+- adding instances can't be mitigated in the same way, and it's not uncommon for downstream libraries to add orphans instances when they're omitted from upstream libraries. However, since these conflicts can only happen via direct dependencies, and represent an explicit downstream workaround, it’s reasonable to expect a quick downstream update to remove or conditionalize the workaround. So, this is considered a _minor major_ change;
 - deprecation is considered a _revision_ change, however it will often be paired with _minor_ changes. `-Werror` can cause this to fail, but published libraries shouldn't be compiled with `-Werror`.
 
 ## building & development

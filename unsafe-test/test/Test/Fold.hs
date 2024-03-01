@@ -1,22 +1,23 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE Unsafe #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Test.Fold where
 
-import "base" Control.Category (Category (..))
-import "base" Control.Monad ((=<<))
-import "base" Data.Bool (Bool)
-import "base" Data.Function (($))
-import "base" Data.Int (Int)
-import "base" Data.Proxy (Proxy (..))
-import "base" System.IO (IO)
-import "hedgehog" Hedgehog (Property, checkParallel, discover, forAll, property)
-import qualified "hedgehog" Hedgehog.Gen as Gen
-import "yaya" Yaya.Fold (Mu, Nu)
-import "yaya" Yaya.Fold.Common (size)
-import "yaya" Yaya.Fold.Native (Cofix, Fix)
-import "yaya-hedgehog" Yaya.Hedgehog.Expr
+import safe "base" Control.Category (Category (..))
+import safe "base" Control.Monad ((=<<))
+import safe "base" Data.Bool (Bool)
+import safe "base" Data.Function (($))
+import safe "base" Data.Int (Int)
+import safe "base" Data.Proxy (Proxy (..))
+import safe "base" System.IO (IO)
+import safe "hedgehog" Hedgehog (Property, checkParallel, discover, forAll, property)
+import safe qualified "hedgehog" Hedgehog.Gen as Gen
+import safe "yaya" Yaya.Fold (Mu, Nu)
+import safe "yaya" Yaya.Fold.Common (size)
+import safe "yaya" Yaya.Fold.Native (Cofix, Fix)
+import safe "yaya-hedgehog" Yaya.Hedgehog.Expr
   ( Expr,
     genCofixExpr,
     genExpr,
@@ -24,7 +25,7 @@ import "yaya-hedgehog" Yaya.Hedgehog.Expr
     genMuExpr,
     genNuExpr,
   )
-import "yaya-hedgehog" Yaya.Hedgehog.Fold
+import safe "yaya-hedgehog" Yaya.Hedgehog.Fold
   ( corecursiveIsUnsafe,
     law_anaRefl,
     law_cataCancel,
@@ -32,10 +33,10 @@ import "yaya-hedgehog" Yaya.Hedgehog.Fold
     law_cataRefl,
     recursiveIsUnsafe,
   )
-import qualified "yaya-unsafe" Yaya.Unsafe.Fold.Instances ()
+import safe qualified "yaya-unsafe" Yaya.Unsafe.Fold.Instances ()
 
 -- TODO: For some reason HLint is complaining that TemplateHaskell is unused.
-{-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-}
+{-# HLINT ignore "Unused LANGUAGE pragma" #-}
 
 prop_fixAnaRefl :: Property
 prop_fixAnaRefl =

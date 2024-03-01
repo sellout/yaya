@@ -1,3 +1,5 @@
+{-# LANGUAGE Safe #-}
+
 module Yaya.Unsafe.Zoo where
 
 import "base" Control.Applicative (Applicative (..))
@@ -35,7 +37,7 @@ import "yaya" Yaya.Fold.Common (diagonal, fromEither)
 import "yaya" Yaya.Fold.Native (distCofreeT)
 import "yaya" Yaya.Pattern (Either, Maybe (..), Pair (..), XNor (..))
 import qualified "this" Yaya.Unsafe.Fold as Unsafe
-import qualified "this" Yaya.Unsafe.Fold.Instances as Unsafe -- NB: extremely unsafe
+import qualified "this" Yaya.Unsafe.Fold.Instances as Unsafe -- FIXME: extremely unsafe
 
 chrono ::
   (Functor f) =>

@@ -1,14 +1,16 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE Unsafe #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Test.Fold.Common where
 
-import "base" Control.Category (Category (..))
-import "base" Control.Monad ((=<<))
-import "base" Data.Bool (Bool)
-import "base" Data.Functor (Functor (..))
-import "base" Data.Ord (Ord (..))
-import "base" System.IO (IO)
-import "hedgehog" Hedgehog
+import safe "base" Control.Category (Category (..))
+import safe "base" Control.Monad ((=<<))
+import safe "base" Data.Bool (Bool)
+import safe "base" Data.Functor (Functor (..))
+import safe "base" Data.Ord (Ord (..))
+import safe "base" System.IO (IO)
+import safe "hedgehog" Hedgehog
   ( Property,
     assert,
     checkParallel,
@@ -16,15 +18,15 @@ import "hedgehog" Hedgehog
     forAll,
     property,
   )
-import qualified "hedgehog" Hedgehog.Gen as Gen
-import "yaya" Yaya.Fold (Recursive (..), zipAlgebras)
-import "yaya" Yaya.Fold.Common (height, size)
-import "yaya" Yaya.Pattern (uncurry)
-import "yaya-hedgehog" Yaya.Hedgehog.Expr (genMuExpr)
-import "base" Prelude (Integral (..))
+import safe qualified "hedgehog" Hedgehog.Gen as Gen
+import safe "yaya" Yaya.Fold (Recursive (..), zipAlgebras)
+import safe "yaya" Yaya.Fold.Common (height, size)
+import safe "yaya" Yaya.Pattern (uncurry)
+import safe "yaya-hedgehog" Yaya.Hedgehog.Expr (genMuExpr)
+import safe "base" Prelude (Integral (..))
 
 -- TODO: For some reason HLint is complaining that TemplateHaskell is unused.
-{-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-}
+{-# HLINT ignore "Unused LANGUAGE pragma" #-}
 
 prop_heightLtSize :: Property
 prop_heightLtSize =

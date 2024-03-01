@@ -1,22 +1,23 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE Unsafe #-}
 
 module Yaya.Hedgehog.Expr where
 
-import "base" Control.Applicative (Applicative (..))
-import "base" Data.Eq (Eq)
-import "base" Data.Foldable (Foldable)
-import "base" Data.Functor (Functor, (<$>))
-import "base" Data.Int (Int)
-import "base" Data.Traversable (Traversable)
-import "base" Text.Show (Show)
-import "deriving-compat" Data.Eq.Deriving (deriveEq1)
-import "deriving-compat" Text.Show.Deriving (deriveShow1)
-import "hedgehog" Hedgehog (Gen, Size)
-import qualified "hedgehog" Hedgehog.Gen as Gen
-import qualified "hedgehog" Hedgehog.Range as Range
-import "yaya" Yaya.Fold (Mu, Nu, Steppable)
-import "yaya" Yaya.Fold.Native (Cofix, Fix)
-import "this" Yaya.Hedgehog.Fold (embeddableOfHeight)
+import safe "base" Control.Applicative (Applicative (..))
+import safe "base" Data.Eq (Eq)
+import safe "base" Data.Foldable (Foldable)
+import safe "base" Data.Functor (Functor, (<$>))
+import safe "base" Data.Int (Int)
+import safe "base" Data.Traversable (Traversable)
+import safe "base" Text.Show (Show)
+import safe "deriving-compat" Data.Eq.Deriving (deriveEq1)
+import safe "deriving-compat" Text.Show.Deriving (deriveShow1)
+import safe "hedgehog" Hedgehog (Gen, Size)
+import safe qualified "hedgehog" Hedgehog.Gen as Gen
+import safe qualified "hedgehog" Hedgehog.Range as Range
+import safe "yaya" Yaya.Fold (Mu, Nu, Steppable)
+import safe "yaya" Yaya.Fold.Native (Cofix, Fix)
+import safe "this" Yaya.Hedgehog.Fold (embeddableOfHeight)
 
 data Expr a
   = Lit Int

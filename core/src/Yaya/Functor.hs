@@ -1,3 +1,5 @@
+{-# LANGUAGE Safe #-}
+
 -- | This should probably be a separate library, but it provides a number of
 --   functor type classes between various categories.
 module Yaya.Functor where

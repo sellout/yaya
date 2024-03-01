@@ -1,7 +1,9 @@
+{-# LANGUAGE Safe #-}
 -- NB: We disable @StrictData@ here in order for `Cofix` to be lazy. I don’t
 --     think there is any way to explicitly add @~@ patterns that has the
 --     correct semantics.
 {-# LANGUAGE NoStrictData #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 -- | This module only exists to restrict the scope of @NoStrictData@. Everything
 --    is re-exported via "Yaya.Fold".
@@ -18,7 +20,8 @@ import "this" Yaya.Fold
 -- | A fixed-point constructor that uses Haskell's built-in recursion. This is
 --   lazy/corecursive.
 data Cofix f = Cofix {unCofix :: f (Cofix f)}
-{-# ANN Cofix "HLint: ignore Use newtype instead of data" #-}
+
+{-# HLINT ignore Cofix "Use newtype instead of data" #-}
 
 instance Projectable (->) (Cofix f) f where
   project = unCofix

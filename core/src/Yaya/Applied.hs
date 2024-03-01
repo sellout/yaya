@@ -1,25 +1,41 @@
+{-# LANGUAGE CPP #-}
+
+-- __NB__: base-4.17 moves `IsList` to its own module, which avoids the unsafety
+--         of importing "GHC.Exts". With prior versions of base, we at least
+--         mark the module @Trustworthy@.
+#if MIN_VERSION_base(4, 17, 0)
+{-# LANGUAGE Safe #-}
+#else
+{-# LANGUAGE Trustworthy #-}
+#endif
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Applied where
 
-import "base" Control.Applicative (Applicative)
-import "base" Control.Category (Category (..))
-import "base" Data.Foldable (Foldable (foldr))
-import "base" Data.Function (flip)
-import "base" Data.Functor (Functor (..))
-import "base" Data.Functor.Identity (Identity (..))
-import "base" Data.Int (Int)
-import "base" Data.Monoid (Monoid (mempty))
-import "base" Data.Ord (Ord (..))
-import "base" Data.Semigroup (Semigroup ((<>)))
-import "base" Data.Traversable (Traversable)
+import safe "base" Control.Category (Category (..))
+import safe "base" Data.Foldable (Foldable (foldr))
+import safe "base" Data.Function (flip)
+import safe "base" Data.Functor (Functor (..))
+import safe "base" Data.Functor.Identity (Identity (..))
+import safe "base" Data.Int (Int)
+import safe "base" Data.Monoid (Monoid (mempty))
+import safe "base" Data.Ord (Ord (..))
+import safe "base" Data.Semigroup (Semigroup ((<>)))
+
+-- See comment on @{-# LANGUAGE Safe #-}@ above.
+#if MIN_VERSION_base(4, 17, 0)
+import "base" GHC.IsList (IsList)
+import qualified "base" GHC.IsList as IsList
+#else
 import "base" GHC.Exts (IsList)
 import qualified "base" GHC.Exts as IsList
-import "base" Numeric.Natural (Natural)
-import "free" Control.Monad.Trans.Free (FreeF (..))
-import "this" Yaya.Fold
+#endif
+import safe "base" Numeric.Natural (Natural)
+import safe "free" Control.Monad.Trans.Free (FreeF (..))
+import safe "this" Yaya.Fold
   ( Algebra,
     Corecursive (..),
     Mu,
@@ -29,7 +45,7 @@ import "this" Yaya.Fold
     Steppable (..),
     cata2,
   )
-import "this" Yaya.Fold.Common
+import safe "this" Yaya.Fold.Common
   ( diagonal,
     fromEither,
     lucasSequence',
@@ -43,15 +59,15 @@ import "this" Yaya.Fold.Common
     truncate',
     unarySequence,
   )
-import "this" Yaya.Fold.Native (Fix)
-import "this" Yaya.Pattern
+import safe "this" Yaya.Fold.Native (Fix)
+import safe "this" Yaya.Pattern
   ( Either (..),
     Maybe (..),
     Pair,
     XNor (Both, Neither),
     maybe,
   )
-import "base" Prelude (Integral, fromIntegral)
+import safe "base" Prelude (Integral, fromIntegral)
 
 now :: (Steppable (->) t (Either a)) => a -> t
 now = embed . Left

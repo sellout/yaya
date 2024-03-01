@@ -1,3 +1,5 @@
+{-# LANGUAGE Safe #-}
+
 module Yaya.Unsafe.Applied where
 
 import "yaya" Yaya.Fold (Steppable (embed))

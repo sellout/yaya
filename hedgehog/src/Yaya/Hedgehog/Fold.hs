@@ -1,19 +1,20 @@
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+-- "Hedgehog" is @Unsafe@
+{-# LANGUAGE Unsafe #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Yaya.Hedgehog.Fold where
 
-import "base" Control.Category (Category (..))
-import "base" Data.Bifunctor (Bifunctor (..))
-import "base" Data.Eq (Eq)
-import "base" Data.Function (($))
-import "base" Data.Functor (Functor (..))
-import "base" Data.Proxy (Proxy (..))
-import qualified "base" Data.Tuple as Tuple
-import "base" Data.Void (Void, absurd)
-import "base" Numeric.Natural (Natural)
-import "base" Text.Show (Show)
+import safe "base" Control.Category (Category (..))
+import safe "base" Data.Bifunctor (Bifunctor (..))
+import safe "base" Data.Eq (Eq)
+import safe "base" Data.Function (($))
+import safe "base" Data.Functor (Functor (..))
+import safe "base" Data.Proxy (Proxy (..))
+import safe qualified "base" Data.Tuple as Tuple
+import safe "base" Data.Void (Void, absurd)
+import safe "base" Numeric.Natural (Natural)
+import safe "base" Text.Show (Show)
 import "hedgehog" Hedgehog
   ( Gen,
     MonadTest,
@@ -30,13 +31,13 @@ import "yaya" Yaya.Fold
     Recursive (..),
     Steppable (..),
   )
-import "yaya" Yaya.Fold.Common (diagonal)
-import "yaya" Yaya.Fold.Native ()
-import "yaya" Yaya.Pattern (Maybe, Pair ((:!:)), fst, maybe, uncurry)
+import safe "yaya" Yaya.Fold.Common (diagonal)
+import safe "yaya" Yaya.Fold.Native ()
+import safe "yaya" Yaya.Pattern (Maybe, Pair ((:!:)), fst, maybe, uncurry)
 import "this" Yaya.Hedgehog (evalNonterminating)
-import "base" Prelude (fromIntegral)
+import safe "base" Prelude (fromIntegral)
 
-{-# ANN module "HLint: ignore Use camelCase" #-}
+{-# HLINT ignore "Use camelCase" #-}
 
 law_cataCancel ::
   ( Eq a,

@@ -1,5 +1,10 @@
 {-# LANGUAGE CPP #-}
+#if MIN_VERSION_GLASGOW_HASKELL(9, 0, 0, 0)
+{-# LANGUAGE Safe #-}
+#else
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE Trustworthy #-}
+#endif
 
 -- | This module re-exports a subset of `Yaya.Fold`, intended for when you want
 --   to define recursion scheme instances for your existing recursive types.
@@ -34,31 +39,34 @@ where
 --    `Maybe`, etc. is tied to emplate-haskell and does not involve recursion
 --     schemes.
 
-import "base" Control.Applicative (Applicative (..))
-import "base" Control.Category (Category (..))
-import "base" Control.Exception (Exception (..), throw)
-import "base" Control.Monad ((<=<))
-import "base" Data.Bifunctor (Bifunctor (..))
-import "base" Data.Bool (Bool (..), not, otherwise, (&&))
-import "base" Data.Either (Either (..), either)
-import "base" Data.Eq (Eq (..))
-import "base" Data.Foldable (Foldable (..))
-import "base" Data.Function (const, flip, ($))
-import "base" Data.Functor (Functor (..), (<$>))
-import "base" Data.Functor.Identity (Identity (..))
-import "base" Data.List (all, null, zip, zip3)
-import "base" Data.List.NonEmpty (NonEmpty)
-import "base" Data.Maybe (Maybe (..), maybe)
-import "base" Data.Semigroup (Semigroup (..))
-import "base" Data.String (String)
-import "base" Data.Traversable (Traversable (..))
-import "base" Text.Read.Lex (isSymbolChar)
-import "base" Text.Show (Show (..))
-import "either" Data.Either.Validation (Validation (..), validationToEither)
-import "template-haskell" Language.Haskell.TH as TH
-import "template-haskell" Language.Haskell.TH.Syntax (mkNameG_tc)
-import "th-abstraction" Language.Haskell.TH.Datatype as TH.Abs
-import "this" Yaya.Fold
+import safe "base" Control.Applicative (Applicative (..))
+import safe "base" Control.Category (Category (..))
+import safe "base" Control.Monad ((<=<))
+import safe "base" Control.Monad.Fail (MonadFail (fail))
+import safe "base" Data.Bifunctor (Bifunctor (..))
+import safe "base" Data.Bool (Bool (..), otherwise, (&&))
+import safe "base" Data.Either (Either (..), either)
+import safe "base" Data.Eq (Eq (..))
+import safe "base" Data.Foldable (Foldable (..))
+import safe "base" Data.Function (const, flip, ($))
+import safe "base" Data.Functor (Functor (..), (<$>))
+import safe "base" Data.Functor.Identity (Identity (..))
+import safe "base" Data.List (all, zip, zip3)
+import safe "base" Data.List.NonEmpty (NonEmpty)
+import safe "base" Data.Maybe (Maybe (..), maybe)
+import safe "base" Data.Semigroup (Semigroup (..))
+import safe "base" Data.String (String)
+import safe "base" Data.Traversable (Traversable (..))
+import safe "base" Text.Read.Lex (isSymbolChar)
+import safe "base" Text.Show (Show (..))
+import safe "either" Data.Either.Validation
+  ( Validation (..),
+    validationToEither,
+  )
+import safe "template-haskell" Language.Haskell.TH as TH
+import safe "template-haskell" Language.Haskell.TH.Syntax (mkNameG_tc)
+import safe qualified "th-abstraction" Language.Haskell.TH.Datatype as TH.Abs
+import safe "this" Yaya.Fold
   ( Corecursive (..),
     Projectable (..),
     Recursive (..),
@@ -66,14 +74,13 @@ import "this" Yaya.Fold
     recursiveEq,
     recursiveShowsPrec,
   )
-import "base" Prelude (error)
 
 #if MIN_VERSION_template_haskell(2, 21, 0)
-type TyVarBndr' = TyVarBndr BndrVis
 #elif MIN_VERSION_template_haskell(2, 17, 0)
-type TyVarBndr' = TyVarBndr ()
+type TyVarBndrVis = TyVarBndr ()
 #else
-type TyVarBndr' = TyVarBndr
+type TyVarBndrUnit = TyVarBndr
+type TyVarBndrVis = TyVarBndr
 #endif
 
 conP' :: Name -> [Pat] -> Pat
@@ -133,7 +140,8 @@ conP' = ConP
 --   In future, we should check the strictness of the recursive parameter and generate only the appropriate one (unless overridden by a rule).
 extractPatternFunctor :: PatternFunctorRules -> Name -> Q [Dec]
 extractPatternFunctor rules =
-  either throw id . makePrimForDI rules <=< reifyDatatype
+  either (fail . displayUnsupportedDatatype) id . makePrimForDI rules
+    <=< TH.Abs.reifyDatatype
 
 -- | Rules of renaming data names
 data PatternFunctorRules = PatternFunctorRules
@@ -163,50 +171,53 @@ toFName = mkName . f . nameBase
 
 data UnsupportedDatatype
   = UnsupportedInstTypes (NonEmpty Type)
-  | UnsupportedVariant DatatypeVariant
+  | UnsupportedVariant TH.Abs.DatatypeVariant
+  | UnsupportedGADT [TyVarBndrUnit] Cxt
+  | NonBinaryInfixConstructor [(Bang, Type)]
+  deriving (Show)
 
-instance Show UnsupportedDatatype where
-  show = \case
+displayUnsupportedDatatype :: UnsupportedDatatype -> String
+displayUnsupportedDatatype =
+  ("extractPatternFunctor: " <>) . \case
     UnsupportedInstTypes tys ->
-      "extractPatternFunctor: Couldn't process the following types " <> show tys
-    UnsupportedVariant _variant ->
-      "extractPatternFunctor: Data families are currently not supported."
-
-instance Exception UnsupportedDatatype
+      "Couldn't process the following types " <> show tys
+    UnsupportedVariant _variant -> "Data families are currently not supported."
+    UnsupportedGADT _vars _context -> "GADTs are not currently supported."
+    NonBinaryInfixConstructor bts ->
+      "internal error: wrong number of BangTypes for InfixConstructor; expected 2, but got "
+        <> show (length bts)
 
 makePrimForDI ::
-  PatternFunctorRules -> DatatypeInfo -> Either UnsupportedDatatype (Q [Dec])
+  PatternFunctorRules ->
+  TH.Abs.DatatypeInfo ->
+  Either UnsupportedDatatype (Q [Dec])
 makePrimForDI
   rules
-  ( DatatypeInfo
-      { datatypeName = tyName,
-        datatypeInstTypes = instTys,
-        datatypeCons = cons,
-        datatypeVariant = variant
+  ( TH.Abs.DatatypeInfo
+      { TH.Abs.datatypeName = tyName,
+        TH.Abs.datatypeInstTypes = instTys,
+        TH.Abs.datatypeCons = cons,
+        TH.Abs.datatypeVariant = variant
       }
     ) =
-    if isDataFamInstance
-      then Left $ UnsupportedVariant variant
-      else
-        bimap
-          UnsupportedInstTypes
-          (flip (makePrimForDI' rules (variant == Newtype) tyName) cons)
-          . validationToEither
-          $ traverse (\ty -> maybe (Failure $ pure ty) Success $ toTyVarBndr ty) instTys
+    maybe
+      (Left $ UnsupportedVariant variant)
+      ( \safeVariant ->
+          bimap
+            UnsupportedInstTypes
+            (flip (makePrimForDI' rules safeVariant tyName) cons)
+            . validationToEither
+            $ traverse
+              (\ty -> maybe (Failure $ pure ty) Success $ toTyVarBndr ty)
+              instTys
+      )
+      $ excludeDataFamInstance variant
     where
-      isDataFamInstance = case variant of
-        DataInstance -> True
-        NewtypeInstance -> True
-        Datatype -> False
-        Newtype -> False
-
-      toTyVarBndr :: Type -> Maybe TyVarBndr'
+      toTyVarBndr :: Type -> Maybe TyVarBndrVis
       toTyVarBndr (VarT n) = pure $ plainTV n
       toTyVarBndr (SigT (VarT n) k) = pure $ kindedTV n k
       toTyVarBndr _ = Nothing
 
--- TH 2.12.O means GHC 8.2.1, otherwise, we work back to GHC 8.0.1
-#if MIN_VERSION_template_haskell(2, 12, 0)
 deriveds :: [DerivClause]
 deriveds =
   pure $
@@ -216,18 +227,54 @@ deriveds =
         ConT foldableTypeName,
         ConT traversableTypeName
       ]
+
+-- | A restricted version of `TH.Abs.DatatypeVariant` that excludes data family
+--   declarations.
+#if MIN_VERSION_th_abstraction(0, 5, 0)
+data SafeDatatypeVariant  = Datatype  | Newtype  | TypeDataV
 #else
-deriveds :: [TH.Type]
-deriveds =
-  [ ConT functorTypeName,
-    ConT foldableTypeName,
-    ConT traversableTypeName
-  ]
+data SafeDatatypeVariant  = Datatype  | Newtype
+#endif
+
+excludeDataFamInstance :: TH.Abs.DatatypeVariant -> Maybe SafeDatatypeVariant
+#if MIN_VERSION_th_abstraction(0, 5, 0)
+excludeDataFamInstance = \case
+  TH.Abs.DataInstance -> Nothing
+  TH.Abs.NewtypeInstance -> Nothing
+  TH.Abs.Datatype -> Just Datatype
+  TH.Abs.Newtype -> Just Newtype
+  TH.Abs.TypeData -> Just TypeDataV
+#else
+excludeDataFamInstance = \case
+  TH.Abs.DataInstance -> Nothing
+  TH.Abs.NewtypeInstance -> Nothing
+  TH.Abs.Datatype -> Just Datatype
+  TH.Abs.Newtype -> Just Newtype
+#endif
+
+makeDataDefinition ::
+  SafeDatatypeVariant -> Name -> [TyVarBndrVis] -> [Con] -> Dec
+#if MIN_VERSION_template_haskell(2, 20, 0) && MIN_VERSION_th_abstraction(0, 5, 0)
+makeDataDefinition safeVariant tyName vars cons =
+  case (safeVariant, cons) of
+       (Newtype, [con]) -> NewtypeD [] tyName vars Nothing con deriveds
+       (TypeDataV, _) -> TypeDataD tyName vars Nothing cons
+       (_, _) -> DataD [] tyName vars Nothing cons deriveds
+#else
+makeDataDefinition safeVariant tyName vars cons =
+  case (safeVariant, cons) of
+       (Newtype, [con]) -> NewtypeD [] tyName vars Nothing con deriveds
+       (_, _) -> DataD [] tyName vars Nothing cons deriveds
 #endif
 
 makePrimForDI' ::
-  PatternFunctorRules -> Bool -> Name -> [TyVarBndr'] -> [ConstructorInfo] -> Q [Dec]
-makePrimForDI' rules isNewtype tyName vars cons = do
+  PatternFunctorRules ->
+  SafeDatatypeVariant ->
+  Name ->
+  [TyVarBndrVis] ->
+  [TH.Abs.ConstructorInfo] ->
+  Q [Dec]
+makePrimForDI' rules safeVariant tyName vars cons = do
   -- variable parameters
   let vars' = fmap VarT (typeVars vars)
   -- Name of base functor
@@ -241,23 +288,20 @@ makePrimForDI' rules isNewtype tyName vars cons = do
   -- Vars
   let varsF = vars <> [plainTV rName]
 
-  -- #33
-  cons' <- traverse (conTypeTraversal resolveTypeSynonyms) cons
-  let consF =
-        toCon
-          . conNameMap (patternCon rules)
-          . conFieldNameMap (patternField rules)
-          . conTypeMap (substType s r)
-          <$> cons'
+  -- ekmett/recursion-schemes#33
+  cons' <- traverse (conTypeTraversal TH.Abs.resolveTypeSynonyms) cons
+  consF <-
+    either (fail . displayUnsupportedDatatype) pure $
+      traverse
+        ( toCon
+            . conNameMap (patternCon rules)
+            . conFieldNameMap (patternField rules)
+            . conTypeMap (substType s r)
+        )
+        cons'
 
-  -- Data definition
-  let dataDec = case consF of
-        [conF]
-          | isNewtype -> NewtypeD [] tyNameF varsF Nothing conF deriveds
-        _ -> DataD [] tyNameF varsF Nothing consF deriveds
-
-  recursiveDec <-
-    [d|
+  (makeDataDefinition safeVariant tyNameF varsF consF :)
+    <$> [d|
       instance Projectable (->) $(pure s) $(pure $ conAppsT tyNameF vars') where
         project = $(LamCaseE <$> mkMorphism id (patternCon rules) cons')
 
@@ -270,20 +314,18 @@ makePrimForDI' rules isNewtype tyName vars cons = do
       instance Corecursive (->) $(pure s) $(pure $ conAppsT tyNameF vars') where
         ana ψ = embed . fmap (ana ψ) . ψ
       |]
-  -- Combine
-  pure ([dataDec] <> recursiveDec)
 
 -- | makes clauses to rename constructors
 mkMorphism ::
   (Name -> Name) ->
   (Name -> Name) ->
-  [ConstructorInfo] ->
+  [TH.Abs.ConstructorInfo] ->
   Q [Match]
 mkMorphism nFrom nTo =
   traverse
     ( \ci -> do
-        let n = constructorName ci
-        fs <- traverse (const $ newName "x") $ constructorFields ci
+        let n = TH.Abs.constructorName ci
+        fs <- traverse (const $ newName "x") $ TH.Abs.constructorFields ci
         pure $
           Match
             (conP' (nFrom n) (fmap VarP fs)) -- pattern
@@ -295,31 +337,33 @@ mkMorphism nFrom nTo =
 -- Traversals
 -------------------------------------------------------------------------------
 
-conNameTraversal :: Traversal' ConstructorInfo Name
-conNameTraversal = lens constructorName (\s v -> s {constructorName = v})
+conNameTraversal :: Traversal' TH.Abs.ConstructorInfo Name
+conNameTraversal = lens TH.Abs.constructorName (\s v -> s {TH.Abs.constructorName = v})
 
-conFieldNameTraversal :: Traversal' ConstructorInfo Name
+conFieldNameTraversal :: Traversal' TH.Abs.ConstructorInfo Name
 conFieldNameTraversal =
-  lens constructorVariant (\s v -> s {constructorVariant = v})
+  lens TH.Abs.constructorVariant (\s v -> s {TH.Abs.constructorVariant = v})
     . conVariantTraversal
   where
-    conVariantTraversal :: Traversal' ConstructorVariant Name
-    conVariantTraversal _ NormalConstructor = pure NormalConstructor
-    conVariantTraversal _ InfixConstructor = pure InfixConstructor
-    conVariantTraversal f (RecordConstructor fs) = RecordConstructor <$> traverse f fs
+    conVariantTraversal :: Traversal' TH.Abs.ConstructorVariant Name
+    conVariantTraversal _ TH.Abs.NormalConstructor =
+      pure TH.Abs.NormalConstructor
+    conVariantTraversal _ TH.Abs.InfixConstructor = pure TH.Abs.InfixConstructor
+    conVariantTraversal f (TH.Abs.RecordConstructor fs) =
+      TH.Abs.RecordConstructor <$> traverse f fs
 
-conTypeTraversal :: Traversal' ConstructorInfo Type
+conTypeTraversal :: Traversal' TH.Abs.ConstructorInfo Type
 conTypeTraversal =
-  lens constructorFields (\s v -> s {constructorFields = v})
+  lens TH.Abs.constructorFields (\s v -> s {TH.Abs.constructorFields = v})
     . traverse
 
-conNameMap :: (Name -> Name) -> ConstructorInfo -> ConstructorInfo
+conNameMap :: (Name -> Name) -> TH.Abs.ConstructorInfo -> TH.Abs.ConstructorInfo
 conNameMap = over conNameTraversal
 
-conFieldNameMap :: (Name -> Name) -> ConstructorInfo -> ConstructorInfo
+conFieldNameMap :: (Name -> Name) -> TH.Abs.ConstructorInfo -> TH.Abs.ConstructorInfo
 conFieldNameMap = over conFieldNameTraversal
 
-conTypeMap :: (Type -> Type) -> ConstructorInfo -> ConstructorInfo
+conTypeMap :: (Type -> Type) -> TH.Abs.ConstructorInfo -> TH.Abs.ConstructorInfo
 conTypeMap = over conTypeTraversal
 
 -------------------------------------------------------------------------------
@@ -343,8 +387,8 @@ over l f = runIdentity . l (Identity . f)
 -------------------------------------------------------------------------------
 
 -- | Extract type variables
-typeVars :: [TyVarBndr'] -> [Name]
-typeVars = fmap tvName
+typeVars :: [TyVarBndrVis] -> [Name]
+typeVars = fmap TH.Abs.tvName
 
 -- | Apply arguments to a type constructor.
 conAppsT :: Name -> [Type] -> Type
@@ -370,42 +414,42 @@ substType a b = go
     -- Rest are unchanged
     go x = x
 
-toCon :: ConstructorInfo -> Con
+toCon :: TH.Abs.ConstructorInfo -> Either UnsupportedDatatype Con
 toCon
-  ( ConstructorInfo
-      { constructorName = name,
-        constructorVars = vars,
-        constructorContext = ctxt,
-        constructorFields = ftys,
-        constructorStrictness = fstricts,
-        constructorVariant = variant
+  ( TH.Abs.ConstructorInfo
+      { TH.Abs.constructorName = name,
+        TH.Abs.constructorVars = vars,
+        TH.Abs.constructorContext = ctxt,
+        TH.Abs.constructorFields = ftys,
+        TH.Abs.constructorStrictness = fstricts,
+        TH.Abs.constructorVariant = variant
       }
-    )
-    | not (null vars && null ctxt) =
-        error "makeBaseFunctor: GADTs are not currently supported."
-    | otherwise =
+    ) =
+    if null vars && null ctxt
+      then
         let bangs = fmap toBang fstricts
          in case variant of
-              NormalConstructor -> NormalC name $ zip bangs ftys
-              RecordConstructor fnames -> RecC name $ zip3 fnames bangs ftys
-              InfixConstructor ->
-                let [bang1, bang2] = bangs
-                    [fty1, fty2] = ftys
-                 in InfixC (bang1, fty1) name (bang2, fty2)
+              TH.Abs.NormalConstructor -> pure . NormalC name $ zip bangs ftys
+              TH.Abs.RecordConstructor fnames ->
+                pure . RecC name $ zip3 fnames bangs ftys
+              TH.Abs.InfixConstructor -> case zip bangs ftys of
+                [bt1, bt2] -> pure $ InfixC bt1 name bt2
+                bts -> Left $ NonBinaryInfixConstructor bts
+      else Left $ UnsupportedGADT vars ctxt
     where
-      toBang (FieldStrictness upkd strct) =
+      toBang (TH.Abs.FieldStrictness upkd strct) =
         Bang
           (toSourceUnpackedness upkd)
           (toSourceStrictness strct)
         where
-          toSourceUnpackedness :: Unpackedness -> SourceUnpackedness
-          toSourceUnpackedness UnspecifiedUnpackedness = NoSourceUnpackedness
-          toSourceUnpackedness NoUnpack = SourceNoUnpack
-          toSourceUnpackedness Unpack = SourceUnpack
+          toSourceUnpackedness :: TH.Abs.Unpackedness -> SourceUnpackedness
+          toSourceUnpackedness TH.Abs.UnspecifiedUnpackedness = NoSourceUnpackedness
+          toSourceUnpackedness TH.Abs.NoUnpack = SourceNoUnpack
+          toSourceUnpackedness TH.Abs.Unpack = SourceUnpack
 
-          toSourceStrictness :: Strictness -> SourceStrictness
-          toSourceStrictness UnspecifiedStrictness = NoSourceStrictness
-          toSourceStrictness Lazy = SourceLazy
+          toSourceStrictness :: TH.Abs.Strictness -> SourceStrictness
+          toSourceStrictness TH.Abs.UnspecifiedStrictness = NoSourceStrictness
+          toSourceStrictness TH.Abs.Lazy = SourceLazy
           toSourceStrictness TH.Abs.Strict = SourceStrict
 
 -------------------------------------------------------------------------------
