@@ -5,14 +5,20 @@
 
 module Test.Fold where
 
-import safe "base" Control.Category (Category (..))
+import safe "base" Control.Category (Category (id))
 import safe "base" Control.Monad ((=<<))
 import safe "base" Data.Bool (Bool)
 import safe "base" Data.Function (($))
 import safe "base" Data.Int (Int)
-import safe "base" Data.Proxy (Proxy (..))
+import safe "base" Data.Proxy (Proxy (Proxy))
 import safe "base" System.IO (IO)
-import safe "hedgehog" Hedgehog (Property, checkParallel, discover, forAll, property)
+import safe "hedgehog" Hedgehog
+  ( Property,
+    checkParallel,
+    discover,
+    forAll,
+    property,
+  )
 import safe qualified "hedgehog" Hedgehog.Gen as Gen
 import safe "yaya" Yaya.Fold (Mu, Nu)
 import safe "yaya" Yaya.Fold.Common (size)

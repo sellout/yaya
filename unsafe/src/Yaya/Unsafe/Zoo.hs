@@ -2,15 +2,15 @@
 
 module Yaya.Unsafe.Zoo where
 
-import "base" Control.Applicative (Applicative (..))
-import "base" Control.Category (Category (..))
+import "base" Control.Applicative (Applicative (pure))
+import "base" Control.Category (Category (id, (.)))
 import "base" Control.Monad (Monad)
-import "base" Data.Bifunctor (Bifunctor (..))
-import "base" Data.Bitraversable (Bitraversable (..))
+import "base" Data.Bifunctor (Bifunctor (second))
+import "base" Data.Bitraversable (Bitraversable (bitraverse))
 import "base" Data.Function (const, flip)
-import "base" Data.Functor (Functor (..))
-import "base" Data.Functor.Compose (Compose (..))
-import "base" Data.Functor.Identity (Identity (..))
+import "base" Data.Functor (Functor (fmap))
+import "base" Data.Functor.Compose (Compose (Compose, getCompose))
+import "base" Data.Functor.Identity (Identity (Identity, runIdentity))
 import "base" Data.Traversable (Traversable)
 import "comonad" Control.Comonad (Comonad)
 import "comonad" Control.Comonad.Env (EnvT)
@@ -19,15 +19,15 @@ import "free" Control.Monad.Trans.Free (Free)
 import "yaya" Yaya.Fold
   ( Algebra,
     Coalgebra,
-    Corecursive (..),
+    Corecursive (ana),
     DistributiveLaw,
     ElgotAlgebra,
     ElgotCoalgebra,
     GAlgebra,
     GCoalgebra,
-    Projectable (..),
-    Recursive (..),
-    Steppable (..),
+    Projectable (project),
+    Recursive (cata),
+    Steppable (embed),
     distEnvT,
     distIdentity,
     gana,
@@ -35,7 +35,7 @@ import "yaya" Yaya.Fold
   )
 import "yaya" Yaya.Fold.Common (diagonal, fromEither)
 import "yaya" Yaya.Fold.Native (distCofreeT)
-import "yaya" Yaya.Pattern (Either, Maybe (..), Pair (..), XNor (..))
+import "yaya" Yaya.Pattern (Either, Maybe (Nothing), Pair ((:!:)), XNor (Both, Neither))
 import qualified "this" Yaya.Unsafe.Fold as Unsafe
 import qualified "this" Yaya.Unsafe.Fold.Instances as Unsafe -- FIXME: extremely unsafe
 
@@ -106,11 +106,11 @@ fstream f g h =
     h
     ( \b -> case f b of
         Neither -> Nothing
-        other -> Just other
+        other -> pure other
     )
     ( \case
         Neither -> Nothing
-        Both a x' -> Just (flip g a :!: x')
+        Both a x' -> pure (flip g a :!: x')
     )
 
 -- snoc :: [a] -> a -> [a]

@@ -4,15 +4,15 @@
 --   laziness) can lead to non-termination.
 module Yaya.Unsafe.Fold where
 
-import "base" Control.Applicative (Applicative (..))
-import "base" Control.Category (Category (..))
+import "base" Control.Applicative (Applicative (pure))
+import "base" Control.Category (Category ((.)))
 import "base" Control.Monad (Monad, (<=<))
-import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Bifunctor (Bifunctor (first))
 import "base" Data.Function (flip)
-import "base" Data.Functor (Functor (..))
-import "base" Data.Functor.Compose (Compose (..))
-import "base" Data.Traversable (Traversable (..))
-import "comonad" Control.Comonad (Comonad (..))
+import "base" Data.Functor (Functor (fmap))
+import "base" Data.Functor.Compose (Compose (Compose, getCompose))
+import "base" Data.Traversable (Traversable (sequenceA))
+import "comonad" Control.Comonad (Comonad (extract))
 import "lens" Control.Lens (Prism', matching, prism, review, (&))
 import "yaya" Yaya.Fold
   ( Algebra,
@@ -20,15 +20,15 @@ import "yaya" Yaya.Fold
     Coalgebra,
     CoalgebraM,
     CoalgebraPrism,
-    Corecursive (..),
+    Corecursive (ana),
     DistributiveLaw,
     GAlgebra,
     GAlgebraM,
     GCoalgebra,
     GCoalgebraM,
-    Projectable (..),
-    Recursive (..),
-    Steppable (..),
+    Projectable (project),
+    Recursive (cata),
+    Steppable (embed),
     lowerAlgebra,
     lowerAlgebraM,
     lowerCoalgebra,

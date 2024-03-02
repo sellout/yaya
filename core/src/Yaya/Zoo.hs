@@ -6,31 +6,31 @@
 --   you can always import this module and use the “common” name as well.
 module Yaya.Zoo where
 
-import "base" Control.Applicative (Applicative (..))
-import "base" Control.Category (Category (..))
-import "base" Control.Monad (Monad (..), (<=<))
-import "base" Data.Bifunctor (Bifunctor (..))
-import "base" Data.Bitraversable (Bitraversable (..), bisequence)
+import "base" Control.Applicative (Applicative (pure, (<*>)))
+import "base" Control.Category (Category (id, (.)))
+import "base" Control.Monad (Monad ((>>=)), (<=<))
+import "base" Data.Bifunctor (Bifunctor (bimap, first))
+import "base" Data.Bitraversable (Bitraversable (bitraverse), bisequence)
 import "base" Data.Function (flip, ($))
-import "base" Data.Functor (Functor (..))
-import "base" Data.Traversable (Traversable (..))
-import "comonad" Control.Comonad (Comonad (..))
-import "comonad" Control.Comonad.Env (EnvT (..))
+import "base" Data.Functor (Functor (fmap))
+import "base" Data.Traversable (Traversable (sequenceA))
+import "comonad" Control.Comonad (Comonad (duplicate, extract))
+import "comonad" Control.Comonad.Env (EnvT (EnvT))
 import "free" Control.Comonad.Cofree (Cofree)
-import "profunctors" Data.Profunctor (Profunctor (..))
+import "profunctors" Data.Profunctor (Profunctor (lmap))
 import "this" Yaya.Fold
   ( Algebra,
     AlgebraM,
-    Corecursive (..),
+    Corecursive (ana),
     DistributiveLaw,
     GAlgebra,
     GAlgebraM,
     GCoalgebra,
     Mu,
     Nu,
-    Projectable (..),
-    Recursive (..),
-    Steppable (..),
+    Projectable (project),
+    Recursive (cata),
+    Steppable (embed),
     distTuple,
     elgotAna,
     gana,
@@ -41,9 +41,9 @@ import "this" Yaya.Fold.Common (diagonal, fromEither)
 import "this" Yaya.Fold.Native (distCofreeT)
 import "this" Yaya.Pattern
   ( AndMaybe,
-    Either (..),
+    Either (Left, Right),
     Maybe,
-    Pair (..),
+    Pair ((:!:)),
     XNor,
     fst,
     snd,

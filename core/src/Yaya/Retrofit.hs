@@ -39,38 +39,38 @@ where
 --    `Maybe`, etc. is tied to emplate-haskell and does not involve recursion
 --     schemes.
 
-import safe "base" Control.Applicative (Applicative (..))
-import safe "base" Control.Category (Category (..))
+import safe "base" Control.Applicative (Applicative (pure))
+import safe "base" Control.Category (Category (id, (.)))
 import safe "base" Control.Monad ((<=<))
 import safe "base" Control.Monad.Fail (MonadFail (fail))
-import safe "base" Data.Bifunctor (Bifunctor (..))
-import safe "base" Data.Bool (Bool (..), otherwise, (&&))
-import safe "base" Data.Either (Either (..), either)
-import safe "base" Data.Eq (Eq (..))
-import safe "base" Data.Foldable (Foldable (..))
+import safe "base" Data.Bifunctor (Bifunctor (bimap))
+import safe "base" Data.Bool (Bool, otherwise, (&&))
+import safe "base" Data.Either (Either (Left), either)
+import safe "base" Data.Eq (Eq ((==)))
+import safe "base" Data.Foldable (Foldable (foldl, length, null))
 import safe "base" Data.Function (const, flip, ($))
-import safe "base" Data.Functor (Functor (..), (<$>))
-import safe "base" Data.Functor.Identity (Identity (..))
+import safe "base" Data.Functor (Functor (fmap), (<$>))
+import safe "base" Data.Functor.Identity (Identity (Identity, runIdentity))
 import safe "base" Data.List (all, zip, zip3)
 import safe "base" Data.List.NonEmpty (NonEmpty)
-import safe "base" Data.Maybe (Maybe (..), maybe)
-import safe "base" Data.Semigroup (Semigroup (..))
+import safe "base" Data.Maybe (Maybe (Just, Nothing), maybe)
+import safe "base" Data.Semigroup (Semigroup ((<>)))
 import safe "base" Data.String (String)
-import safe "base" Data.Traversable (Traversable (..))
+import safe "base" Data.Traversable (Traversable (traverse))
 import safe "base" Text.Read.Lex (isSymbolChar)
-import safe "base" Text.Show (Show (..))
+import safe "base" Text.Show (Show (show))
 import safe "either" Data.Either.Validation
-  ( Validation (..),
+  ( Validation (Failure, Success),
     validationToEither,
   )
 import safe "template-haskell" Language.Haskell.TH as TH
 import safe "template-haskell" Language.Haskell.TH.Syntax (mkNameG_tc)
 import safe qualified "th-abstraction" Language.Haskell.TH.Datatype as TH.Abs
 import safe "this" Yaya.Fold
-  ( Corecursive (..),
-    Projectable (..),
-    Recursive (..),
-    Steppable (..),
+  ( Corecursive (ana),
+    Projectable (project),
+    Recursive (cata),
+    Steppable (embed),
     recursiveEq,
     recursiveShowsPrec,
   )

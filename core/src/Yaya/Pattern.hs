@@ -14,10 +14,10 @@ module Yaya.Pattern
   )
 where
 
-import "base" Control.Applicative (Applicative (..))
+import "base" Control.Applicative (Applicative (liftA2, pure))
 import "base" Control.Category (Category ((.)))
-import "base" Control.Monad (Monad (..))
-import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Control.Monad (Monad ((>>=)))
+import "base" Data.Bifunctor (Bifunctor (bimap))
 import "base" Data.Bool (Bool (False, True), (&&))
 import "base" Data.Eq (Eq ((==)))
 import "base" Data.Foldable (Foldable)
@@ -37,7 +37,7 @@ import "base" Data.Traversable (Traversable)
 import qualified "base" Data.Tuple as Tuple
 import "base" GHC.Generics (Generic, Generic1)
 import "base" Text.Show (Show (showList, showsPrec), showParen, showString)
-import "comonad" Control.Comonad (Comonad (..))
+import "comonad" Control.Comonad (Comonad (duplicate, extract))
 -- explicitly omitted import list for @strict@ modules
 import "strict" Data.Strict.Either
 import "strict" Data.Strict.Maybe

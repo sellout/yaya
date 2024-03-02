@@ -22,8 +22,8 @@
 --   to terminate.
 module Yaya.Unsafe.Fold.Instances where
 
-import safe "base" Control.Category (Category (..))
-import safe "base" Data.Eq (Eq (..))
+import safe "base" Control.Category (Category ((.)))
+import safe "base" Data.Eq (Eq ((==)))
 import safe "base" Data.Foldable (Foldable)
 import safe "base" Data.Function (flip)
 import safe "base" Data.Functor (Functor, (<$>))
@@ -36,18 +36,18 @@ import "base" GHC.IsList (IsList (Item, fromList, fromListN, toList))
 #else
 import "base" GHC.Exts (IsList (Item, fromList, fromListN, toList))
 #endif
-import safe "base" Text.Show (Show (..))
+import safe "base" Text.Show (Show (showsPrec))
 import safe "comonad" Control.Comonad.Env (EnvT)
 import safe "free" Control.Comonad.Cofree (Cofree)
-import safe "free" Control.Monad.Trans.Free (Free, FreeF (..), free)
+import safe "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free)
 import safe "yaya" Yaya.Fold
-  ( Corecursive (..),
+  ( Corecursive (ana),
     DistributiveLaw,
     Mu,
     Nu,
-    Projectable (..),
-    Recursive (..),
-    Steppable (..),
+    Projectable (project),
+    Recursive (cata),
+    Steppable (embed),
     recursiveEq,
     recursiveShowsPrec,
   )
