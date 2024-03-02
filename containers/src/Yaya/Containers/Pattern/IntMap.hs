@@ -38,7 +38,16 @@ data IntMapF a r
   = NilF
   | TipF IntMap.Key a
   | BinF IntMap.Prefix IntMap.Mask r r
-  deriving (Eq, Ord, Generic, Show, Foldable, Functor, Generic1, Traversable)
+  deriving stock
+    ( Eq,
+      Ord,
+      Generic,
+      Show,
+      Foldable,
+      Functor,
+      Generic1,
+      Traversable
+    )
 
 instance Projectable (->) (IntMap.IntMap a) (IntMapF a) where
   project IntMap.Nil = NilF

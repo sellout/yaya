@@ -164,11 +164,7 @@ streamGApo flush process accum =
   stream' process (\c f -> maybe (ana flush c) f . accum)
 
 corecursivePrism ::
-  ( Steppable (->) t f,
-    Recursive (->) t f,
-    Corecursive (->) t f,
-    Traversable f
-  ) =>
+  (Steppable (->) t f, Recursive (->) t f, Traversable f) =>
   CoalgebraPrism f a ->
   Prism' a t
 corecursivePrism alg = prism (cata (review alg)) (anaM (matching alg))

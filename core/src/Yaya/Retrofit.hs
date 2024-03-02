@@ -99,7 +99,7 @@ conP' = ConP
 --     = Lit a
 --     | Add (Expr a) (Expr a)
 --     | Expr a :* [Expr a]
---   deriving (Show)
+--   deriving stock (Show)
 --
 -- `extractPatternFunctor` `defaultRules` ''Expr
 -- @
@@ -111,7 +111,7 @@ conP' = ConP
 --     = LitF a
 --     | AddF x x
 --     | x :*$ [x]
---   deriving ('Functor', 'Foldable', 'Traversable')
+--   deriving stock ('Functor', 'Foldable', 'Traversable')
 --
 -- instance `Projectable` (->) (Expr a) (ExprF a) where
 --   `project` (Lit x)   = LitF x
@@ -174,7 +174,7 @@ data UnsupportedDatatype
   | UnsupportedVariant TH.Abs.DatatypeVariant
   | UnsupportedGADT [TyVarBndrUnit] Cxt
   | NonBinaryInfixConstructor [(Bang, Type)]
-  deriving (Show)
+  deriving stock (Show)
 
 displayUnsupportedDatatype :: UnsupportedDatatype -> String
 displayUnsupportedDatatype =
@@ -222,7 +222,7 @@ deriveds :: [DerivClause]
 deriveds =
   pure $
     DerivClause
-      Nothing
+      (pure StockStrategy)
       [ ConT functorTypeName,
         ConT foldableTypeName,
         ConT traversableTypeName

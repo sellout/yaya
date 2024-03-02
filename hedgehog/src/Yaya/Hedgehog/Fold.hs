@@ -1,5 +1,4 @@
 {-# LANGUAGE TypeApplications #-}
--- "Hedgehog" is @Unsafe@
 {-# LANGUAGE Unsafe #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 

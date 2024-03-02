@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya-unsafe-test
-version:     0.2.0.1
+version:     0.2.0.2
 synopsis:    Test suites for `yaya-unsafe`.
 description: This package should not be depended on by anything.
 author:      Greg Pfeil <greg@technomadic.org>
@@ -82,12 +82,40 @@ common defaults
   build-depends:
     base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
   ghc-options:
-    -Wall
-    -Wtrustworthy-safe
+    -Weverything
+    -- Type inference good.
+    -Wno-missing-local-signatures
+    -- Warns even when `Unsafe` is explicit, not inferred. See
+    -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
+    -Wno-unsafe
+    -- TODO: prune these warnings
+    -Wno-all-missed-specialisations
+    -Wno-missing-export-lists
+    -Wno-missing-import-lists
     -fpackage-trust
+    -trust base
+  if impl(ghc < 8.8.1)
+    ghc-options:
+      -- This used to warn even when `Safe` was explicit.
+      -Wno-safe
   if impl(ghc >= 8.10.1)
     ghc-options:
-      -Wmissing-safe-haskell-mode
+      -- If we didn’t allow inferred-safe imports, nothing would be `Safe`.
+      -Wno-inferred-safe-imports
+      -- We support GHC versions without qualified-post.
+      -Wno-prepositive-qualified-module
+      -- `-trust` triggers this warning when applied to transitive dependencies.
+      -Wno-unused-packages
+  if impl(ghc >= 9.2.1)
+    ghc-options:
+      -- We support GHC versions without kind signatures.
+      -Wno-missing-kind-signatures
+  if impl(ghc >= 9.8.1)
+    ghc-options:
+      -- We support GHC versions without kind signatures.
+      -Wno-missing-poly-kind-signatures
+      -- Inference good.
+      -Wno-missing-role-annotations
   default-extensions:
     DefaultSignatures
     ExplicitNamespaces
@@ -100,6 +128,7 @@ common defaults
     -- QualifiedDo - uncomment if the oldest supported version is GHC 9.0.1+
     RecursiveDo
     -- RequiredTypeArguments - uncomment if the oldest supported version is GHC 9.10.1+
+    RoleAnnotations
     StrictData
     TemplateHaskellQuotes
     TransformListComp
@@ -130,7 +159,6 @@ test-suite yaya-unsafe-test
     -threaded
     -trust adjunctions
     -trust array
-    -trust base
     -trust base-orphans
     -trust binary
     -trust bytestring

@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya
-version:     0.5.2.0
+version:     0.5.2.1
 synopsis:    Total recursion schemes.
 description: Recursion schemes allow you to separate recursion from your
              business logic – making your own operations simpler, more modular,
@@ -90,12 +90,40 @@ common defaults
   build-depends:
     base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
   ghc-options:
-    -Wall
-    -Wtrustworthy-safe
+    -Weverything
+    -- Type inference good.
+    -Wno-missing-local-signatures
+    -- Warns even when `Unsafe` is explicit, not inferred. See
+    -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
+    -Wno-unsafe
+    -- TODO: prune these warnings
+    -Wno-all-missed-specialisations
+    -Wno-missing-export-lists
+    -Wno-missing-import-lists
     -fpackage-trust
+    -trust base
+  if impl(ghc < 8.8.1)
+    ghc-options:
+      -- This used to warn even when `Safe` was explicit.
+      -Wno-safe
   if impl(ghc >= 8.10.1)
     ghc-options:
-      -Wmissing-safe-haskell-mode
+      -- If we didn’t allow inferred-safe imports, nothing would be `Safe`.
+      -Wno-inferred-safe-imports
+      -- We support GHC versions without qualified-post.
+      -Wno-prepositive-qualified-module
+      -- `-trust` triggers this warning when applied to transitive dependencies.
+      -Wno-unused-packages
+  if impl(ghc >= 9.2.1)
+    ghc-options:
+      -- We support GHC versions without kind signatures.
+      -Wno-missing-kind-signatures
+  if impl(ghc >= 9.8.1)
+    ghc-options:
+      -- We support GHC versions without kind signatures.
+      -Wno-missing-poly-kind-signatures
+      -- Inference good.
+      -Wno-missing-role-annotations
   default-extensions:
     DefaultSignatures
     ExplicitNamespaces
@@ -108,6 +136,7 @@ common defaults
     -- QualifiedDo - uncomment if the oldest supported version is GHC 9.0.1+
     RecursiveDo
     -- RequiredTypeArguments - uncomment if the oldest supported version is GHC 9.10.1+
+    RoleAnnotations
     StrictData
     TemplateHaskellQuotes
     TransformListComp
@@ -153,7 +182,6 @@ library
   ghc-options:
     -trust adjunctions
     -trust array
-    -trust base
     -trust base-orphans
     -trust binary
     -trust bytestring
@@ -180,11 +208,17 @@ test-suite doctests
   build-depends:
     doctest ^>= {0.15.0, 0.16.0, 0.17.0, 0.18.0, 0.19.0, 0.20.0, 0.21.0, 0.22.0},
     yaya,
+  -- TODO: The sections below here are necessary because we don’t have control
+  --       over the generated `Build_doctests.hs` file. So we have to silence
+  --       all of its warnings one way or another.
   ghc-options:
-    -trust base
+    -Wno-safe
+  if impl(ghc >= 8.8.1)
+    ghc-options:
+      -- This used to warn even when `Safe` was explicit.
+      -Wno-missing-deriving-strategies
   default-extensions:
-    -- TODO: Other flags require each module to be compiled with a safety level.
-    --       Since it’s currently not possible to add `{-# LANGUAGE Safe -#}` to
-    --       the generated “Build_doctests.hs” and since doctests.hs is
-    --       `Unsafe`, this is the only safety level that can be used.
+    -- Since we can’t add `{-# LANGUAGE Safe -#}` to the generated
+    -- “Build_doctests.hs”, we set it here, and that means it has to match
+    -- doctests.hs, which is `Unsafe`.
     Unsafe

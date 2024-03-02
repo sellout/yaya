@@ -17,7 +17,7 @@ data DExpr
   = Lit Int
   | Add DExpr DExpr
   | Mult DExpr DExpr
-  deriving (Eq, Show)
+  deriving stock (Eq, Show)
 
 extractPatternFunctor defaultRules ''DExpr
 

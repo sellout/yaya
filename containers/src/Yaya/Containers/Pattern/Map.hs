@@ -35,7 +35,16 @@ import "yaya" Yaya.Fold
 import "base" Prelude (Num ((+)))
 
 data MapF k v r = TipF | BinF Map.Size k ~v r r
-  deriving (Eq, Ord, Generic, Show, Foldable, Functor, Generic1, Traversable)
+  deriving stock
+    ( Eq,
+      Ord,
+      Generic,
+      Show,
+      Foldable,
+      Functor,
+      Generic1,
+      Traversable
+    )
 
 instance Projectable (->) (Map.Map k v) (MapF k v) where
   project Map.Tip = TipF

@@ -123,7 +123,6 @@ fstream f g h =
 cotraverse ::
   ( Steppable (->) t (f a),
     Steppable (->) u (f b),
-    Corecursive (->) u (f b),
     Bitraversable f,
     Traversable (f b),
     Monad m

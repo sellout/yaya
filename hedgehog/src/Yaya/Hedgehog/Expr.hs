@@ -23,7 +23,7 @@ data Expr a
   = Lit Int
   | Add a a
   | Mult a a
-  deriving (Eq, Show, Functor, Foldable, Traversable)
+  deriving stock (Eq, Show, Functor, Foldable, Traversable)
 
 deriveEq1 ''Expr
 deriveShow1 ''Expr

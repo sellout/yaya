@@ -35,7 +35,16 @@ data IntSetF r
   = NilF
   | TipF IntSet.Prefix IntSet.BitMap
   | BinF IntSet.Prefix IntSet.Mask r r
-  deriving (Eq, Ord, Generic, Show, Foldable, Functor, Generic1, Traversable)
+  deriving stock
+    ( Eq,
+      Ord,
+      Generic,
+      Show,
+      Foldable,
+      Functor,
+      Generic1,
+      Traversable
+    )
 
 instance Projectable (->) IntSet.IntSet IntSetF where
   project IntSet.Nil = NilF
