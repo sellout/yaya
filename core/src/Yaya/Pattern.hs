@@ -1,4 +1,7 @@
 {-# LANGUAGE Safe #-}
+-- __TODO__: Want to make this explicit, but because they’re re-exported, we have to
+--           be careful.
+{-# OPTIONS_GHC -Wno-missing-import-lists #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Common pattern functors (and instances for them).

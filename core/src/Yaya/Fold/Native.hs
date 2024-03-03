@@ -1,4 +1,5 @@
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Uses of recursion schemes that use Haskell’s built-in recursion in a total
@@ -13,12 +14,12 @@ where
 import "base" Control.Category (Category ((.)))
 import "base" Data.Bifunctor (Bifunctor (bimap))
 import "base" Data.Eq (Eq ((==)))
-import "base" Data.Foldable (Foldable)
+import "base" Data.Foldable (Foldable (toList))
 import "base" Data.Function (($))
 import "base" Data.Functor (Functor (fmap))
 import "base" Data.Functor.Classes (Eq1, Show1)
-import "base" Data.List.NonEmpty
-import "base" Numeric.Natural
+import "base" Data.List.NonEmpty (NonEmpty ((:|)))
+import "base" Numeric.Natural (Natural)
 import "base" Text.Show (Show (showsPrec))
 import "comonad" Control.Comonad (Comonad (extract))
 import "comonad" Control.Comonad.Trans.Env (EnvT (EnvT), runEnvT)
@@ -77,7 +78,7 @@ instance Corecursive (->) (NonEmpty a) (AndMaybe a) where
   ana ψ =
     ( \case
         Only h -> h :| []
-        Indeed h t -> h :| toList (ana ψ t)
+        Indeed h t -> h :| toList @NonEmpty (ana ψ t)
     )
       . ψ
 
