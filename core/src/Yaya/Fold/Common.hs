@@ -1,7 +1,31 @@
 {-# LANGUAGE Safe #-}
 
 -- | Common algebras that are useful when folding.
-module Yaya.Fold.Common where
+module Yaya.Fold.Common
+  ( binarySequence,
+    definedOrInput,
+    diagonal,
+    equal,
+    fromEither,
+    height,
+    le,
+    lowerMonad,
+    lowerMonoid,
+    lowerSemigroup,
+    lucasSequence',
+    maybeTakeNext,
+    never,
+    replaceNeither,
+    size,
+    takeAnother,
+    takeAvailable,
+    takeNext,
+    ternarySequence,
+    toRight,
+    truncate',
+    unarySequence,
+  )
+where
 
 import "base" Control.Applicative (Applicative (pure))
 import "base" Control.Category (Category (id, (.)))

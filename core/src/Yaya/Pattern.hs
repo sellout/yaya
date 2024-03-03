@@ -1,7 +1,4 @@
 {-# LANGUAGE Safe #-}
--- __TODO__: Want to make this explicit, but because they’re re-exported, we have to
---           be careful.
-{-# OPTIONS_GHC -Wno-missing-import-lists #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Common pattern functors (and instances for them).
@@ -12,8 +9,8 @@ module Yaya.Pattern
   ( module Data.Strict.Either,
     module Data.Strict.Maybe,
     module Data.Strict.Tuple,
-    XNor (..),
-    AndMaybe (..),
+    AndMaybe (Indeed, Only),
+    XNor (Both, Neither),
   )
 where
 
@@ -41,10 +38,40 @@ import qualified "base" Data.Tuple as Tuple
 import "base" GHC.Generics (Generic, Generic1)
 import "base" Text.Show (Show (showList, showsPrec), showParen, showString)
 import "comonad" Control.Comonad (Comonad (duplicate, extract))
--- explicitly omitted import list for @strict@ modules
 import "strict" Data.Strict.Either
+  ( Either (Left, Right),
+    either,
+    fromLeft,
+    fromRight,
+    isLeft,
+    isRight,
+    lefts,
+    partitionEithers,
+    rights,
+  )
 import "strict" Data.Strict.Maybe
+  ( Maybe (Just, Nothing),
+    catMaybes,
+    fromJust,
+    fromMaybe,
+    isJust,
+    isNothing,
+    listToMaybe,
+    mapMaybe,
+    maybe,
+    maybeToList,
+  )
 import "strict" Data.Strict.Tuple
+  ( Pair ((:!:)),
+    curry,
+    fst,
+    snd,
+    swap,
+    uncurry,
+    unzip,
+    zip,
+    (:!:),
+  )
 import "base" Prelude (Num ((+)))
 
 -- | Isomorphic to 'Maybe (a, b)', it’s also the pattern functor for lists.

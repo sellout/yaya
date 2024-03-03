@@ -3,7 +3,7 @@
 
 -- | The point of this module is that it should compile _without_ importing any
 --   other Yaya modules.
-module Test.Retrofit where
+module Test.Retrofit (tests) where
 
 import safe "base" Data.Bool (Bool)
 import safe "base" Data.Eq (Eq)

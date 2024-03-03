@@ -4,7 +4,31 @@
 --   general, this can be seen as a mapping from names you may have heard or
 --   read in a paper to how Yaya expects you to achieve the same end. Of course,
 --   you can always import this module and use the “common” name as well.
-module Yaya.Zoo where
+module Yaya.Zoo
+  ( Colist,
+    List,
+    Nat,
+    NonEmptyList,
+    Partial (Partial, fromPartial),
+    Stream,
+    apo,
+    cataM,
+    cocontramap,
+    comap,
+    comutu,
+    contramap,
+    gmutu,
+    histo,
+    insidePartial,
+    map,
+    mutu,
+    mutuM,
+    para,
+    traverse,
+    zygo,
+    zygoM,
+  )
+where
 
 import "base" Control.Applicative (Applicative (pure, (<*>)))
 import "base" Control.Category (Category (id, (.)))

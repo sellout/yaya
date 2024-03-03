@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.Set
-  ( SetF (..),
+  ( SetF (BinF, TipF),
   )
 where
 

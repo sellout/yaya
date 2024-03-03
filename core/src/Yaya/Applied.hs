@@ -13,7 +13,45 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Yaya.Applied where
+module Yaya.Applied
+  ( Void,
+    absurd,
+    append,
+    at,
+    atMay,
+    constantly,
+    drop',
+    drop,
+    fibonacci,
+    fibonacciPolynomials,
+    fromList,
+    fromListN,
+    fromMaybe,
+    height,
+    jacobsthal,
+    length,
+    lucas,
+    lucasSequenceU,
+    lucasSequenceV,
+    maybeReify,
+    mersenne,
+    naturals,
+    now,
+    pell,
+    reifyUpTo,
+    reverse',
+    reverse,
+    runToEnd,
+    succN,
+    tail,
+    take,
+    takeUpTo,
+    toList,
+    truncate,
+    vacuous,
+    zeroN,
+  )
+where
 
 import safe "base" Control.Category (Category (id, (.)))
 import safe "base" Data.Foldable (Foldable (foldr))

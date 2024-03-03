@@ -2,7 +2,18 @@
 {-# LANGUAGE Unsafe #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
-module Yaya.Hedgehog.Fold where
+module Yaya.Hedgehog.Fold
+  ( corecursiveIsUnsafe,
+    embeddableOfHeight,
+    genAlgebra,
+    genCorecursive,
+    law_anaRefl,
+    law_cataCancel,
+    law_cataCompose,
+    law_cataRefl,
+    recursiveIsUnsafe,
+  )
+where
 
 import safe "base" Control.Category (Category ((.)))
 import safe "base" Data.Bifunctor (Bifunctor (bimap, first))

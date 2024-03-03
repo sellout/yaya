@@ -6,7 +6,13 @@
 --
 --   As these few operations have the usual signatures, the rest of the type
 --   class can be implemented in the as in @base@.
-module Yaya.Experimental.Foldable where
+module Yaya.Experimental.Foldable
+  ( Listable (naturalList),
+    foldMap,
+    foldl,
+    foldr,
+  )
+where
 
 import "base" Control.Category (Category (id, (.)))
 import "base" Data.Function (flip)

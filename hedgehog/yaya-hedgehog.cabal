@@ -96,7 +96,6 @@ common defaults
     -Wno-unsafe
     -- TODO: prune these warnings
     -Wno-all-missed-specialisations
-    -Wno-missing-export-lists
     -fpackage-trust
     -trust base
   if impl(ghc < 8.8.1)
@@ -193,6 +192,7 @@ test-suite doctests
   --       over the generated `Build_doctests.hs` file. So we have to silence
   --       all of its warnings one way or another.
   ghc-options:
+    -Wno-missing-export-lists
     -Wno-missing-import-lists
     -Wno-safe
   if impl(ghc >= 8.8.1)

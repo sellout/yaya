@@ -2,7 +2,7 @@
 {-# LANGUAGE Unsafe #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
-module Test.Fold.Native where
+module Test.Fold.Native (tests) where
 
 import safe "base" Control.Category (Category (id))
 import safe "base" Control.Monad ((=<<))

@@ -6,7 +6,7 @@
 --   manner.
 module Yaya.Fold.Native
   ( module Yaya.Fold.Native.Internal,
-    Fix (..),
+    Fix (Fix, unFix),
     distCofreeT,
   )
 where

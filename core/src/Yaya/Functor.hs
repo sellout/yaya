@@ -2,7 +2,12 @@
 
 -- | This should probably be a separate library, but it provides a number of
 --   functor type classes between various categories.
-module Yaya.Functor where
+module Yaya.Functor
+  ( DFunctor (dmap),
+    HFunctor (hmap),
+    firstMap,
+  )
+where
 
 import "base" Control.Category (Category ((.)))
 import "base" Data.Bifunctor (Bifunctor, first)

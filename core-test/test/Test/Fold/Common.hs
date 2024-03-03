@@ -2,7 +2,7 @@
 {-# LANGUAGE Unsafe #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
-module Test.Fold.Common where
+module Test.Fold.Common (tests) where
 
 import safe "base" Control.Category (Category ((.)))
 import safe "base" Control.Monad ((=<<))

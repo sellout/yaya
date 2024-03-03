@@ -1,6 +1,20 @@
 {-# LANGUAGE Safe #-}
 
-module Yaya.Unsafe.Zoo where
+module Yaya.Unsafe.Zoo
+  ( chrono,
+    codyna,
+    coelgot,
+    cotraverse,
+    dyna,
+    elgot,
+    fstream,
+    futu,
+    gpostpro,
+    gprepro,
+    stream,
+    zygoHistoPrepro,
+  )
+where
 
 import "base" Control.Applicative (Applicative (pure))
 import "base" Control.Category (Category (id, (.)))

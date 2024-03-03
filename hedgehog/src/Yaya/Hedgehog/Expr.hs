@@ -1,7 +1,18 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE Unsafe #-}
 
-module Yaya.Hedgehog.Expr where
+module Yaya.Hedgehog.Expr
+  ( Expr (Add, Lit, Mult),
+    expression,
+    genCofixExpr,
+    genExpr,
+    genExprLit,
+    genExprOp,
+    genFixExpr,
+    genMuExpr,
+    genNuExpr,
+  )
+where
 
 import safe "base" Control.Applicative (Applicative ((<*>)))
 import safe "base" Data.Eq (Eq)

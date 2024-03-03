@@ -20,7 +20,10 @@
 --   This contains instances that you might /expect/ to see, but which aren’t
 --   actually total. For example, folding a lazy list @[a]@ is /not/ guaranteed
 --   to terminate.
-module Yaya.Unsafe.Fold.Instances where
+module Yaya.Unsafe.Fold.Instances
+  ( seqFreeT,
+  )
+where
 
 import safe "base" Control.Category (Category ((.)))
 import safe "base" Data.Eq (Eq ((==)))

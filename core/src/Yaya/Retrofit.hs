@@ -29,7 +29,12 @@
 --   disappear.
 module Yaya.Retrofit
   ( module Yaya.Fold,
-    PatternFunctorRules (..),
+    PatternFunctorRules
+      ( PatternFunctorRules,
+        patternCon,
+        patternField,
+        patternType
+      ),
     defaultRules,
     extractPatternFunctor,
   )

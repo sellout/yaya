@@ -1,6 +1,10 @@
 {-# LANGUAGE Unsafe #-}
 
-module Yaya.Hedgehog where
+module Yaya.Hedgehog
+  ( evalNonterminating,
+    nonterminatingProperty,
+  )
+where
 
 import safe "base" Control.Category (Category ((.)))
 import safe "base" Control.Monad ((<=<))

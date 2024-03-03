@@ -2,7 +2,21 @@
 
 -- | Definitions and instances that use direct recursion, which (because of
 --   laziness) can lead to non-termination.
-module Yaya.Unsafe.Fold where
+module Yaya.Unsafe.Fold
+  ( anaM,
+    corecursivePrism,
+    ganaM,
+    ghylo,
+    ghyloM,
+    hylo,
+    hyloM,
+    stream',
+    streamAna,
+    streamGApo,
+    unsafeAna,
+    unsafeCata,
+  )
+where
 
 import "base" Control.Applicative (Applicative (pure))
 import "base" Control.Category (Category ((.)))
