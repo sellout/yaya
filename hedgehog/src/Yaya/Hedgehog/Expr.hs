@@ -1,9 +1,20 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE Unsafe #-}
 
-module Yaya.Hedgehog.Expr where
+module Yaya.Hedgehog.Expr
+  ( Expr (Add, Lit, Mult),
+    expression,
+    genCofixExpr,
+    genExpr,
+    genExprLit,
+    genExprOp,
+    genFixExpr,
+    genMuExpr,
+    genNuExpr,
+  )
+where
 
-import safe "base" Control.Applicative (Applicative (..))
+import safe "base" Control.Applicative (Applicative ((<*>)))
 import safe "base" Data.Eq (Eq)
 import safe "base" Data.Foldable (Foldable)
 import safe "base" Data.Functor (Functor, (<$>))
@@ -23,7 +34,7 @@ data Expr a
   = Lit Int
   | Add a a
   | Mult a a
-  deriving (Eq, Show, Functor, Foldable, Traversable)
+  deriving stock (Eq, Show, Functor, Foldable, Traversable)
 
 deriveEq1 ''Expr
 deriveShow1 ''Expr

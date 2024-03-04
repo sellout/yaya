@@ -1,46 +1,120 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Safe #-}
 
-module Yaya.Fold where
+module Yaya.Fold
+  ( Algebra,
+    AlgebraM,
+    AlgebraPrism,
+    BialgebraIso,
+    Coalgebra,
+    CoalgebraM,
+    CoalgebraPrism,
+    Corecursive (ana),
+    DistributiveLaw,
+    ElgotAlgebra,
+    ElgotAlgebraM,
+    ElgotCoalgebra,
+    GAlgebra,
+    GAlgebraM,
+    GCoalgebra,
+    GCoalgebraM,
+    Mu (Mu),
+    Nu (Nu),
+    Projectable (project),
+    Recursive (cata),
+    Steppable (embed),
+    attributeAlgebra,
+    attributeCoalgebra,
+    birecursiveIso,
+    cata2,
+    colambek,
+    constAna,
+    constCata,
+    constEmbed,
+    constProject,
+    distEnvT,
+    distIdentity,
+    distTuple,
+    elgotAna,
+    elgotCata,
+    elgotCataM,
+    ezygoM,
+    gana,
+    gcata,
+    gcataM,
+    ignoringAttribute,
+    lambek,
+    lowerAlgebra,
+    lowerAlgebraM,
+    lowerCoalgebra,
+    lowerCoalgebraM,
+    lowerDay,
+    recursiveEq,
+    recursivePrism,
+    recursiveShowsPrec,
+    seqEither,
+    seqIdentity,
+    steppableIso,
+    unFree,
+    zipAlgebraMs,
+    zipAlgebras,
+  )
+where
 
-import "base" Control.Applicative (Applicative (..))
-import "base" Control.Category (Category (..))
+import "base" Control.Applicative (Applicative (pure))
+import "base" Control.Category (Category (id, (.)))
 import "base" Control.Monad (Monad, join, (<=<), (=<<))
-import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Data.Bifunctor (Bifunctor (bimap, first, second))
 import "base" Data.Bitraversable (bisequence)
-import "base" Data.Bool (Bool (..))
-import "base" Data.Eq (Eq (..))
-import "base" Data.Foldable (Foldable (..))
+import "base" Data.Bool (Bool (True))
+import "base" Data.Eq (Eq ((==)))
+import "base" Data.Foldable (Foldable (fold, toList))
 import "base" Data.Function (const, ($))
-import "base" Data.Functor (Functor (..), (<$>))
-import "base" Data.Functor.Classes (Eq1, Show1 (..))
+import "base" Data.Functor (Functor (fmap), (<$>))
+import "base" Data.Functor.Classes (Eq1, Show1 (liftShowsPrec))
 import "base" Data.Int (Int)
-import "base" Data.List.NonEmpty (NonEmpty (..))
+import "base" Data.List.NonEmpty (NonEmpty ((:|)))
 import "base" Data.Traversable (sequenceA)
 import "base" Data.Void (Void, absurd)
 import "base" Numeric.Natural (Natural)
-import "base" Text.Show (Show (..), ShowS, showParen)
-import "comonad" Control.Comonad (Comonad (..))
-import "comonad" Control.Comonad.Trans.Env (EnvT (..), ask, lowerEnvT, runEnvT)
-import "free" Control.Comonad.Cofree (Cofree (..))
-import "free" Control.Monad.Trans.Free (Free, FreeF (..), free, runFree)
-import "kan-extensions" Data.Functor.Day (Day (..))
-import "lens" Control.Lens hiding ((:<))
-import "strict" Data.Strict.Classes (Strict (..))
+import "base" Text.Show (Show (showsPrec), ShowS, showParen)
+import "comonad" Control.Comonad (Comonad (duplicate, extend, extract))
+import "comonad" Control.Comonad.Trans.Env
+  ( EnvT (EnvT),
+    ask,
+    lowerEnvT,
+    runEnvT,
+  )
+import "free" Control.Comonad.Cofree (Cofree ((:<)))
+import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free, runFree)
+import "kan-extensions" Data.Functor.Day (Day (Day))
+import "lens" Control.Lens
+  ( Const (Const, getConst),
+    Identity (Identity, runIdentity),
+    Iso',
+    Prism',
+    Traversable (traverse),
+    iso,
+    matching,
+    prism,
+    review,
+    view,
+  )
+import "strict" Data.Strict.Classes (Strict (toStrict))
 import "this" Yaya.Fold.Common (diagonal, equal, fromEither)
-import "this" Yaya.Functor (DFunctor (..))
+import "this" Yaya.Functor (DFunctor (dmap))
 import "this" Yaya.Pattern
-  ( AndMaybe (..),
-    Either (..),
-    Maybe (..),
-    Pair (..),
-    XNor (..),
+  ( AndMaybe (Indeed, Only),
+    Either (Left, Right),
+    Maybe (Just, Nothing),
+    Pair ((:!:)),
+    XNor (Both, Neither),
     fst,
     maybe,
     snd,
     uncurry,
   )
-import "base" Prelude (Enum (..))
+import "base" Prelude (Enum (pred, succ))
 
 type Algebra c f a = f a `c` a
 
@@ -190,7 +264,11 @@ instance Steppable (->) (Free f a) (FreeF f a) where
 
 -- | Combines two `Algebra`s with different carriers into a single tupled
 --  `Algebra`.
-zipAlgebras :: (Functor f) => Algebra (->) f a -> Algebra (->) f b -> Algebra (->) f (Pair a b)
+zipAlgebras ::
+  (Functor f) =>
+  Algebra (->) f a ->
+  Algebra (->) f b ->
+  Algebra (->) f (Pair a b)
 zipAlgebras f g = bimap (f . fmap fst) (g . fmap snd) . diagonal
 
 -- | Combines two `AlgebraM`s with different carriers into a single tupled
@@ -204,12 +282,18 @@ zipAlgebraMs f g = bisequence . bimap (f . fmap fst) (g . fmap snd) . diagonal
 
 -- | Algebras over Day convolution are convenient for binary operations, but
 --   aren’t directly handleable by `cata`.
-lowerDay :: (Projectable (->) t g) => Algebra (->) (Day f g) a -> Algebra (->) f (t -> a)
+lowerDay ::
+  (Projectable (->) t g) => Algebra (->) (Day f g) a -> Algebra (->) f (t -> a)
 lowerDay φ fta t = φ (Day fta (project t) ($))
 
 -- | By analogy with `Control.Applicative.liftA2` (which also relies on `Day`,
 --   at least conceptually).
-cata2 :: (Recursive (->) t f, Projectable (->) u g) => Algebra (->) (Day f g) a -> t -> u -> a
+cata2 ::
+  (Recursive (->) t f, Projectable (->) u g) =>
+  Algebra (->) (Day f g) a ->
+  t ->
+  u ->
+  a
 cata2 = cata . lowerDay
 
 -- | Makes it possible to provide a `GAlgebra` to `cata`.
@@ -274,7 +358,8 @@ elgotCataM ::
   ElgotAlgebraM (->) m w f a ->
   t ->
   m a
-elgotCataM w φ = φ <=< cata (fmap w . traverse (sequenceA . extend φ) <=< sequenceA)
+elgotCataM w φ =
+  φ <=< cata (fmap w . traverse (sequenceA . extend φ) <=< sequenceA)
 
 ezygoM ::
   (Monad m, Recursive (->) t f, Traversable f) =>
@@ -306,10 +391,12 @@ elgotAna ::
   t
 elgotAna k ψ = ana (fmap (ψ =<<) . k) . ψ
 
-lambek :: (Steppable (->) t f, Recursive (->) t f, Functor f) => Coalgebra (->) f t
+lambek ::
+  (Steppable (->) t f, Recursive (->) t f, Functor f) => Coalgebra (->) f t
 lambek = cata (fmap embed)
 
-colambek :: (Projectable (->) t f, Corecursive (->) t f, Functor f) => Algebra (->) f t
+colambek ::
+  (Projectable (->) t f, Corecursive (->) t f, Functor f) => Algebra (->) f t
 colambek = ana (fmap project)
 
 -- | There are a number of distributive laws, including
@@ -336,7 +423,8 @@ distEnvT ::
 distEnvT φ k =
   uncurry EnvT . bimap (φ . fmap ask) (k . fmap lowerEnvT) . diagonal
 
-seqEither :: (Functor f) => Coalgebra (->) f a -> DistributiveLaw (->) (Either a) f
+seqEither ::
+  (Functor f) => Coalgebra (->) f a -> DistributiveLaw (->) (Either a) f
 seqEither ψ = fromEither . bimap (fmap Left . ψ) (fmap Right)
 
 -- | Converts an `Algebra` to one that annotates the tree with the result for

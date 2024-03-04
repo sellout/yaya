@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.Set
-  ( SetF (..),
+  ( SetF (BinF, TipF),
   )
 where
 
@@ -35,7 +35,16 @@ import "yaya" Yaya.Fold
 import "base" Prelude (Num ((+)))
 
 data SetF a r = TipF | BinF Set.Size a r r
-  deriving (Eq, Ord, Generic, Show, Foldable, Functor, Generic1, Traversable)
+  deriving stock
+    ( Eq,
+      Ord,
+      Generic,
+      Show,
+      Foldable,
+      Functor,
+      Generic1,
+      Traversable
+    )
 
 instance Projectable (->) (Set.Set a) (SetF a) where
   project Set.Tip = TipF

@@ -1,42 +1,48 @@
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Uses of recursion schemes that use Haskell’s built-in recursion in a total
 --   manner.
 module Yaya.Fold.Native
   ( module Yaya.Fold.Native.Internal,
-    Fix (..),
+    Fix (Fix, unFix),
     distCofreeT,
   )
 where
 
-import "base" Control.Category (Category (..))
-import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Control.Category (Category ((.)))
+import "base" Data.Bifunctor (Bifunctor (bimap))
 import "base" Data.Eq (Eq ((==)))
-import "base" Data.Foldable (Foldable)
+import "base" Data.Foldable (Foldable (toList))
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (..))
+import "base" Data.Functor (Functor (fmap))
 import "base" Data.Functor.Classes (Eq1, Show1)
-import "base" Data.List.NonEmpty
-import "base" Numeric.Natural
+import "base" Data.List.NonEmpty (NonEmpty ((:|)))
+import "base" Numeric.Natural (Natural)
 import "base" Text.Show (Show (showsPrec))
-import "comonad" Control.Comonad (Comonad (..))
-import "comonad" Control.Comonad.Trans.Env (EnvT (..), runEnvT)
-import "free" Control.Comonad.Cofree (Cofree (..), unwrap)
-import "free" Control.Monad.Trans.Free (Free, FreeF (..), free)
-import "strict" Data.Strict.Classes (Strict (..))
+import "comonad" Control.Comonad (Comonad (extract))
+import "comonad" Control.Comonad.Trans.Env (EnvT (EnvT), runEnvT)
+import "free" Control.Comonad.Cofree (Cofree ((:<)), unwrap)
+import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free)
+import "strict" Data.Strict.Classes (Strict (toStrict))
 import "this" Yaya.Fold
-  ( Corecursive (..),
+  ( Corecursive (ana),
     DistributiveLaw,
-    Projectable (..),
-    Recursive (..),
-    Steppable (..),
+    Projectable (project),
+    Recursive (cata),
+    Steppable (embed),
     recursiveEq,
     recursiveShowsPrec,
   )
 import "this" Yaya.Fold.Common (diagonal)
 import "this" Yaya.Fold.Native.Internal (Cofix (unCofix))
-import "this" Yaya.Pattern (AndMaybe (..), Maybe, XNor (..), uncurry)
+import "this" Yaya.Pattern
+  ( AndMaybe (Indeed, Only),
+    Maybe,
+    XNor (Both, Neither),
+    uncurry,
+  )
 
 -- | A fixed-point constructor that uses Haskell's built-in recursion. This is
 --   strict/recursive.
@@ -72,7 +78,7 @@ instance Corecursive (->) (NonEmpty a) (AndMaybe a) where
   ana ψ =
     ( \case
         Only h -> h :| []
-        Indeed h t -> h :| toList (ana ψ t)
+        Indeed h t -> h :| toList @NonEmpty (ana ψ t)
     )
       . ψ
 

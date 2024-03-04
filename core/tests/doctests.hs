@@ -1,3 +1,5 @@
+{-# LANGUAGE Unsafe #-}
+
 module Main (main) where
 
 import safe "base" Data.Function (($))

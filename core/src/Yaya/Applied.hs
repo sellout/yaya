@@ -13,16 +13,54 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Yaya.Applied where
+module Yaya.Applied
+  ( Void,
+    absurd,
+    append,
+    at,
+    atMay,
+    constantly,
+    drop',
+    drop,
+    fibonacci,
+    fibonacciPolynomials,
+    fromList,
+    fromListN,
+    fromMaybe,
+    height,
+    jacobsthal,
+    length,
+    lucas,
+    lucasSequenceU,
+    lucasSequenceV,
+    maybeReify,
+    mersenne,
+    naturals,
+    now,
+    pell,
+    reifyUpTo,
+    reverse',
+    reverse,
+    runToEnd,
+    succN,
+    tail,
+    take,
+    takeUpTo,
+    toList,
+    truncate,
+    vacuous,
+    zeroN,
+  )
+where
 
-import safe "base" Control.Category (Category (..))
+import safe "base" Control.Category (Category (id, (.)))
 import safe "base" Data.Foldable (Foldable (foldr))
 import safe "base" Data.Function (flip)
-import safe "base" Data.Functor (Functor (..))
-import safe "base" Data.Functor.Identity (Identity (..))
+import safe "base" Data.Functor (Functor (fmap))
+import safe "base" Data.Functor.Identity (Identity (runIdentity))
 import safe "base" Data.Int (Int)
 import safe "base" Data.Monoid (Monoid (mempty))
-import safe "base" Data.Ord (Ord (..))
+import safe "base" Data.Ord (Ord (max))
 import safe "base" Data.Semigroup (Semigroup ((<>)))
 
 -- See comment on @{-# LANGUAGE Safe #-}@ above.
@@ -34,15 +72,15 @@ import "base" GHC.Exts (IsList)
 import qualified "base" GHC.Exts as IsList
 #endif
 import safe "base" Numeric.Natural (Natural)
-import safe "free" Control.Monad.Trans.Free (FreeF (..))
+import safe "free" Control.Monad.Trans.Free (FreeF (Free, Pure))
 import safe "this" Yaya.Fold
   ( Algebra,
-    Corecursive (..),
+    Corecursive (ana),
     Mu,
     Nu,
-    Projectable (..),
-    Recursive (..),
-    Steppable (..),
+    Projectable (project),
+    Recursive (cata),
+    Steppable (embed),
     cata2,
   )
 import safe "this" Yaya.Fold.Common
@@ -61,8 +99,8 @@ import safe "this" Yaya.Fold.Common
   )
 import safe "this" Yaya.Fold.Native (Fix)
 import safe "this" Yaya.Pattern
-  ( Either (..),
-    Maybe (..),
+  ( Either (Left),
+    Maybe (Just, Nothing),
     Pair,
     XNor (Both, Neither),
     maybe,

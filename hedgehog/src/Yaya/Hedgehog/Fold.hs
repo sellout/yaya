@@ -1,16 +1,26 @@
 {-# LANGUAGE TypeApplications #-}
--- "Hedgehog" is @Unsafe@
 {-# LANGUAGE Unsafe #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
-module Yaya.Hedgehog.Fold where
+module Yaya.Hedgehog.Fold
+  ( corecursiveIsUnsafe,
+    embeddableOfHeight,
+    genAlgebra,
+    genCorecursive,
+    law_anaRefl,
+    law_cataCancel,
+    law_cataCompose,
+    law_cataRefl,
+    recursiveIsUnsafe,
+  )
+where
 
-import safe "base" Control.Category (Category (..))
-import safe "base" Data.Bifunctor (Bifunctor (..))
+import safe "base" Control.Category (Category ((.)))
+import safe "base" Data.Bifunctor (Bifunctor (bimap, first))
 import safe "base" Data.Eq (Eq)
 import safe "base" Data.Function (($))
-import safe "base" Data.Functor (Functor (..))
-import safe "base" Data.Proxy (Proxy (..))
+import safe "base" Data.Functor (Functor (fmap))
+import safe "base" Data.Proxy (Proxy (Proxy))
 import safe qualified "base" Data.Tuple as Tuple
 import safe "base" Data.Void (Void, absurd)
 import safe "base" Numeric.Natural (Natural)
@@ -26,10 +36,10 @@ import "hedgehog" Hedgehog
   )
 import "yaya" Yaya.Fold
   ( Algebra,
-    Corecursive (..),
-    Projectable (..),
-    Recursive (..),
-    Steppable (..),
+    Corecursive (ana),
+    Projectable (project),
+    Recursive (cata),
+    Steppable (embed),
   )
 import safe "yaya" Yaya.Fold.Common (diagonal)
 import safe "yaya" Yaya.Fold.Native ()

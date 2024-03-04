@@ -6,15 +6,21 @@
 --
 --   As these few operations have the usual signatures, the rest of the type
 --   class can be implemented in the as in @base@.
-module Yaya.Experimental.Foldable where
+module Yaya.Experimental.Foldable
+  ( Listable (naturalList),
+    foldMap,
+    foldl,
+    foldr,
+  )
+where
 
-import "base" Control.Category (Category (..))
+import "base" Control.Category (Category (id, (.)))
 import "base" Data.Function (flip)
 import "base" Data.Monoid (Monoid)
 import "free" Control.Monad.Trans.Free (Free, iter)
-import "this" Yaya.Fold (Recursive (..))
+import "this" Yaya.Fold (Recursive (cata))
 import "this" Yaya.Fold.Common (lowerMonoid)
-import "this" Yaya.Pattern (XNor (..))
+import "this" Yaya.Pattern (XNor (Both, Neither))
 
 foldMap :: (Recursive (->) t (XNor a), Monoid m) => (a -> m) -> t -> m
 foldMap = cata . lowerMonoid

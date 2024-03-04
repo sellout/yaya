@@ -1,6 +1,9 @@
 {-# LANGUAGE Safe #-}
 
-module Yaya.Unsafe.Applied where
+module Yaya.Unsafe.Applied
+  ( unsafeFromList,
+  )
+where
 
 import "yaya" Yaya.Fold (Steppable (embed))
 import "yaya" Yaya.Pattern (XNor)

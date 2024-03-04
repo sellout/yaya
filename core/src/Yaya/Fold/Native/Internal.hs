@@ -7,7 +7,10 @@
 
 -- | This module only exists to restrict the scope of @NoStrictData@. Everything
 --    is re-exported via "Yaya.Fold".
-module Yaya.Fold.Native.Internal where
+module Yaya.Fold.Native.Internal
+  ( Cofix (Cofix, unCofix),
+  )
+where
 
 import "base" Control.Category (Category ((.)))
 import "base" Data.Functor (Functor (fmap))

@@ -9,15 +9,15 @@ module Yaya.Pattern
   ( module Data.Strict.Either,
     module Data.Strict.Maybe,
     module Data.Strict.Tuple,
-    XNor (..),
-    AndMaybe (..),
+    AndMaybe (Indeed, Only),
+    XNor (Both, Neither),
   )
 where
 
-import "base" Control.Applicative (Applicative (..))
+import "base" Control.Applicative (Applicative (liftA2, pure))
 import "base" Control.Category (Category ((.)))
-import "base" Control.Monad (Monad (..))
-import "base" Data.Bifunctor (Bifunctor (..))
+import "base" Control.Monad (Monad ((>>=)))
+import "base" Data.Bifunctor (Bifunctor (bimap))
 import "base" Data.Bool (Bool (False, True), (&&))
 import "base" Data.Eq (Eq ((==)))
 import "base" Data.Foldable (Foldable)
@@ -37,16 +37,55 @@ import "base" Data.Traversable (Traversable)
 import qualified "base" Data.Tuple as Tuple
 import "base" GHC.Generics (Generic, Generic1)
 import "base" Text.Show (Show (showList, showsPrec), showParen, showString)
-import "comonad" Control.Comonad (Comonad (..))
--- explicitly omitted import list for @strict@ modules
+import "comonad" Control.Comonad (Comonad (duplicate, extract))
 import "strict" Data.Strict.Either
+  ( Either (Left, Right),
+    either,
+    fromLeft,
+    fromRight,
+    isLeft,
+    isRight,
+    lefts,
+    partitionEithers,
+    rights,
+  )
 import "strict" Data.Strict.Maybe
+  ( Maybe (Just, Nothing),
+    catMaybes,
+    fromJust,
+    fromMaybe,
+    isJust,
+    isNothing,
+    listToMaybe,
+    mapMaybe,
+    maybe,
+    maybeToList,
+  )
 import "strict" Data.Strict.Tuple
+  ( Pair ((:!:)),
+    curry,
+    fst,
+    snd,
+    swap,
+    uncurry,
+    unzip,
+    zip,
+    (:!:),
+  )
 import "base" Prelude (Num ((+)))
 
 -- | Isomorphic to 'Maybe (a, b)', it’s also the pattern functor for lists.
 data XNor a b = Neither | Both ~a b
-  deriving (Eq, Generic, Ord, Show, Foldable, Functor, Generic1, Traversable)
+  deriving stock
+    ( Eq,
+      Generic,
+      Ord,
+      Show,
+      Foldable,
+      Functor,
+      Generic1,
+      Traversable
+    )
 
 instance (Eq a) => Eq1 (XNor a) where
   -- TODO: Remove this once base-4.18 is the oldest supported verson, as it’s
@@ -97,7 +136,7 @@ instance Bifunctor XNor where
 -- | Isomorphic to `(a, Maybe b)`, it’s also the pattern functor for non-empty
 --   lists.
 data AndMaybe a b = Only ~a | Indeed ~a b
-  deriving (Eq, Generic, Show, Foldable, Functor, Generic1, Traversable)
+  deriving stock (Eq, Generic, Show, Foldable, Functor, Generic1, Traversable)
 
 instance (Eq a) => Eq1 (AndMaybe a) where
   -- TODO: Remove this once base-4.18 is the oldest supported verson, as it’s

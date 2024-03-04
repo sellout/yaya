@@ -1,9 +1,12 @@
--- __NB__: `custom-setup` doesn’t have any way to specify extensions, so any we
---         want need to be specified here.
+-- __NB__: `custom-setup` doesn’t have any way to specify extensions or options,
+--         so any we want need to be specified here.
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE Unsafe #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Weverything #-}
+-- Warns even when `Unsafe` is explicit, not inferred. See
+-- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
+{-# OPTIONS_GHC -Wno-unsafe #-}
 
 module Main (main) where
 

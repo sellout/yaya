@@ -1,35 +1,59 @@
 {-# LANGUAGE Safe #-}
 
 -- | Common algebras that are useful when folding.
-module Yaya.Fold.Common where
+module Yaya.Fold.Common
+  ( binarySequence,
+    definedOrInput,
+    diagonal,
+    equal,
+    fromEither,
+    height,
+    le,
+    lowerMonad,
+    lowerMonoid,
+    lowerSemigroup,
+    lucasSequence',
+    maybeTakeNext,
+    never,
+    replaceNeither,
+    size,
+    takeAnother,
+    takeAvailable,
+    takeNext,
+    ternarySequence,
+    toRight,
+    truncate',
+    unarySequence,
+  )
+where
 
-import "base" Control.Applicative (Applicative (..))
-import "base" Control.Category (Category (..))
+import "base" Control.Applicative (Applicative (pure))
+import "base" Control.Category (Category (id, (.)))
 import "base" Control.Monad (Monad, join)
-import "base" Data.Bool (Bool (..), (&&))
-import "base" Data.Eq (Eq (..))
-import "base" Data.Foldable (Foldable (..), and)
+import "base" Data.Bool (Bool (False, True), (&&))
+import "base" Data.Eq (Eq ((==)))
+import "base" Data.Foldable (Foldable (foldr, toList), and)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (..), void)
-import "base" Data.Functor.Classes (Eq1 (..))
-import "base" Data.Functor.Identity (Identity (..))
+import "base" Data.Functor (Functor (fmap), void)
+import "base" Data.Functor.Classes (Eq1 (liftEq))
+import "base" Data.Functor.Identity (Identity (Identity, runIdentity))
 import "base" Data.List (zipWith)
-import "base" Data.Monoid (Monoid (..))
-import "base" Data.Ord (Ord (..))
-import "base" Data.Semigroup (Semigroup (..))
+import "base" Data.Monoid (Monoid (mempty))
+import "base" Data.Ord (Ord (max))
+import "base" Data.Semigroup (Semigroup ((<>)))
 import "base" Numeric.Natural (Natural)
-import "free" Control.Monad.Trans.Free (FreeF (..))
-import "kan-extensions" Data.Functor.Day (Day (..))
+import "free" Control.Monad.Trans.Free (FreeF (Free, Pure))
+import "kan-extensions" Data.Functor.Day (Day (Day))
 import "this" Yaya.Pattern
-  ( AndMaybe (..),
-    Either (..),
-    Maybe (..),
-    Pair (..),
-    XNor (..),
+  ( AndMaybe (Indeed, Only),
+    Either (Left, Right),
+    Maybe (Just, Nothing),
+    Pair ((:!:)),
+    XNor (Both, Neither),
     either,
     maybe,
   )
-import Prelude (Integer, Num (..))
+import Prelude (Integer, Num ((*), (+), (-)))
 
 -- | Converts the free monoid (a list) into some other `Monoid`.
 lowerMonoid :: (Monoid m) => (a -> m) -> XNor a m -> m

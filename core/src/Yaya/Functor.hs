@@ -2,17 +2,22 @@
 
 -- | This should probably be a separate library, but it provides a number of
 --   functor type classes between various categories.
-module Yaya.Functor where
+module Yaya.Functor
+  ( DFunctor (dmap),
+    HFunctor (hmap),
+    firstMap,
+  )
+where
 
-import "base" Control.Category (Category (..))
+import "base" Control.Category (Category ((.)))
 import "base" Data.Bifunctor (Bifunctor, first)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (..))
-import "base" Data.Functor.Compose (Compose (..))
-import "base" Data.Functor.Product (Product (..))
+import "base" Data.Functor (Functor (fmap))
+import "base" Data.Functor.Compose (Compose (Compose))
+import "base" Data.Functor.Product (Product (Pair))
 import "base" Data.Kind (Type)
-import "transformers" Control.Applicative.Backwards (Backwards (..))
-import "transformers" Control.Applicative.Lift (Lift (..))
+import "transformers" Control.Applicative.Backwards (Backwards (Backwards))
+import "transformers" Control.Applicative.Lift (Lift (Other, Pure))
 import qualified "transformers" Control.Monad.Trans.Except as Ex
 import qualified "transformers" Control.Monad.Trans.Identity as I
 import qualified "transformers" Control.Monad.Trans.Maybe as M
