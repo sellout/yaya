@@ -30,8 +30,9 @@ import safe "base" Data.Eq (Eq ((==)))
 import safe "base" Data.Foldable (Foldable)
 import safe "base" Data.Function (flip)
 import safe "base" Data.Functor (Functor, (<$>))
-import safe "base" Data.Functor.Classes (Eq1, Show1)
+import safe "base" Data.Functor.Classes (Eq1, Ord1, Show1)
 import safe "base" Data.List.NonEmpty (NonEmpty)
+import safe "base" Data.Ord (Ord (compare))
 
 -- See comment on @{-# LANGUAGE Safe #-}@ above.
 #if MIN_VERSION_base(4, 17, 0)
@@ -51,6 +52,7 @@ import safe "yaya" Yaya.Fold
     Projectable (project),
     Recursive (cata),
     Steppable (embed),
+    recursiveCompare,
     recursiveEq,
     recursiveShowsPrec,
   )
@@ -68,6 +70,10 @@ instance (Functor f) => Recursive (->) (Cofix f) f where
 instance (Functor f, Foldable f, Eq1 f) => Eq (Cofix f) where
   (==) = recursiveEq
 
+-- | @since 0.3.4.0
+instance (Functor f, Foldable f, Ord1 f) => Ord (Cofix f) where
+  compare = recursiveCompare
+
 instance (Functor f, Show1 f) => Show (Cofix f) where
   showsPrec = recursiveShowsPrec
 
@@ -79,6 +85,10 @@ instance (Functor f) => Recursive (->) (Nu f) f where
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
   (==) = recursiveEq
+
+-- | @since 0.3.4.0
+instance (Functor f, Foldable f, Ord1 f) => Ord (Nu f) where
+  compare = recursiveCompare
 
 instance (Functor f, Show1 f) => Show (Nu f) where
   showsPrec = recursiveShowsPrec

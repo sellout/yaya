@@ -4,8 +4,10 @@
 module Yaya.Fold.Common
   ( binarySequence,
     definedOrInput,
+    compareDay,
     diagonal,
     equal,
+    equalDay,
     fromEither,
     height,
     le,
@@ -16,6 +18,7 @@ module Yaya.Fold.Common
     maybeTakeNext,
     never,
     replaceNeither,
+    showsPrecF,
     size,
     takeAnother,
     takeAvailable,
@@ -24,6 +27,7 @@ module Yaya.Fold.Common
     toRight,
     truncate',
     unarySequence,
+    xnor,
   )
 where
 
@@ -32,40 +36,41 @@ import "base" Control.Category (Category (id, (.)))
 import "base" Control.Monad (Monad, join)
 import "base" Data.Bool (Bool (False, True), (&&))
 import "base" Data.Eq (Eq ((==)))
-import "base" Data.Foldable (Foldable (foldr, toList), and)
-import "base" Data.Function (($))
+import "base" Data.Foldable (Foldable (foldr, toList), and, fold)
+import "base" Data.Function (($), (&))
 import "base" Data.Functor (Functor (fmap), void)
-import "base" Data.Functor.Classes (Eq1 (liftEq))
+import "base" Data.Functor.Classes (Eq1 (liftEq), Show1 (liftShowsPrec))
 import "base" Data.Functor.Identity (Identity (Identity, runIdentity))
+import "base" Data.Int (Int)
 import "base" Data.List (zipWith)
 import "base" Data.Monoid (Monoid (mempty))
-import "base" Data.Ord (Ord (max))
+import "base" Data.Ord (Ord (max), Ordering)
 import "base" Data.Semigroup (Semigroup ((<>)))
+import "base" GHC.Show (showList__)
 import "base" Numeric.Natural (Natural)
+import "base" Text.Show (ShowS)
 import "free" Control.Monad.Trans.Free (FreeF (Free, Pure))
 import "kan-extensions" Data.Functor.Day (Day (Day))
 import "this" Yaya.Pattern
-  ( AndMaybe (Indeed, Only),
+  ( AndMaybe,
     Either (Left, Right),
     Maybe (Just, Nothing),
     Pair ((:!:)),
     XNor (Both, Neither),
+    andMaybe,
     either,
     maybe,
+    xnor,
   )
 import Prelude (Integer, Num ((*), (+), (-)))
 
 -- | Converts the free monoid (a list) into some other `Monoid`.
 lowerMonoid :: (Monoid m) => (a -> m) -> XNor a m -> m
-lowerMonoid f = \case
-  Neither -> mempty
-  Both a b -> f a <> b
+lowerMonoid = xnor mempty . ((<>) .)
 
 -- | Converts the free semigroup (a non-empty list) into some other `Semigroup`.
 lowerSemigroup :: (Semigroup m) => (a -> m) -> AndMaybe a m -> m
-lowerSemigroup f = \case
-  Only a -> f a
-  Indeed a b -> f a <> b
+lowerSemigroup f = andMaybe f ((<>) . f)
 
 -- | Converts the free monad into some other `Monad`.
 lowerMonad :: (Monad m) => (forall x. f x -> m x) -> FreeF f a (m a) -> m a
@@ -74,10 +79,35 @@ lowerMonad f = \case
   Free fm -> join (f fm)
 
 -- | Provides equality over arbitrary pattern functors.
-equal :: (Functor f, Foldable f, Eq1 f) => Day f f Bool -> Bool
-equal (Day f1 f2 fn) =
-  liftEq (==) (void f1) (void f2)
+--
+--   @since 0.5.3.0
+equalDay ::
+  (Functor f, Foldable f) => (f () -> f () -> Bool) -> Day f f Bool -> Bool
+equalDay eqF (Day f1 f2 fn) =
+  eqF (void f1) (void f2)
     && and (zipWith fn (toList f1) (toList f2))
+
+-- | Provides equality over arbitrary pattern functors.
+equal :: (Functor f, Foldable f, Eq1 f) => Day f f Bool -> Bool
+equal = equalDay $ liftEq (==)
+
+-- | Provides ordering over arbitrary pattern functors.
+--
+--   @since 0.5.3.0
+compareDay ::
+  (Functor f, Foldable f) =>
+  (f () -> f () -> Ordering) ->
+  Day f f Ordering ->
+  Ordering
+compareDay compareF (Day f1 f2 fn) =
+  compareF (void f1) (void f2)
+    <> fold (zipWith fn (toList f1) (toList f2))
+
+-- | Provides show over arbitrary pattern functors.
+--
+--   @since 0.5.3.0
+showsPrecF :: (Show1 f) => Int -> f (Int -> ShowS) -> ShowS
+showsPrecF = liftShowsPrec (&) (showList__ ($ 0))
 
 -- TODO: Redefine this using `Natural`
 

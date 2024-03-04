@@ -49,35 +49,59 @@ module Yaya.Fold
     lowerCoalgebra,
     lowerCoalgebraM,
     lowerDay,
+    recursiveCompare,
+    recursiveCompare',
     recursiveEq,
+    recursiveEq',
     recursivePrism,
     recursiveShowsPrec,
+    recursiveShowsPrec',
     seqEither,
     seqIdentity,
     steppableIso,
+    steppableReadPrec,
+    steppableReadPrec',
     unFree,
     zipAlgebraMs,
     zipAlgebras,
   )
 where
 
-import "base" Control.Applicative (Applicative (pure))
-import "base" Control.Category (Category (id, (.)))
+import "base" Control.Applicative (Applicative (pure), (*>))
+import "base" Control.Category (Category ((.)))
 import "base" Control.Monad (Monad, join, (<=<), (=<<))
 import "base" Data.Bifunctor (Bifunctor (bimap, first, second))
 import "base" Data.Bitraversable (bisequence)
-import "base" Data.Bool (Bool (True))
+import "base" Data.Bool (Bool)
 import "base" Data.Eq (Eq ((==)))
-import "base" Data.Foldable (Foldable (fold, toList))
-import "base" Data.Function (const, ($))
+import "base" Data.Foldable (Foldable (toList))
+import "base" Data.Function (const, flip, ($))
 import "base" Data.Functor (Functor (fmap), (<$>))
-import "base" Data.Functor.Classes (Eq1, Show1 (liftShowsPrec))
+import "base" Data.Functor.Classes
+  ( Eq1 (liftEq),
+    Ord1 (liftCompare),
+    Read1 (liftReadPrec),
+    Show1,
+  )
 import "base" Data.Int (Int)
 import "base" Data.List.NonEmpty (NonEmpty ((:|)))
+import "base" Data.Ord (Ord (compare, (<=)), Ordering)
+import "base" Data.String (String)
 import "base" Data.Traversable (sequenceA)
 import "base" Data.Void (Void, absurd)
+import "base" GHC.Read (expectP, list)
+import "base" GHC.Show (appPrec1)
 import "base" Numeric.Natural (Natural)
-import "base" Text.Show (Show (showsPrec), ShowS, showParen)
+import "base" Text.Read
+  ( Read (readListPrec, readPrec),
+    ReadPrec,
+    parens,
+    prec,
+    readListPrecDefault,
+    step,
+  )
+import qualified "base" Text.Read.Lex as Lex
+import "base" Text.Show (Show (showsPrec), ShowS, showParen, showString)
 import "comonad" Control.Comonad (Comonad (duplicate, extend, extract))
 import "comonad" Control.Comonad.Trans.Env
   ( EnvT (EnvT),
@@ -101,7 +125,13 @@ import "lens" Control.Lens
     view,
   )
 import "strict" Data.Strict.Classes (Strict (toStrict))
-import "this" Yaya.Fold.Common (diagonal, equal, fromEither)
+import "this" Yaya.Fold.Common
+  ( compareDay,
+    diagonal,
+    equalDay,
+    fromEither,
+    showsPrecF,
+  )
 import "this" Yaya.Functor (DFunctor (dmap))
 import "this" Yaya.Pattern
   ( AndMaybe (Indeed, Only),
@@ -115,6 +145,9 @@ import "this" Yaya.Pattern
     uncurry,
   )
 import "base" Prelude (Enum (pred, succ))
+
+-- $setup
+-- >>> :seti -XTypeApplications
 
 type Algebra c f a = f a `c` a
 
@@ -162,20 +195,126 @@ class Recursive c t f | t -> f where
 class Corecursive c t f | t -> f where
   ana :: Coalgebra c f a -> a `c` t
 
--- | An implementation of `Eq` for any `Recursive` instance. Note that this is
---   actually more general than `Eq`, as it can compare between different
+-- | Like `recursiveEq`, but allows you to provide a custom comparator for @f@.
+--
+--   @since 0.5.3.0
+recursiveEq' ::
+  (Recursive (->) t f, Steppable (->) u f, Functor f, Foldable f) =>
+  (f () -> f () -> Bool) ->
+  t ->
+  u ->
+  Bool
+recursiveEq' = cata2 . equalDay
+
+-- | An implementation of `==` for any `Recursive` instance. Note that this is
+--   actually more general than `Eq`’s `==`, as it can compare between different
 --   fixed-point representations of the same functor.
+--
+--  __NB__: Use `recursiveEq'` if you need to use a custom comparator for @f@.
 recursiveEq ::
   (Recursive (->) t f, Steppable (->) u f, Functor f, Foldable f, Eq1 f) =>
   t ->
   u ->
   Bool
-recursiveEq = cata2 equal
+recursiveEq = recursiveEq' $ liftEq (==)
 
--- | An implementation of `Show` for any `Recursive` instance.
+-- | Like `recursiveCompare`, but allows you to provide a custom comparator for
+--   @f@.
+--
+--   @since 0.5.3.0
+recursiveCompare' ::
+  (Recursive (->) t f, Steppable (->) u f, Functor f, Foldable f) =>
+  (f () -> f () -> Ordering) ->
+  t ->
+  u ->
+  Ordering
+recursiveCompare' = cata2 . compareDay
+
+-- | An implementation of `==` for any `Recursive` instance. Note that this is
+--   actually more general than `Ord`’s `compare`, as it can compare between
+--   different fixed-point representations of the same functor.
+--
+--  __NB__: Use `recursiveCompare'` if you need to use a custom comparator for
+--          @f@.
+--
+--   @since 0.5.3.0
+recursiveCompare ::
+  (Recursive (->) t f, Steppable (->) u f, Functor f, Foldable f, Ord1 f) =>
+  t ->
+  u ->
+  Ordering
+recursiveCompare = recursiveCompare' $ liftCompare compare
+
+embedOperation :: String
+embedOperation = "embed"
+
+-- | Like `recursiveShowsPrec`, but allows you to provide a custom display
+--   function for @f@.
+--
+--   @since 0.5.3.0
+recursiveShowsPrec' ::
+  (Recursive (->) t f) => Algebra (->) f (Int -> ShowS) -> Int -> t -> ShowS
+recursiveShowsPrec' showsFPrec = flip . cata $
+  \f p ->
+    showParen (appPrec1 <= p) $
+      showString embedOperation . showString " " . showsFPrec f appPrec1
+
+-- | An implementation of `showsPrec` for any `Recursive` instance.
+--
+-- >>> :{
+--   recursiveShowsPrec
+--     @(Mu (XNor String))
+--     10
+--     (embed (Both "a" (embed (Both "b" (embed Neither)))))
+--     ""
+-- :}
+-- "embed (Both \"a\" (embed (Both \"b\" (embed Neither))))"
+--
+-- >>> :{
+--   recursiveShowsPrec
+--     @(Mu (XNor String))
+--     11
+--     (embed (Both "a" (embed (Both "b" (embed Neither)))))
+--     ""
+-- :}
+-- "(embed (Both \"a\" (embed (Both \"b\" (embed Neither)))))"
+--
+--  __NB__: Use `recursiveShowsPrec'` if you need to use a custom serialization
+--          function for @f@.
+--
+--  __NB__: This only requires `Recursive`, but the inverse operation is
+--         `steppableReadPrec`, which requires `Steppable` instead.
 recursiveShowsPrec :: (Recursive (->) t f, Show1 f) => Int -> t -> ShowS
-recursiveShowsPrec prec =
-  cata (showParen True . liftShowsPrec (const id) fold prec)
+recursiveShowsPrec = recursiveShowsPrec' $ flip showsPrecF
+
+-- | Like `steppableReadPrec`, but allows you to provide a custom display
+--   function for @f@.
+--
+--   @since 0.5.3.0
+steppableReadPrec' ::
+  (Steppable (->) t f) =>
+  (ReadPrec t -> ReadPrec [t] -> ReadPrec (f t)) ->
+  ReadPrec t
+steppableReadPrec' readFPrec =
+  let appPrec = 10
+   in parens . prec appPrec . fmap embed $
+        expectP (Lex.Ident embedOperation)
+          *> step
+            ( readFPrec (steppableReadPrec' readFPrec) . list $
+                steppableReadPrec' readFPrec
+            )
+
+-- | An implementation of `readPrec` for any `Steppable` instance.
+--
+--  __NB__: Use `steppableReadPrec'` if you need to use a custom parsing
+--          function  for @f@.
+--
+--  __NB__: This only requires `Steppable`, but the inverse operation is
+--         `recursiveShowsPrec`, which requires `Recursive` instead.
+--
+--   @since 0.5.3.0
+steppableReadPrec :: (Steppable (->) t f, Read1 f) => ReadPrec t
+steppableReadPrec = steppableReadPrec' liftReadPrec
 
 -- | A fixed-point operator for inductive / finite data structures.
 --
@@ -196,11 +335,20 @@ instance Recursive (->) (Mu f) f where
 instance DFunctor Mu where
   dmap f (Mu run) = Mu (\φ -> run (φ . f))
 
-instance (Show1 f) => Show (Mu f) where
-  showsPrec = recursiveShowsPrec
-
 instance (Functor f, Foldable f, Eq1 f) => Eq (Mu f) where
   (==) = recursiveEq
+
+-- | @since 0.5.3.0
+instance (Functor f, Foldable f, Ord1 f) => Ord (Mu f) where
+  compare = recursiveCompare
+
+-- | @since 0.5.3.0
+instance (Functor f, Read1 f) => Read (Mu f) where
+  readPrec = steppableReadPrec
+  readListPrec = readListPrecDefault
+
+instance (Show1 f) => Show (Mu f) where
+  showsPrec = recursiveShowsPrec
 
 -- | A fixed-point operator for coinductive / potentially-infinite data
 --   structures.
@@ -217,6 +365,11 @@ instance Corecursive (->) (Nu f) f where
 
 instance DFunctor Nu where
   dmap f (Nu φ a) = Nu (f . φ) a
+
+-- | @since 0.5.3.0
+instance (Functor f, Read1 f) => Read (Nu f) where
+  readPrec = steppableReadPrec
+  readListPrec = readListPrecDefault
 
 instance Projectable (->) [a] (XNor a) where
   project [] = Neither
