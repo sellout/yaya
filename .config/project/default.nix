@@ -18,6 +18,7 @@
 
   imports = [
     ./github-ci.nix
+    ./hackage-publish.nix
     ./hlint.nix
   ];
 
