@@ -38,6 +38,7 @@
           uses = "haskell-actions/hackage-publish@v1";
           "with" = {
             hackageToken = "\${{ secrets.HACKAGE_AUTH_TOKEN }}";
+            packagesPath = "\${{ runner.temp }}/dist-newstyle/sdist/";
             publish = false;
           };
         }
