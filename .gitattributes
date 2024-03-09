@@ -14,3 +14,4 @@
 /.github/workflows/build.yml linguist-generated
 /.github/workflows/flakehub-publish.yml linguist-generated
 /garnix.yaml linguist-generated
+/.github/workflows/hackage-publish.yml linguist-generated
