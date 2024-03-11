@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya-unsafe
-version:     0.3.3.0
+version:     0.3.3.1
 synopsis:    Non-total extensions to the Yaya recursion scheme library.
 description: Yaya is designed as a _total_ library. However, it is often
              expedient to use partial operations in some cases, and this package
@@ -212,3 +212,44 @@ test-suite doctests
     -- “Build_doctests.hs”, we set it here, and that means it has to match
     -- doctests.hs, which is `Unsafe`.
     Unsafe
+
+test-suite yaya-unsafe
+  import: defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs:
+    tests
+  main-is: test.hs
+  other-modules:
+    Test.Fold
+  build-depends:
+    hedgehog,
+    yaya >= 0.5.0,
+    yaya-hedgehog >= 0.2.1,
+    yaya-unsafe >= 0.3.0,
+  ghc-options:
+    -- NB: Need `-fno-omit-yields` so that `timeout` can interrupt native
+    --     recursion in non-termination tests.
+    -fno-omit-yields
+    -rtsopts
+    -threaded
+    -trust adjunctions
+    -trust array
+    -trust base-orphans
+    -trust binary
+    -trust bytestring
+    -trust containers
+    -trust distributive
+    -trust exceptions
+    -trust ghc-prim
+    -trust hashable
+    -trust lens
+    -trust profunctors
+    -trust semigroupoids
+    -trust stm
+    -trust template-haskell
+    -trust text
+    -trust transformers-compat
+    -with-rtsopts=-N
+  if impl(ghc < 9.6)
+    ghc-options:
+      -trust foldable1-classes-compat
