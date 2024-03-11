@@ -40,22 +40,14 @@
 
     supportedSystems = flaky.lib.defaultSystems;
 
-    cabalPackages = pkgs: hpkgs: let
-      packages =
-        concat.lib.cabalProject2nix
-        ./cabal.project
-        pkgs
-        hpkgs
-        (old: {
-          configureFlags = old.configureFlags ++ ["--ghc-options=-Werror"];
-        });
-    in
-      packages
-      // {
-        "${pname}-test" = self.lib.testOnly packages."${pname}-test";
-        "${pname}-unsafe-test" =
-          self.lib.testOnly packages."${pname}-unsafe-test";
-      };
+    cabalPackages = pkgs: hpkgs:
+      concat.lib.cabalProject2nix
+      ./cabal.project
+      pkgs
+      hpkgs
+      (old: {
+        configureFlags = old.configureFlags ++ ["--ghc-options=-Werror"];
+      });
   in
     {
       schemas = {
@@ -167,18 +159,6 @@
           supportedSystems);
 
       lib = {
-        ## TODO: Move upstream.
-        ## Don’t install this Haskell package – it only contains test suites.
-        testOnly = drv:
-          drv.overrideAttrs (old: {
-            installPhase = ''
-              runHook preInstall
-              mkdir -p "$out"
-              runHook postInstall
-            '';
-            outputs = ["out"];
-          });
-
         ## TODO: Extract this automatically from `pkgs.haskellPackages`.
         defaultCompiler = "ghc948";
 

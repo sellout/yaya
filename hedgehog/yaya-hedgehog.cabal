@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya-hedgehog
-version:     0.2.1.2
+version:     0.2.1.3
 synopsis:    Hedgehog testing support for the Yaya recursion scheme
              library.
 description: If you use Yaya in your own code and have tests written
@@ -204,3 +204,44 @@ test-suite doctests
     -- “Build_doctests.hs”, we set it here, and that means it has to match
     -- doctests.hs, which is `Unsafe`.
     Unsafe
+
+-- NB: This suite should be in the `yaya` package, but it can’t because it
+--     depends on `yaya-hedgehog`.
+test-suite yaya
+  import: defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs:
+    tests
+  main-is: test.hs
+  other-modules:
+    Test.Fold
+    Test.Fold.Common
+    Test.Fold.Native
+    Test.Retrofit
+  build-depends:
+    deriving-compat,
+    hedgehog,
+    yaya >= 0.5.0,
+    yaya-hedgehog >= 0.2.0,
+  ghc-options:
+    -rtsopts
+    -threaded
+    -trust adjunctions
+    -trust array
+    -trust base-orphans
+    -trust binary
+    -trust bytestring
+    -trust containers
+    -trust distributive
+    -trust exceptions
+    -trust ghc-prim
+    -trust hashable
+    -trust profunctors
+    -trust semigroupoids
+    -trust stm
+    -trust text
+    -trust transformers-compat
+    -with-rtsopts=-N
+  if impl(ghc < 9.6)
+    ghc-options:
+      -trust foldable1-classes-compat

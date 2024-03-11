@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## 0.3.3.1 – 2024–03–11
+
+### Added
+
+- The tests for this package were previously in their own `yaya-unsafe-test` package, but that has been folded into this package. Presumably, they were only separated to parallel the separation between `yaya` and `yaya-test`, which had better motivation.
+
+## 0.3.3.0
+
+Unknown changes.
+
+## 0.3.2.0
+
+Unknown changes.
+
+## 0.3.1.0
+
+Unknown changes.
+
+## 0.3.0.0
+
+Unknown changes.
+
 ## 0.2.0.2 – 2023–12–21
 
 ### Changed
