@@ -96,7 +96,7 @@ in {
           }
           {run = "cabal install cabal-plan-bounds";}
           {
-            name = "Load plans";
+            name = "download Cabal plans";
             uses = "actions/download-artifact@v4";
             "with" = {
               path = "plans";
@@ -104,12 +104,23 @@ in {
               merge-multiple = true;
             };
           }
-          {run = "find plans/";}
-          {run = "find . -name '*.cabal' -exec cabal-plan-bounds plans/*.json --cabal {} \\;";}
-          {run = "git diff **/*.cabal";}
           {
-            name = "Fail if .cabal file was changed";
-            run = "git diff-files --quiet **/*.cabal || exit 1";
+            name = "Cabal plans considered in generated bounds";
+            run = "find plans/";
+          }
+          {
+            name = "check if bounds have changed";
+            ## TODO: Simplify this once cabal-plan-bounds supports a `--check`
+            ##       option.
+            run = ''
+              diffs="$(find . \
+                -name '*.cabal' \
+                -exec cabal-plan-bounds --dry-run plans/*.json --cabal {} \;)"
+              if [[ -n "$diffs" ]]; then
+                echo "$diffs"
+                exit 1
+              fi
+            '';
           }
         ];
       };
