@@ -187,6 +187,7 @@
           "9.2.1"
           "9.4.1"
           "9.6.1"
+          "9.8.1" # since `cabal-plan-bounds` doesn’t work under Nix
         ];
 
         ## However, provide packages in the default overlay for _every_
