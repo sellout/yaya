@@ -170,15 +170,13 @@ library
     -trust containers
     -trust distributive
     -trust exceptions
+    -trust foldable1-classes-compat
     -trust ghc-prim
     -trust profunctors
     -trust semigroupoids
     -trust stm
     -trust text
     -trust transformers-compat
-  if impl(ghc < 9.6)
-    ghc-options:
-      -trust foldable1-classes-compat
 
 test-suite doctests
   import: defaults
@@ -234,6 +232,7 @@ test-suite yaya
     -trust containers
     -trust distributive
     -trust exceptions
+    -trust foldable1-classes-compat
     -trust ghc-prim
     -trust hashable
     -trust profunctors
@@ -242,6 +241,3 @@ test-suite yaya
     -trust text
     -trust transformers-compat
     -with-rtsopts=-N
-  if impl(ghc < 9.6)
-    ghc-options:
-      -trust foldable1-classes-compat

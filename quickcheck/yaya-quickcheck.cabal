@@ -154,6 +154,11 @@ library
   build-depends:
     QuickCheck,
     yaya >= 0.5.0,
+    -- NB: splitmix is a transitive dependency … if we select QuickCheck >=
+    --     2.13. However, `-trust` only works for packages in the dependency
+    --     graph, so we make it explicit here for the times that it doesn’t get
+    --     included transitively.
+    splitmix,
   ghc-options:
     -trust QuickCheck
     -trust adjunctions
@@ -164,6 +169,7 @@ library
     -trust containers
     -trust distributive
     -trust exceptions
+    -trust foldable1-classes-compat
     -trust ghc-prim
     -trust profunctors
     -trust random
@@ -172,9 +178,6 @@ library
     -trust stm
     -trust text
     -trust transformers-compat
-  if impl(ghc < 9.6)
-    ghc-options:
-      -trust foldable1-classes-compat
 
 test-suite doctests
   import: defaults
