@@ -194,6 +194,7 @@ library
     -trust exceptions
     -trust foldable1-classes-compat
     -trust ghc-prim
+    -trust hashable
     -trust lens
     -trust profunctors
     -trust semigroupoids

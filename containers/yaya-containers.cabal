@@ -164,6 +164,7 @@ library
     -trust exceptions
     -trust foldable1-classes-compat
     -trust ghc-prim
+    -trust hashable
     -trust profunctors
     -trust semigroupoids
     -trust stm
