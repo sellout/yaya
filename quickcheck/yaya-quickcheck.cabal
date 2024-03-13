@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya-quickcheck
-version:     0.1.0.2
+version:     0.1.0.3
 synopsis:    QuickCheck testing support for the Yaya recursion scheme library.
 description: If you use Yaya in your own code and have tests written using
              QuickCheck, then this library will help you with generating trees,
@@ -18,15 +18,14 @@ license-files:
   LICENSE
 tested-with:
   GHC == {
---  GHCup   Nixpkgs
     8.6.1,
-    8.8.1,  8.8.4,
+    8.8.1, 8.8.4,
     8.10.1,
     9.0.1,
     9.2.1,
-    9.4.1,  9.4.8,
-    9.6.1,
-            9.8.1
+    9.4.1, 9.4.8,
+    9.6.1, 9.6.3,
+    9.8.1
   }
 
 source-repository head
