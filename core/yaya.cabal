@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya
-version:     0.5.2.1
+version:     0.5.2.2
 synopsis:    Total recursion schemes.
 description: Recursion schemes allow you to separate recursion from your
              business logic – making your own operations simpler, more modular,
@@ -24,15 +24,14 @@ extra-source-files:
   README.md
 tested-with:
   GHC == {
---  GHCup   Nixpkgs
     8.6.1,
-    8.8.1,  8.8.4,
+    8.8.1, 8.8.4,
     8.10.1,
     9.0.1,
     9.2.1,
-    9.4.1,  9.4.8,
-    9.6.1,
-            9.8.1
+    9.4.1, 9.4.8,
+    9.6.1, 9.6.3,
+    9.8.1
   }
 
 source-repository head

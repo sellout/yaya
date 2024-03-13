@@ -187,6 +187,7 @@
           "9.2.1"
           "9.4.1"
           "9.6.1"
+          "9.6.3" # version currently used by Hackage, so check outside Nix
         ];
 
         ## However, provide packages in the default overlay for _every_

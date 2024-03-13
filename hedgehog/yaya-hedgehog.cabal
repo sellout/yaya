@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya-hedgehog
-version:     0.2.1.3
+version:     0.2.1.4
 synopsis:    Hedgehog testing support for the Yaya recursion scheme
              library.
 description: If you use Yaya in your own code and have tests written
@@ -22,15 +22,14 @@ extra-source-files:
   README.md
 tested-with:
   GHC == {
---  GHCup   Nixpkgs
     8.6.1,
-    8.8.1,  8.8.4,
+    8.8.1, 8.8.4,
     8.10.1,
     9.0.1,
     9.2.1,
-    9.4.1,  9.4.8,
-    9.6.1,
-            9.8.1
+    9.4.1, 9.4.8,
+    9.6.1, 9.6.3,
+    9.8.1
   }
 
 source-repository head
