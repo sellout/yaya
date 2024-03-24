@@ -8,6 +8,8 @@ Recursion schemes allow you to separate _any_ recursion from your business logic
 
 How's this possible? You can’t have totality _and_ Turing-completeness, can you? Oh, but [you can](https://pdfs.semanticscholar.org/e291/5b546b9039a8cf8f28e0b814f6502630239f.pdf) – there is a particular type, `Partial a` (encoded with a fixed-point) that handles potential non-termination, akin to the way that `Maybe a` handles exceptional cases. It can be folded into `IO` in your main function, so that the runtime can execute a Turing-complete program that was modeled totally.
 
+**NB**: The tests for this package are unfortunately included in `yaya-hedgehog` instead, to avoid a dependency cycle.
+
 ## organization
 
 This organization is intended to make this a lightly-opinionated library. You should only need to import one module (per package) into any module of yours.

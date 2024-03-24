@@ -80,7 +80,7 @@ lowerMonad f = \case
 
 -- | Provides equality over arbitrary pattern functors.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 equalDay ::
   (Functor f, Foldable f) => (f () -> f () -> Bool) -> Day f f Bool -> Bool
 equalDay eqF (Day f1 f2 fn) =
@@ -93,7 +93,7 @@ equal = equalDay $ liftEq (==)
 
 -- | Provides ordering over arbitrary pattern functors.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 compareDay ::
   (Functor f, Foldable f) =>
   (f () -> f () -> Ordering) ->
@@ -105,7 +105,7 @@ compareDay compareF (Day f1 f2 fn) =
 
 -- | Provides show over arbitrary pattern functors.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 showsPrecF :: (Show1 f) => Int -> f (Int -> ShowS) -> ShowS
 showsPrecF = liftShowsPrec (&) (showList__ ($ 0))
 

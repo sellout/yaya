@@ -5,6 +5,24 @@ This file documents all notable changes to this package.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## 0.2.1.3 – 2024–03–11
+
+### Added
+
+- The tests for `yaya` were previously in their own `yaya-test` package, but that has been folded into this package. Ideally, the tests would live in the `yaya` package, but Cabal doesn’t play well with circular dependencies between packages (even if the component dependencies aren’t circular).
+
+## 0.2.1.2
+
+Unknown changes.
+
+## 0.2.1.1
+
+Unknown changes.
+
+## 0.2.1.0
+
+Unknown changes.
+
 ## 0.2.0.2 – 2023–12–21
 
 ### Changed

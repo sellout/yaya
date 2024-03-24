@@ -63,7 +63,7 @@ data IntMapF a r
     ( Eq,
       Ord,
       Generic,
-      -- | @since 0.1.1.0
+      -- | @since 0.1.2.0
       Read,
       Show,
       Foldable,
@@ -118,11 +118,11 @@ instance Ord2 IntMapF where
       compare prefix prefix' <> compare mask mask' <> g l l' <> g r r'
     (BinF {}, _) -> GT
 
--- | @since 0.1.1.0
+-- | @since 0.1.2.0
 instance (Read a) => Read1 (IntMapF a) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
--- | @since 0.1.1.0
+-- | @since 0.1.2.0
 instance Read2 IntMapF where
   liftReadPrec2 readPrecA _ readPrecR _ =
     let appPrec = 10

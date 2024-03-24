@@ -107,7 +107,7 @@ data XNor a b = Neither | Both ~a b
     ( Eq,
       Generic,
       Ord,
-      -- | @since 0.5.3.0
+      -- | @since 0.6.1.0
       Read,
       Show,
       Foldable,
@@ -118,7 +118,7 @@ data XNor a b = Neither | Both ~a b
 
 -- | Eliminator for `XNor`, akin to `Data.Either.either` or `Data.Maybe.maybe`.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 xnor :: c -> (a -> b -> c) -> XNor a b -> c
 xnor neither both = \case
   Neither -> neither
@@ -151,11 +151,11 @@ instance Ord2 XNor where
     (Both _ _, Neither) -> GT
     (Both x y, Both x' y') -> f x x' <> g y y'
 
--- | @since 0.5.3.0
+-- | @since 0.6.1.0
 instance (Read a) => Read1 (XNor a) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
--- | @since 0.5.3.0
+-- | @since 0.6.1.0
 instance Read2 XNor where
   liftReadPrec2 readPrecX _ readPrecY _ =
     let appPrec = 10
@@ -195,7 +195,7 @@ data AndMaybe a b = Only ~a | Indeed ~a b
   deriving stock
     ( Eq,
       Generic,
-      -- | @since 0.5.3.0
+      -- | @since 0.6.1.0
       Read,
       Show,
       Foldable,
@@ -207,7 +207,7 @@ data AndMaybe a b = Only ~a | Indeed ~a b
 -- | Eliminator for `AndMaybe`, akin to `Data.Either.either` or
 --  `Data.Maybe.maybe`.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 andMaybe :: (a -> c) -> (a -> b -> c) -> AndMaybe a b -> c
 andMaybe only indeed = \case
   Only a -> only a
@@ -247,11 +247,11 @@ instance Ord2 AndMaybe where
     (Indeed x _, Only x') -> f x x' <> GT
     (Indeed x y, Indeed x' y') -> f x x' <> g y y'
 
--- | @since 0.5.3.0
+-- | @since 0.6.1.0
 instance (Read a) => Read1 (AndMaybe a) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
--- | @since 0.5.3.0
+-- | @since 0.6.1.0
 instance Read2 AndMaybe where
   liftReadPrec2 readPrecX _ readPrecY _ =
     let appPrec = 10

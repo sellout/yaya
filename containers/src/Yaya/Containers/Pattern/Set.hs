@@ -64,7 +64,7 @@ data SetF a r = TipF | BinF Set.Size a r r
     ( Eq,
       Ord,
       Generic,
-      -- | @since 0.1.1.0
+      -- | @since 0.1.2.0
       Read,
       Show,
       Foldable,
@@ -113,11 +113,11 @@ instance Ord2 SetF where
     (BinF size a l r, BinF size' a' l' r') ->
       compare size size' <> f a a' <> g l l' <> g r r'
 
--- | @since 0.1.1.0
+-- | @since 0.1.2.0
 instance (Read a) => Read1 (SetF a) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
--- | @since 0.1.1.0
+-- | @since 0.1.2.0
 instance Read2 SetF where
   liftReadPrec2 readPrecA _ readPrecR _ =
     let appPrec = 10

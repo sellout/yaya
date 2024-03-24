@@ -48,7 +48,7 @@ data IntSetF r
     ( Eq,
       Ord,
       Generic,
-      -- | @since 0.1.1.0
+      -- | @since 0.1.2.0
       Read,
       Show,
       Foldable,
@@ -90,7 +90,7 @@ instance Ord1 IntSetF where
       compare prefix prefix' <> compare mask mask' <> f l l' <> f r r'
     (BinF {}, _) -> GT
 
--- | @since 0.1.1.0
+-- | @since 0.1.2.0
 instance Read1 IntSetF where
   liftReadPrec readPrecR _ =
     let appPrec = 10

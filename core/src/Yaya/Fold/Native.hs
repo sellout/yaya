@@ -64,11 +64,11 @@ instance (Functor f) => Recursive (->) (Fix f) f where
 instance (Functor f, Foldable f, Eq1 f) => Eq (Fix f) where
   (==) = recursiveEq
 
--- | @since 0.5.3.0
+-- | @since 0.6.1.0
 instance (Functor f, Foldable f, Ord1 f) => Ord (Fix f) where
   compare = recursiveCompare
 
--- | @since 0.5.3.0
+-- | @since 0.6.1.0
 instance (Read1 f) => Read (Fix f) where
   readPrec = steppableReadPrec
   readListPrec = readListPrecDefault

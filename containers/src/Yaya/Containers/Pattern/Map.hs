@@ -4,13 +4,13 @@
 
 module Yaya.Containers.Pattern.Map
   ( MapF (BinF, TipF),
-    -- | @since 0.1.1.0
+    -- | @since 0.1.2.0
     eqMapF,
-    -- | @since 0.1.1.0
+    -- | @since 0.1.2.0
     compareMapF,
-    -- | @since 0.1.1.0
+    -- | @since 0.1.2.0
     readMapFPrec,
-    -- | @since 0.1.1.0
+    -- | @since 0.1.2.0
     showsMapFPrec,
   )
 where
@@ -84,7 +84,7 @@ data MapF k v r = TipF | BinF Map.Size k ~v r r
     ( Eq,
       Ord,
       Generic,
-      -- | @since 0.1.1.0
+      -- | @since 0.1.2.0
       Read,
       Show,
       Foldable,
@@ -195,11 +195,11 @@ instance (Ord k, Ord v) => Ord1 (MapF k v) where
 instance (Ord k) => Ord2 (MapF k) where
   liftCompare2 = compareMapF compare
 
--- | @since 0.1.1.0
+-- | @since 0.1.2.0
 instance (Read k, Read v) => Read1 (MapF k v) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
--- | @since 0.1.1.0
+-- | @since 0.1.2.0
 instance (Read k) => Read2 (MapF k) where
   liftReadPrec2 readPrecV _ readPrecR _ =
     readMapFPrec readPrec readPrecV readPrecR

@@ -197,7 +197,7 @@ class Corecursive c t f | t -> f where
 
 -- | Like `recursiveEq`, but allows you to provide a custom comparator for @f@.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 recursiveEq' ::
   (Recursive (->) t f, Steppable (->) u f, Functor f, Foldable f) =>
   (f () -> f () -> Bool) ->
@@ -221,7 +221,7 @@ recursiveEq = recursiveEq' $ liftEq (==)
 -- | Like `recursiveCompare`, but allows you to provide a custom comparator for
 --   @f@.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 recursiveCompare' ::
   (Recursive (->) t f, Steppable (->) u f, Functor f, Foldable f) =>
   (f () -> f () -> Ordering) ->
@@ -237,7 +237,7 @@ recursiveCompare' = cata2 . compareDay
 --  __NB__: Use `recursiveCompare'` if you need to use a custom comparator for
 --          @f@.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 recursiveCompare ::
   (Recursive (->) t f, Steppable (->) u f, Functor f, Foldable f, Ord1 f) =>
   t ->
@@ -251,7 +251,7 @@ embedOperation = "embed"
 -- | Like `recursiveShowsPrec`, but allows you to provide a custom display
 --   function for @f@.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 recursiveShowsPrec' ::
   (Recursive (->) t f) => Algebra (->) f (Int -> ShowS) -> Int -> t -> ShowS
 recursiveShowsPrec' showsFPrec = flip . cata $
@@ -290,7 +290,7 @@ recursiveShowsPrec = recursiveShowsPrec' $ flip showsPrecF
 -- | Like `steppableReadPrec`, but allows you to provide a custom display
 --   function for @f@.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 steppableReadPrec' ::
   (Steppable (->) t f) =>
   (ReadPrec t -> ReadPrec [t] -> ReadPrec (f t)) ->
@@ -312,7 +312,7 @@ steppableReadPrec' readFPrec =
 --  __NB__: This only requires `Steppable`, but the inverse operation is
 --         `recursiveShowsPrec`, which requires `Recursive` instead.
 --
---   @since 0.5.3.0
+--   @since 0.6.1.0
 steppableReadPrec :: (Steppable (->) t f, Read1 f) => ReadPrec t
 steppableReadPrec = steppableReadPrec' liftReadPrec
 
@@ -338,11 +338,11 @@ instance DFunctor Mu where
 instance (Functor f, Foldable f, Eq1 f) => Eq (Mu f) where
   (==) = recursiveEq
 
--- | @since 0.5.3.0
+-- | @since 0.6.1.0
 instance (Functor f, Foldable f, Ord1 f) => Ord (Mu f) where
   compare = recursiveCompare
 
--- | @since 0.5.3.0
+-- | @since 0.6.1.0
 instance (Functor f, Read1 f) => Read (Mu f) where
   readPrec = steppableReadPrec
   readListPrec = readListPrecDefault
@@ -366,7 +366,7 @@ instance Corecursive (->) (Nu f) f where
 instance DFunctor Nu where
   dmap f (Nu φ a) = Nu (f . φ) a
 
--- | @since 0.5.3.0
+-- | @since 0.6.1.0
 instance (Functor f, Read1 f) => Read (Nu f) where
   readPrec = steppableReadPrec
   readListPrec = readListPrecDefault

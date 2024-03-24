@@ -70,7 +70,7 @@ instance (Functor f) => Recursive (->) (Cofix f) f where
 instance (Functor f, Foldable f, Eq1 f) => Eq (Cofix f) where
   (==) = recursiveEq
 
--- | @since 0.3.4.0
+-- | @since 0.4.1.0
 instance (Functor f, Foldable f, Ord1 f) => Ord (Cofix f) where
   compare = recursiveCompare
 
@@ -86,7 +86,7 @@ instance (Functor f) => Recursive (->) (Nu f) f where
 instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
   (==) = recursiveEq
 
--- | @since 0.3.4.0
+-- | @since 0.4.1.0
 instance (Functor f, Foldable f, Ord1 f) => Ord (Nu f) where
   compare = recursiveCompare
 
