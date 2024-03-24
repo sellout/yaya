@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya-containers
-version:     0.1.0.2
+version:     0.1.1.0
 synopsis:    Pattern functors and instances for types in the containers package.
 author:      Greg Pfeil <greg@technomadic.org>
 maintainer:  Greg Pfeil <greg@technomadic.org>
@@ -140,7 +140,7 @@ custom-setup
     -- TODO: Remove `Cabal` dep once haskell/cabal#3751 is fixed.
     Cabal ^>= {3.0.0, 3.2.0, 3.4.0, 3.6.0, 3.8.0, 3.10.0},
     base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
-    cabal-doctest ^>= 1.0.0
+    cabal-doctest ^>= {1.0.0},
 
 library
   import: defaults
@@ -151,8 +151,8 @@ library
     Yaya.Containers.Pattern.Map
     Yaya.Containers.Pattern.Set
   build-depends:
-    containers ^>= {0.6.0, 0.7},
-    yaya ^>= 0.5.0,
+    containers ^>= {0.6.0},
+    yaya ^>= {0.6.0},
   ghc-options:
     -trust adjunctions
     -trust array
@@ -162,15 +162,14 @@ library
     -trust containers
     -trust distributive
     -trust exceptions
+    -trust foldable1-classes-compat
     -trust ghc-prim
+    -trust hashable
     -trust profunctors
     -trust semigroupoids
     -trust stm
     -trust text
     -trust transformers-compat
-  if impl(ghc < 9.6)
-    ghc-options:
-      -trust foldable1-classes-compat
 
 test-suite doctests
   import: defaults
@@ -178,7 +177,7 @@ test-suite doctests
   hs-source-dirs: tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.15.0, 0.16.0, 0.17.0, 0.18.0, 0.19.0, 0.20.0, 0.21.0, 0.22.0},
+    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2},
     yaya-containers,
   -- TODO: The sections below here are necessary because we don’t have control
   --       over the generated `Build_doctests.hs` file. So we have to silence

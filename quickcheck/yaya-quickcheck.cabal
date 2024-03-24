@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya-quickcheck
-version:     0.1.0.2
+version:     0.2.0.0
 synopsis:    QuickCheck testing support for the Yaya recursion scheme library.
 description: If you use Yaya in your own code and have tests written using
              QuickCheck, then this library will help you with generating trees,
@@ -143,7 +143,7 @@ custom-setup
     -- TODO: Remove `Cabal` dep once haskell/cabal#3751 is fixed.
     Cabal ^>= {3.0.0, 3.2.0, 3.4.0, 3.6.0, 3.8.0, 3.10.0},
     base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
-    cabal-doctest ^>= 1.0.0
+    cabal-doctest ^>= {1.0.0},
 
 library
   import: defaults
@@ -152,8 +152,13 @@ library
   exposed-modules:
     Yaya.QuickCheck.Fold
   build-depends:
-    QuickCheck,
-    yaya >= 0.5.0,
+    QuickCheck ^>= {2.10, 2.13.2, 2.14.2},
+    yaya ^>= {0.6.0},
+    -- NB: splitmix is a transitive dependency … if we select QuickCheck >=
+    --     2.13. However, `-trust` only works for packages in the dependency
+    --     graph, so we make it explicit here for the times that it doesn’t get
+    --     included transitively.
+    splitmix ^>= {0.0.1, 0.1.0},
   ghc-options:
     -trust QuickCheck
     -trust adjunctions
@@ -164,7 +169,9 @@ library
     -trust containers
     -trust distributive
     -trust exceptions
+    -trust foldable1-classes-compat
     -trust ghc-prim
+    -trust hashable
     -trust profunctors
     -trust random
     -trust semigroupoids
@@ -172,9 +179,6 @@ library
     -trust stm
     -trust text
     -trust transformers-compat
-  if impl(ghc < 9.6)
-    ghc-options:
-      -trust foldable1-classes-compat
 
 test-suite doctests
   import: defaults
@@ -182,7 +186,7 @@ test-suite doctests
   hs-source-dirs: tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.15.0, 0.16.0, 0.17.0, 0.18.0, 0.19.0, 0.20.0, 0.21.0, 0.22.0},
+    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2},
     yaya-quickcheck,
   -- TODO: The sections below here are necessary because we don’t have control
   --       over the generated `Build_doctests.hs` file. So we have to silence
