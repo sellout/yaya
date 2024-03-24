@@ -152,7 +152,7 @@ library
     Yaya.Containers.Pattern.Set
   build-depends:
     containers ^>= {0.6.0},
-    yaya ^>= {0.6.0},
+    yaya ^>= {0.5.1, 0.6.0},
   ghc-options:
     -trust adjunctions
     -trust array
