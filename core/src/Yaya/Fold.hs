@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Safe #-}
 
@@ -260,6 +261,14 @@ recursiveShowsPrec' showsFPrec = flip . cata $
       showString embedOperation . showString " " . showsFPrec f appPrec1
 
 -- | An implementation of `showsPrec` for any `Recursive` instance.
+#if MIN_VERSION_GLASGOW_HASKELL(8, 8, 0, 0) \
+    && !MIN_VERSION_GLASGOW_HASKELL(8, 10, 0, 0)
+--
+--  __FIXME__: There should be doctests here, but `doctest` crashes with these
+--             tests in the very specific case of GHC 8.8.4 from Nixpkgs 23.11.
+--             So, either figure out how to get them working there, or wait
+--             until we no longer support that combination.
+#else
 --
 -- >>> :{
 --   recursiveShowsPrec
@@ -278,6 +287,7 @@ recursiveShowsPrec' showsFPrec = flip . cata $
 --     ""
 -- :}
 -- "(embed (Both \"a\" (embed (Both \"b\" (embed Neither)))))"
+#endif
 --
 --  __NB__: Use `recursiveShowsPrec'` if you need to use a custom serialization
 --          function for @f@.
