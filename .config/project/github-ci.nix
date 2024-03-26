@@ -125,10 +125,11 @@ in {
               diffs="$(find . -name '*.cabal' -exec \
                 cabal-plan-bounds \
                   --dry-run \
-                  ${lib.concatMapStrings
-                    (pkg: "--also " + pkg + " ")
-                    self.lib.extraDependencyVersions
-                   } \
+                  ${
+                lib.concatMapStrings
+                (pkg: "--also " + pkg + " ")
+                self.lib.extraDependencyVersions
+              } \
                   plans/*.json \
                   --cabal {} \;)"
               if [[ -n "$diffs" ]]; then
