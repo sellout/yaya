@@ -17,9 +17,11 @@ import "base" Data.Eq (Eq ((==)))
 import "base" Data.Foldable (Foldable (toList))
 import "base" Data.Function (($))
 import "base" Data.Functor (Functor (fmap))
-import "base" Data.Functor.Classes (Eq1, Show1)
+import "base" Data.Functor.Classes (Eq1, Ord1, Read1, Show1)
 import "base" Data.List.NonEmpty (NonEmpty ((:|)))
+import "base" Data.Ord (Ord (compare))
 import "base" Numeric.Natural (Natural)
+import "base" Text.Read (Read (readListPrec, readPrec), readListPrecDefault)
 import "base" Text.Show (Show (showsPrec))
 import "comonad" Control.Comonad (Comonad (extract))
 import "comonad" Control.Comonad.Trans.Env (EnvT (EnvT), runEnvT)
@@ -32,8 +34,10 @@ import "this" Yaya.Fold
     Projectable (project),
     Recursive (cata),
     Steppable (embed),
+    recursiveCompare,
     recursiveEq,
     recursiveShowsPrec,
+    steppableReadPrec,
   )
 import "this" Yaya.Fold.Common (diagonal)
 import "this" Yaya.Fold.Native.Internal (Cofix (unCofix))
@@ -59,6 +63,15 @@ instance (Functor f) => Recursive (->) (Fix f) f where
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Fix f) where
   (==) = recursiveEq
+
+-- | @since 0.6.1.0
+instance (Functor f, Foldable f, Ord1 f) => Ord (Fix f) where
+  compare = recursiveCompare
+
+-- | @since 0.6.1.0
+instance (Read1 f) => Read (Fix f) where
+  readPrec = steppableReadPrec
+  readListPrec = readListPrecDefault
 
 instance (Functor f, Show1 f) => Show (Fix f) where
   showsPrec = recursiveShowsPrec

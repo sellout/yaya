@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya-quickcheck
-version:     0.2.0.0
+version:     0.2.0.1
 synopsis:    QuickCheck testing support for the Yaya recursion scheme library.
 description: If you use Yaya in your own code and have tests written using
              QuickCheck, then this library will help you with generating trees,
@@ -153,7 +153,7 @@ library
     Yaya.QuickCheck.Fold
   build-depends:
     QuickCheck ^>= {2.10, 2.13.2, 2.14.2},
-    yaya ^>= {0.6.0},
+    yaya ^>= {0.5.1, 0.6.0},
     -- NB: splitmix is a transitive dependency … if we select QuickCheck >=
     --     2.13. However, `-trust` only works for packages in the dependency
     --     graph, so we make it explicit here for the times that it doesn’t get

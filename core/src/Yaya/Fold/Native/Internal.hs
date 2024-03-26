@@ -14,10 +14,13 @@ where
 
 import "base" Control.Category (Category ((.)))
 import "base" Data.Functor (Functor (fmap))
+import "base" Data.Functor.Classes (Read1)
+import "base" Text.Read (Read (readListPrec, readPrec), readListPrecDefault)
 import "this" Yaya.Fold
   ( Corecursive (ana),
     Projectable (project),
     Steppable (embed),
+    steppableReadPrec,
   )
 
 -- | A fixed-point constructor that uses Haskell's built-in recursion. This is
@@ -34,3 +37,8 @@ instance Steppable (->) (Cofix f) f where
 
 instance (Functor f) => Corecursive (->) (Cofix f) f where
   ana φ = embed . fmap (ana φ) . φ
+
+-- | @since 0.6.1.0
+instance (Read1 f) => Read (Cofix f) where
+  readPrec = steppableReadPrec
+  readListPrec = readListPrecDefault

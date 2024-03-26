@@ -94,7 +94,16 @@ in {
               cabal-version = pkgs.cabal-install.version;
             };
           }
-          {run = "cabal install cabal-plan-bounds";}
+          {
+            run = ''
+              ## TODO: Remove the manual cloning once cabal-plan-bounds >0.1.5.1
+              ##       is released. Currently, it’s needed because of
+              ##       nomeata/cabal-plan-bounds#19.
+              git clone https://github.com/nomeata/cabal-plan-bounds
+              cd cabal-plan-bounds
+              cabal install cabal-plan-bounds
+            '';
+          }
           {
             name = "download Cabal plans";
             uses = "actions/download-artifact@v4";
@@ -113,9 +122,16 @@ in {
             ## TODO: Simplify this once cabal-plan-bounds supports a `--check`
             ##       option.
             run = ''
-              diffs="$(find . \
-                -name '*.cabal' \
-                -exec cabal-plan-bounds --dry-run plans/*.json --cabal {} \;)"
+              diffs="$(find . -name '*.cabal' -exec \
+                cabal-plan-bounds \
+                  --dry-run \
+                  ${
+                lib.concatMapStrings
+                (pkg: "--also " + pkg + " ")
+                self.lib.extraDependencyVersions
+              } \
+                  plans/*.json \
+                  --cabal {} \;)"
               if [[ -n "$diffs" ]]; then
                 echo "$diffs"
                 exit 1

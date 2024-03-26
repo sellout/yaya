@@ -1,7 +1,7 @@
 cabal-version:  3.0
 
 name:        yaya-containers
-version:     0.1.1.0
+version:     0.1.2.0
 synopsis:    Pattern functors and instances for types in the containers package.
 author:      Greg Pfeil <greg@technomadic.org>
 maintainer:  Greg Pfeil <greg@technomadic.org>
@@ -152,7 +152,7 @@ library
     Yaya.Containers.Pattern.Set
   build-depends:
     containers ^>= {0.6.0},
-    yaya ^>= {0.6.0},
+    yaya ^>= {0.5.1, 0.6.0},
   ghc-options:
     -trust adjunctions
     -trust array

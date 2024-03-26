@@ -6,15 +6,21 @@ module Yaya.Containers.Pattern.IntSet
   )
 where
 
+import "base" Control.Applicative
+  ( Alternative ((<|>)),
+    Applicative ((<*>)),
+    (*>),
+  )
 import "base" Control.Category (Category ((.)))
 import "base" Data.Bool (Bool (False, True), (&&))
 import "base" Data.Eq (Eq ((==)))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (fmap))
+import "base" Data.Functor (Functor (fmap), (<$), (<$>))
 import "base" Data.Functor.Classes
   ( Eq1 (liftEq),
     Ord1 (liftCompare),
+    Read1 (liftReadPrec),
     Show1 (liftShowsPrec),
   )
 import "base" Data.Ord (Ord (compare, (<=)), Ordering (EQ, GT, LT))
@@ -22,6 +28,9 @@ import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
 import qualified "base" Data.Tuple as Tuple
 import "base" GHC.Generics (Generic, Generic1)
+import "base" GHC.Read (Read (readPrec), expectP, parens)
+import "base" Text.ParserCombinators.ReadPrec (prec, step)
+import qualified "base" Text.Read.Lex as Lex
 import "base" Text.Show (Show (showsPrec), showParen, showString)
 import qualified "containers" Data.IntSet.Internal as IntSet
 import "yaya" Yaya.Fold
@@ -39,6 +48,8 @@ data IntSetF r
     ( Eq,
       Ord,
       Generic,
+      -- | @since 0.1.2.0
+      Read,
       Show,
       Foldable,
       Functor,
@@ -79,20 +90,37 @@ instance Ord1 IntSetF where
       compare prefix prefix' <> compare mask mask' <> f l l' <> f r r'
     (BinF {}, _) -> GT
 
+-- | @since 0.1.2.0
+instance Read1 IntSetF where
+  liftReadPrec readPrecR _ =
+    let appPrec = 10
+     in parens . prec appPrec $
+          NilF
+            <$ expectP (Lex.Ident "NilF")
+            <|> expectP (Lex.Ident "TipF")
+              *> (TipF <$> step readPrec <*> step readPrec)
+            <|> expectP (Lex.Ident "BinF")
+              *> ( BinF
+                     <$> step readPrec
+                     <*> step readPrec
+                     <*> step readPrecR
+                     <*> step readPrecR
+                 )
+
 instance Show1 IntSetF where
-  liftShowsPrec showsPrecR _showListR prec =
+  liftShowsPrec showsPrecR _ p =
     let appPrec = 10
         nextPrec = appPrec + 1
      in \case
           NilF -> showString "NilF"
           TipF prefix bm ->
-            showParen (nextPrec <= prec) $
+            showParen (nextPrec <= p) $
               showString "TipF "
                 . showsPrec nextPrec prefix
                 . showString " "
                 . showsPrec nextPrec bm
           BinF prefix mask l r ->
-            showParen (nextPrec <= prec) $
+            showParen (nextPrec <= p) $
               showString "BinF "
                 . showsPrec nextPrec prefix
                 . showString " "

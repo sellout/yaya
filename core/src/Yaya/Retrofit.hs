@@ -75,8 +75,14 @@ import safe "this" Yaya.Fold
     Projectable (project),
     Recursive (cata),
     Steppable (embed),
+    recursiveCompare,
+    recursiveCompare',
     recursiveEq,
+    recursiveEq',
     recursiveShowsPrec,
+    recursiveShowsPrec',
+    steppableReadPrec,
+    steppableReadPrec',
   )
 
 #if MIN_VERSION_template_haskell(2, 21, 0)
