@@ -109,10 +109,7 @@ law_cataCompose Proxy φ ε =
 
 -- | Creates a generator for any `Steppable` type whose pattern functor has
 --   terminal cases (e.g., not `Data.Functor.Identity` or `((,) a)`). @leaf@ can
---   only generate terminal cases, and `branch` can generate any case. If the
---   provided `branch` generates terminal cases, then the resulting tree may
---   have a height less than the `Size`, otherwise it will be a perfect tree
---   with a height of exactly the provided `Size`.
+--   only generate terminal cases, and @branch@ can generate any case.
 --
 --   This is similar to `Gen.recursive` in that it separates the non-recursive
 --   cases from the recursive ones, except
@@ -124,15 +121,20 @@ law_cataCompose Proxy φ ε =
 -- * the non-recursive cases aren’t included in recursive calls (see above for
 --   why).
 --
---   If there’s no existing @Gen (f Void)@ for your pattern functor, you can
+--   If there’s no existing @`Gen` (f `Void`)@ for your pattern functor, you can
 --   either create one manually, or pass `Hedgehog.Gen.discard` to the usual
---  @Gen a -> Gen (f a)@ generator.
+--   @`Gen` a -> `Gen` (f a)@ generator.
 --
---  NB: Hedgehog’s `Size` is signed, so this can raise an exception if given a
---      negative `Size`.
+--  __NB__: Hedgehog’s `Size` is signed, so this can raise an exception if given
+--          a negative `Size`.
 embeddableOfHeight ::
   (Steppable (->) t f, Functor f) =>
+  -- | A generator for terminal cases (leaf nodes).
   Gen (f Void) ->
+  -- | A generator for arbitrary cases. If the provided value generates terminal
+  --   cases, then the resulting tree may have a height less than the `Size`,
+  --   otherwise it will be a perfect tree with a height of exactly the provided
+  --  `Size`.
   (Gen t -> Gen (f t)) ->
   Size ->
   Gen t

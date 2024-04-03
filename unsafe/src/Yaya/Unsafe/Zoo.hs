@@ -102,15 +102,21 @@ gpostpro ::
 gpostpro k e =
   Unsafe.ghylo distIdentity k (embed . fmap (ana (e . project) . runIdentity))
 
--- | The metamorphism definition from Gibbons’ paper.
+-- | The metamorphism definition from [Gibbons’
+--   paper](https://www.cs.ox.ac.uk/jeremy.gibbons/publications/metamorphisms-scp.pdf).
 stream :: Coalgebra (->) (XNor c) b -> (b -> a -> b) -> b -> [a] -> [c]
 stream f g = fstream f g (const Neither)
 
--- | Basically the definition from Gibbons’ paper, except the flusher (@h@) is a
---  `Coalgebra` instead of an `unfold`.
+-- | Basically the definition from [Gibbons’
+--   paper](https://www.cs.ox.ac.uk/jeremy.gibbons/publications/metamorphisms-scp.pdf),
+--   except the flusher is a `Coalgebra` instead of an unfold.
+--
+--   The implementation shows how `Unsafe.streamGApo` generalizes Gibbons’
+--  `fstream` (and `Unsafe.stream'` even more so).
 fstream ::
   Coalgebra (->) (XNor c) b ->
   (b -> a -> b) ->
+  -- | The flusher.
   Coalgebra (->) (XNor c) b ->
   b ->
   [a] ->
