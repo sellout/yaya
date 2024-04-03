@@ -122,9 +122,10 @@ height = (+ 1) . foldr max (-1)
 -- | When folded, returns the number of nodes in the data structure.
 --
 --  __NB__: This is /not/ the same as the length when applied to a list. I.e.,
---          @`length` xs + 1 == `cata` `size` xs@, because this is counting the
---          nodes of the structure (how many `Neither`s and `Both`s), not how
---          many elements (which would be equivalent to only counting `Both`s).
+--          @`Data.List.length` xs `+` 1 `==` `Yaya.Fold.cata` `size` xs@,
+--          because this is counting the nodes of the structure (how many
+--         `Neither`s and `Both`s), not how many elements (which would be
+--          equivalent to only counting `Both`s).
 size :: (Foldable f) => f Natural -> Natural
 size = foldr (+) 1
 

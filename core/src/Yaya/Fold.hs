@@ -328,9 +328,9 @@ steppableReadPrec = steppableReadPrec' liftReadPrec
 
 -- | A fixed-point operator for inductive / finite data structures.
 --
---  *NB*: This is only guaranteed to be finite when @f a@ is strict in @a@
---       (having strict functors won't prevent `Nu` from being lazy). Using
---       @-XStrictData@ can help with this a lot.
+--  __NB__: This is only guaranteed to be finite when @f a@ is strict in @a@
+--         (having strict functors won't prevent `Nu` from being lazy). Using
+--          @-XStrictData@ can help with this a lot.
 newtype Mu f = Mu (forall a. Algebra (->) f a -> a)
 
 instance (Functor f) => Projectable (->) (Mu f) f where

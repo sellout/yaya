@@ -17,6 +17,7 @@ module Yaya.Zoo
     comap,
     comutu,
     contramap,
+    gapo,
     gmutu,
     histo,
     insidePartial,
@@ -45,6 +46,7 @@ import "profunctors" Data.Profunctor (Profunctor (lmap))
 import "this" Yaya.Fold
   ( Algebra,
     AlgebraM,
+    Coalgebra,
     Corecursive (ana),
     DistributiveLaw,
     GAlgebra,
@@ -75,6 +77,18 @@ import "this" Yaya.Pattern
     uncurry,
   )
 
+-- | A generalized form of `apo`, where, rather than returning a complete
+--   branch, you can return a value of another type, provided there is a
+--   corresponding `Coalgebra` to expand the value into the same fixed-point
+--   result type.
+gapo ::
+  (Corecursive (->) t f, Functor f) =>
+  Coalgebra (->) f b ->
+  GCoalgebra (->) (Either b) f a ->
+  a ->
+  t
+gapo ψ = gana $ seqEither ψ
+
 -- | A recursion scheme that allows you to return a complete branch when
 --   unfolding.
 apo ::
@@ -82,7 +96,7 @@ apo ::
   GCoalgebra (->) (Either t) f a ->
   a ->
   t
-apo = gana (seqEither project)
+apo = gapo project
 
 -- | If you have a monadic algebra, you can fold it by distributing the monad
 --   over the algebra.
@@ -91,7 +105,7 @@ cataM ::
   AlgebraM (->) m f a ->
   t ->
   m a
-cataM φ = cata (φ <=< sequenceA)
+cataM = cata . (<=< sequenceA)
 
 -- | A recursion scheme that allows two algebras to see each others’ results. (A
 --   generalization of `zygo`.) This is an example that falls outside the scope
@@ -122,7 +136,9 @@ gmutu w v φ' φ = extract . mutu (lowerEnv w φ') (lowerEnv v φ)
       let a = fst p
        in fmap (a :!:) (snd p)
 
--- | This could use a better name.
+-- | As the name implies, this is the dual of `mutu`, and thus generalizes
+--  `gapo`. Each coalgebra can return a value of an alternative type, which
+--   causes expansion to continue with the other coalgebra.
 comutu ::
   (Corecursive (->) t f, Functor f) =>
   GCoalgebra (->) (Either a) f b ->
@@ -162,8 +178,9 @@ mutuM ::
   m a
 mutuM φ' φ = fmap snd . cataM (bisequence . bimap (φ' . fmap swap) φ . diagonal)
 
-histo :: (Recursive (->) t f, Functor f) => GAlgebra (->) (Cofree f) f a -> t -> a
-histo = gcata (distCofreeT id)
+histo ::
+  (Recursive (->) t f, Functor f) => GAlgebra (->) (Cofree f) f a -> t -> a
+histo = gcata $ distCofreeT id
 
 -- | A recursion scheme that gives you access to the original structure as you
 --   fold. (A specialization of `zygo`.)
@@ -172,7 +189,7 @@ para ::
   GAlgebra (->) (Pair t) f a ->
   t ->
   a
-para = gcata (distTuple embed)
+para = zygo embed
 
 -- | A recursion scheme that uses a “helper algebra” to provide additional
 --   information when folding. (A generalization of `para`, and specialization
@@ -183,18 +200,18 @@ zygo ::
   GAlgebra (->) (Pair b) f a ->
   t ->
   a
-zygo φ = gcata (distTuple φ)
+zygo φ = gcata $ distTuple φ
 
--- | This definition is different from the one given by `gcataM (distTuple φ')`
---   because it has a monadic “helper” algebra. But at least it gives us the
---   opportunity to show how `zygo` is a specialization of `mutu`.
+-- | This definition is different from the one given by @`gcataM` `.`
+--  `distTuple`@ because it has a monadic “helper” algebra. But at least it
+--   gives us the opportunity to show how `zygo` is a specialization of `mutu`.
 zygoM ::
   (Monad m, Recursive (->) t f, Traversable f) =>
   AlgebraM (->) m f b ->
   GAlgebraM (->) m (Pair b) f a ->
   t ->
   m a
-zygoM φ' = mutuM (φ' . fmap snd)
+zygoM = mutuM . (. fmap snd)
 
 -- | Potentially-infinite lists, like `[]`.
 type Colist a = Nu (XNor a)
