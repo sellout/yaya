@@ -1,8 +1,6 @@
 # Yaya
 
 [![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2Fyaya)](https://garnix.io)
-[![Packaging status](https://repology.org/badge/tiny-repos/haskell:yaya.svg)](https://repology.org/project/haskell:yaya/versions)
-[![latest packaged versions](https://repology.org/badge/latest-versions/haskell:yaya.svg)](https://repology.org/project/haskell:yaya/versions)
 
 Yet another … yet another recursion scheme library for Haskell
 
@@ -15,7 +13,9 @@ How's this possible? You can’t have totality _and_ Turing-completeness, can yo
 ## organization
 
 - [`yaya`](core/README.md) – the safe operations and data types for working with recursion
-- [`yaya-hedgehog`](hedgehog/README.md) – utilities for testing your Yaya-using code with [Hedgehog](https://github.com/hedgehogqa/haskell-hedgehog)
+- [`yaya-containers`](./containers/README.md) – pattern functors and instances for the [containers](https://hackage.haskell.org/package/containers) package
+- [`yaya-hedgehog`](hedgehog/README.md) – utilities for testing your Yaya-using code with [Hedgehog](https://github.com/hedgehogqa/haskell-hedgehog#readme)
+- [`yaya-quickcheck`](quickcheck/README.md) – utilities for testing your Yaya-using code with [QuickCheck](https://github.com/nick8325/quickcheck#readme)
 - [`yaya-unsafe`](unsafe/README.md) – unsafe instances and operations
 
 ## versioning
@@ -36,7 +36,7 @@ To mitigate some of those issues for versioning, we assume the following usage:
 - adding instances can't be mitigated in the same way, and it's not uncommon for downstream libraries to add orphans instances when they're omitted from upstream libraries. However, since these conflicts can only happen via direct dependencies, and represent an explicit downstream workaround, it’s reasonable to expect a quick downstream update to remove or conditionalize the workaround. So, this is considered a _minor major_ change;
 - deprecation is considered a _revision_ change, however it will often be paired with _minor_ changes. `-Werror` can cause this to fail, but published libraries shouldn't be compiled with `-Werror`.
 
-## building & development
+## building
 
 Especially if you are unfamiliar with the Haskell ecosystem, there is a Nix build (both with and without a flake). If you are unfamiliar with Nix, [Nix adjacent](...) can help you get things working in the shortest time and least effort possible.
 
@@ -50,115 +50,59 @@ Especially if you are unfamiliar with the Haskell ecosystem, there is a Nix buil
 
 This project is built with [Cabal](https://cabal.readthedocs.io/en/stable/index.html). Individual packages will work with older versions, but ./cabal.package requires Cabal 3.6+.
 
-## comparisons
+## development
 
-Other projects similar to this one, and how they differ.
+### CI failures
 
-### [Turtles](https://github.com/sellout/turtles)
+There are a few jobs that may fail during CI and indicate specific changes that need to be made to your PR. If you run into any failures other than those that are listed here, they likely have remedies that are specific to your changes. If you need help replicating or resolving them, or think that they represent general patterns like the ones listed below, inform the maintainers. They can help you resolve them and decide if they should be called out with generic resolution processes.
 
-**This project has been deprecated. Check out [Droste](https://github.com/higherkindness/droste) instead.**
+#### CI / check-bounds (step: check if bounds have changed)
 
-Yaya is a sister library to Turtles – the same approach, but implemented in
-Scala. Here are some differences to be aware of:
+A failure in the “check if bounds have changed” step indicates that the bounds on direct dependencies have changed.
 
-- the `Zoo` modules in Turtles are both larger and their use is more encouraged,
-  because Scala’s inference makes it harder to use `gcata` etc. directly;
-- the `Unsafe` and `Native` modules have different contents, because different
-  structures are strict or lazy between the two languages. For example., in Scala,
-  `scala.collection.immutable.List` is strict, so the `Recursive` instance is in
-  `Native`, while the `Corecursive` instance is in `Unsafe`, but Haskell’s
-  `Data.List` is lazy, so the `Corecursive` instance is in `Native` while the
-  `Recursive` instance is in `Unsafe`.
+It currently means that the discovered bounds have been restricted, which is always a breaking change. Unfortunately, this is sometimes not due to anything in the PR, but it does indicate we’re no longer testing the versions we used to – the Cabal solver will sometimes start choosing different packages, depending on releases. Due to the behavior of the solver, the most likely ones to change are in the middle of the range. There are a few ways to address this problem:
 
-### [recursion-schemes](https://github.com/ekmett/recursion-schemes)
+1. Simply change the bounds as the output recommends, and make sure the PR bumps the major version number. If this change is already bumping the major version, this is probably the right choice to make.
+2. Try to force Cabal to try the previous bounds. If you had manually changed the bounds because you needed some new feature, is it possible to conditionalize use of that feature so that we can also still use and test with older bounds?
+3. Tell CI that you want to keep the bounds the same even though they’re not tested. You do this by adding the old bound to the `extraDependencyVersions` list in flake.nix. This should be done carefully, but one use case is where those bounds _are_ tested by the Nix builds, but not by GitHub.
 
-#### poly-kinded folds
+#### CI / check-licenses (step: check if licenses have changed)
 
-The `c` type parameter specifies the arrow to use, so while it's common to
-specialize to `(->)`, other options can give you polymorphic recursion over
-nested data types (for example., GADTs). Among other things, you can use this to define
-folds of fixed-sized structures:
+This means there has _possibly_ been some change in the licensing, but it is not foolproof. This only captures the licensing for one particular Cabal solution, so other solutions may have different transitive dependencies or licenses.
 
-```haskell
-data VectF elem a (i :: Nat) where
-  EmptyVect :: VectF elem a 0
-  VCons :: KnownNat n => elem -> a i -> VectF elem a (n + 1)
+If there is a new license type in the list, it could affect how consumers of this can use our library. If the new license is not compatible with the existing set, then that is a breaking change. If a package has changed its license, then we can alternatively restrict that package to versions that only use the previous license. Since making a license more restrictive introduces incompatibilities, this should only happen when they bump their major version, but there is no guarantee. In that case, this should just prevent us from extending the bounds, which is fine. But if it requires restricting bounds at the minor or revision level, then that is still a breaking change on our side. Ideally we wouldn’t have to restrict that, but just make sure the consumer is informed about the license change and how to avoid it, but I don’t know how to convey that yet.
 
-type Vect elem n = HMu (VectF elem) n
+If there is a new dependency that has appeared, that should already be reflected in a major version bump. However, not all libraries introduce a major version bump when they add a dependency, and supporting wider version ranges means we may pick up a new dependency without excluding solutions that don’t involve that dependency.
+
+It is tempting to think that moving a dependency from the transitive list to the direct list doesn’t involve a version bump, but that is not necessarily true. First, the transitive dependency must exist on all possible dependency solutions for that to be true. Then, it is also possible for a new revision of a library to _remove_ dependencies, which means they will no longer appear in the transitive graph, invalidating our previous assumption. For this reason, we shouldn’t treat a move from transitive to direct as any different from a new dependency.
+
+#### check formatter
+
+There is some unformatted code (or perhaps some lint that needs addressing). If you use Nix, running `nix fmt` should automatically fix most of the formatting, and at least report additional lint that needs addressing.
+
+If you don’t use Nix, the CI log should contain some lines like
+
+```
+treefmt 0.6.1
+[INFO ] #alejandra: 1 files processed in 43.00ms
+[INFO ] #prettier: 7 files processed in 423.85ms
+[INFO ] #ormolu: 39 files processed in 1.60s
+[INFO ] #hlint: 39 files processed in 2.15s
+0 files changed in 2s (found 66, matched 86, cache misses 86)
 ```
 
-#### bias for totality
+Those `INFO` lines indicate which formatters were run. Running those same ones individually should address the issues. You can also just indicate in your PR that you don’t use Nix, and a maintainer will happily fix the formatting for you.
 
-Yaya tries to encourage you to define things in ways that are likely to maintain
-promises of termination. Sometimes, the compiler can even tell you when
-you've broken these promises, but it falls short of any guarantee of totality.
+This implies a revision bump in any package that has been reformatted, as well as a revision bump in the repository.
 
-Anything known to be partial is relegated to the `yaya-unsafe` package -- mostly
-useful when you're in the process of converting existing directly-recursive
-code.
+#### check project-manager-files
 
-**NB**: There are a number of instances (for example, `Corecursive [a] (XNor a)`) that
-_are_ actually safe, but they rely on Haskell’s own recursion. We could
-potentially add a module/package in between the safe and unsafe ones, containing
-`Corecursive` instances for types that are lazy in their recursive parameters
-and `Recursive` instances for ones that are strict.
+Some files committed to the repository don’t match the ones that would be generated by Project Manager. This can happen either because you modified some of the Nix project configuration and forgot to regenerate the files, or because you edited generated files directly rather than editing the Nix project configuration.
 
-#### bias for working with algebras
+If you use Nix, running `project-manager switch` from a project dev shell (or `nix run github:sellout/project-manager -- switch`) anywhere should fix this (although check to see if you lost intentional changes to generated files, and add them via the Nix project configuration instead).
 
-We try to provide fewer fold operations (although all the usual ones can be
-found in the `Zoo` modules). Instead, we expect more usage of `gcata`, and we
-provide a collection of "algebra transformers" to make it easier to transform
-various functions into generalized algebras, and between different generalized
-algebras to maximize the opportunities for fusion. Although, more importantly,
-it allows you to write "proto-algebras", which are functions that you expect to
-use in a fold but that aren't strictly in the shape of an algebra.
+If you don’t use Nix, you will need to mention that in your PR so that one of the maintainers can resolve this for you.
 
-#### productive metamorphisms
+## comparisons
 
-Yaya has productive metamorphisms (see `streamAna` and `streamGApo` -- also
-`stream` and `fstream` for more specialized versions). The naïve composition of
-`cata` and `ana` has no benefits.
-
-#### more atomic classes
-
-recursion-schemes combines `cata` and `project` into a single type
-class. However, the laws for `project` require either `embed` or `ana`, never
-`cata`. Similarly, the laws for `cata` either stand alone or require `embed`,
-never `project`. And you can restate this paragraph, replacing each operation
-with its dual.
-
-Also, it's impossible to define `embed` for some pattern functors where it's
-still possible to define `project`, so `project` and `embed` need to be
-independent.
-
-One unfortunate consequence of the above conditions is that `Projectable` is
-lawless on its own. However, we expect there to be a corresponding instance of
-either `Corecursive` or `Steppable` in all cases.
-
-#### multi-parameter type classes
-
-A purely ergonomic difference, yaya uses multi-parameter type classes instead of
-a `Base` type family.
-
-The latter frequently requires constraints in the form of
-`(Recursive t, Base t ~ f)`, so we prefer `Recursive t f`.
-
-#### naming
-
-Pattern functors and algebras tend to be named independently of their
-fixed-points. For example, we use `Maybe` directly instead of some `NatF`, `XNor a b`
-instead of `ListF`, and `AndMaybe a b` instead of `NonEmptyF`.
-
-This is because many pattern functors and algebras can be applied differently in
-different situations, so we try to avoid pigeon-holing them and rather trying to
-understand what the definition itself means, rather than in the context of a
-fold.
-
-### [compdata](https://github.com/pa-ba/compdata)
-
-I’m not as familiar with compdata, so I’ll have to look at it more before
-fleshing this out.
-
-- poly-kinded recursion schemes instead of separate classes for type-indexed
-  recursion schemes. Using `PolyKinds` also allows for a wider variety of folds,
-  for example, where the type index has kind `Type -> Type` rather than kind `Type`.
+See [the package README](./core/README.md) for comparisons with other similar projects.

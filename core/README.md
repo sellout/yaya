@@ -1,5 +1,8 @@
 # Yaya
 
+[![Packaging status](https://repology.org/badge/tiny-repos/haskell:yaya.svg)](https://repology.org/project/haskell:yaya/versions)
+[![latest packaged versions](https://repology.org/badge/latest-versions/haskell:yaya.svg)](https://repology.org/project/haskell:yaya/versions)
+
 Yet another … yet another recursion scheme library for Haskell
 
 ## overview
@@ -61,3 +64,116 @@ As a mnemonic, you can read the `e` as “exterior” as with a regular generali
 #### `M`
 
 Kleisli (“monadic”) variant – This convention is much more widespread than simply recursion schemes. A fold that returns its result in a `Monad`, by applying a Kleisli algebra (that is, `f a -> m a` rather than `f a -> a`. The dual of this might be something like `anaW` (taking a seed value in a `Comonad`), but those are uninteresting. Having Kleisli variants of unfolds is unsafe, as it can force traversal of an infinite structure. If you’re looking for an operation like that, you are better off with an effectful streaming library.
+
+## comparisons
+
+Other projects similar to this one, and how they differ.
+
+### [Turtles](https://github.com/sellout/turtles)
+
+**This project has been deprecated. Check out [Droste](https://github.com/higherkindness/droste) instead.**
+
+Yaya is a sister library to Turtles – the same approach, but implemented in
+Scala. Here are some differences to be aware of:
+
+- the `Zoo` modules in Turtles are both larger and their use is more encouraged,
+  because Scala’s inference makes it harder to use `gcata` etc. directly;
+- the `Unsafe` and `Native` modules have different contents, because different
+  structures are strict or lazy between the two languages. For example., in Scala,
+  `scala.collection.immutable.List` is strict, so the `Recursive` instance is in
+  `Native`, while the `Corecursive` instance is in `Unsafe`, but Haskell’s
+  `Data.List` is lazy, so the `Corecursive` instance is in `Native` while the
+  `Recursive` instance is in `Unsafe`.
+
+### [recursion-schemes](https://github.com/ekmett/recursion-schemes)
+
+#### poly-kinded folds
+
+The `c` type parameter specifies the arrow to use, so while it's common to
+specialize to `(->)`, other options can give you polymorphic recursion over
+nested data types (for example., GADTs). Among other things, you can use this to define
+folds of fixed-sized structures:
+
+```haskell
+data VectF elem a (i :: Nat) where
+  EmptyVect :: VectF elem a 0
+  VCons :: KnownNat n => elem -> a i -> VectF elem a (n + 1)
+
+type Vect elem n = HMu (VectF elem) n
+```
+
+#### bias for totality
+
+Yaya tries to encourage you to define things in ways that are likely to maintain
+promises of termination. Sometimes, the compiler can even tell you when
+you've broken these promises, but it falls short of any guarantee of totality.
+
+Anything known to be partial is relegated to the `yaya-unsafe` package -- mostly
+useful when you're in the process of converting existing directly-recursive
+code.
+
+**NB**: There are a number of instances (for example, `Corecursive [a] (XNor a)`) that
+_are_ actually safe, but they rely on Haskell’s own recursion. We could
+potentially add a module/package in between the safe and unsafe ones, containing
+`Corecursive` instances for types that are lazy in their recursive parameters
+and `Recursive` instances for ones that are strict.
+
+#### bias for working with algebras
+
+We try to provide fewer fold operations (although all the usual ones can be
+found in the `Zoo` modules). Instead, we expect more usage of `gcata`, and we
+provide a collection of "algebra transformers" to make it easier to transform
+various functions into generalized algebras, and between different generalized
+algebras to maximize the opportunities for fusion. Although, more importantly,
+it allows you to write "proto-algebras", which are functions that you expect to
+use in a fold but that aren't strictly in the shape of an algebra.
+
+#### productive metamorphisms
+
+Yaya has productive metamorphisms (see `streamAna` and `streamGApo` -- also
+`stream` and `fstream` for more specialized versions). The naïve composition of
+`cata` and `ana` has no benefits.
+
+#### more atomic classes
+
+recursion-schemes combines `cata` and `project` into a single type
+class. However, the laws for `project` require either `embed` or `ana`, never
+`cata`. Similarly, the laws for `cata` either stand alone or require `embed`,
+never `project`. And you can restate this paragraph, replacing each operation
+with its dual.
+
+Also, it's impossible to define `embed` for some pattern functors where it's
+still possible to define `project`, so `project` and `embed` need to be
+independent.
+
+One unfortunate consequence of the above conditions is that `Projectable` is
+lawless on its own. However, we expect there to be a corresponding instance of
+either `Corecursive` or `Steppable` in all cases.
+
+#### multi-parameter type classes
+
+A purely ergonomic difference, yaya uses multi-parameter type classes instead of
+a `Base` type family.
+
+The latter frequently requires constraints in the form of
+`(Recursive t, Base t ~ f)`, so we prefer `Recursive t f`.
+
+#### naming
+
+Pattern functors and algebras tend to be named independently of their
+fixed-points. For example, we use `Maybe` directly instead of some `NatF`, `XNor a b`
+instead of `ListF`, and `AndMaybe a b` instead of `NonEmptyF`.
+
+This is because many pattern functors and algebras can be applied differently in
+different situations, so we try to avoid pigeon-holing them and rather trying to
+understand what the definition itself means, rather than in the context of a
+fold.
+
+### [compdata](https://github.com/pa-ba/compdata)
+
+I’m not as familiar with compdata, so I’ll have to look at it more before
+fleshing this out.
+
+- poly-kinded recursion schemes instead of separate classes for type-indexed
+  recursion schemes. Using `PolyKinds` also allows for a wider variety of folds,
+  for example, where the type index has kind `Type -> Type` rather than kind `Type`.

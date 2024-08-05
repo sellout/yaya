@@ -1,10 +1,23 @@
-{
+## TODO: Map `systems` and `exclude` from Nixier values – perhaps flake-utils
+##       systems, and a bool for `--prefer-oldest`?
+{ systems,
+  packages,
+  ## TODO: Prefer ignoring most known failures once
+  ##       https://github.com/orgs/community/discussions/15452 is resolved.
+  exclude ? [],
+}: {
   lib,
   pkgs,
   self,
   ...
 }: let
-  planName = "plan-\${{ runner.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
+  planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
+  ## NB: Prefer the default compiler version.
+  ghc-version = "9.6.5";
+  ## This should be the highest GHC version that this workflow built.
+  latest-ghc-version = "9.10.1";
+  cabal-version = "3.12.1.0";
+  runs-on = "ubuntu-22.04";
 in {
   services.github.workflow."build.yml".text = lib.generators.toYAML {} {
     name = "CI";
@@ -20,24 +33,18 @@ in {
         strategy = {
           fail-fast = false;
           matrix = {
-            ghc = self.lib.nonNixTestedGhcVersions;
-            os = ["macos-13" "ubuntu-22.04" "windows-2022"];
             bounds = ["--prefer-oldest" ""];
-            exclude = [
-              ## This combination currently fails due to a libgmp issue.
-              ## Hopefully, constraining based on the remaining cases will
-              ## result in bounds that eliminate the problem.
-              {
-                ghc = "8.6.1";
-                os = "macos-13";
-                bounds = "--prefer-oldest";
-              }
-              ## These jobs are currently hanging at the end of the build.
-              {
-                ghc = "8.10.1";
-                os = "windows-2022";
-              }
-            ];
+            ghc = self.lib.nonNixTestedGhcVersions;
+            os = systems;
+            exclude =
+              [
+                ## GHCup can’t find this version for Linux.
+                {
+                  ghc = "7.10.3";
+                  os = "ubuntu-22.04";
+                }
+              ]
+              ++ exclude;
           };
         };
         runs-on = "\${{ matrix.os }}";
@@ -45,12 +52,11 @@ in {
         steps = [
           {uses = "actions/checkout@v4";}
           {
-            ## TODO: Uses deprecated Node.js, see haskell-actions/setup#72
             uses = "haskell-actions/setup@v2";
             id = "setup-haskell-cabal";
             "with" = {
+              inherit cabal-version;
               ghc-version = "\${{ matrix.ghc }}";
-              cabal-version = pkgs.cabal-install.version;
             };
           }
           {run = "cabal v2-freeze $CONFIG";}
@@ -61,7 +67,7 @@ in {
                 ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
                 dist-newstyle
               '';
-              key = "\${{ runner.os }}-\${{ matrix.ghc }}-\${{ hashFiles('cabal.project.freeze') }}";
+              key = "\${{ matrix.os }}-\${{ matrix.ghc }}-\${{ hashFiles('cabal.project.freeze') }}";
             };
           }
           ## NB: The `doctests` suites don’t seem to get built without
@@ -80,19 +86,17 @@ in {
         ];
       };
       check-bounds = {
-        runs-on = "ubuntu-22.04";
+        inherit runs-on;
+        ## Some "build" jobs are a bit flaky. This can give us useful bounds
+        ## information even without all of the build plans.
+        "if" = "always()";
         needs = ["build"];
         steps = [
           {uses = "actions/checkout@v4";}
           {
-            ## TODO: Uses deprecated Node.js, see haskell-actions/setup#72
             uses = "haskell-actions/setup@v2";
             id = "setup-haskell-cabal";
-            "with" = {
-              ## NB: `cabal-plan-bounds` doesn’t yet support GHC 9.8.
-              ghc-version = "9.6.3";
-              cabal-version = pkgs.cabal-install.version;
-            };
+            "with" = {inherit cabal-version ghc-version;};
           }
           {
             run = ''
@@ -128,7 +132,7 @@ in {
                   ${
                 lib.concatMapStrings
                 (pkg: "--also " + pkg + " ")
-                self.lib.extraDependencyVersions
+                self.lib.extraDependencyVersions or []
               } \
                   plans/*.json \
                   --cabal {} \;)"
@@ -136,6 +140,52 @@ in {
                 echo "$diffs"
                 exit 1
               fi
+            '';
+          }
+        ];
+      };
+      check-licenses = {
+        inherit runs-on;
+        ## Some "build" jobs are a bit flaky. Since this only uses one of the
+        ## jobs from the matrix, we run it regardless of build failures.
+        "if" = "always()";
+        needs = ["build"];
+        steps = [
+          {uses = "actions/checkout@v4";}
+          {
+            uses = "haskell-actions/setup@v2";
+            id = "setup-haskell-cabal";
+            "with" = {inherit cabal-version ghc-version;};
+          }
+          ## The `-Wwarn` offsets an issue where warnings are causing failures.
+          {run = "cabal install cabal-plan -flicense-report --ghc-option=-Wwarn";}
+          {
+            name = "download Cabal plans";
+            uses = "actions/download-artifact@v4";
+            "with" = {
+              path = "plans";
+              pattern = "plan-*";
+              merge-multiple = true;
+            };
+          }
+          {
+            run = ''
+              mkdir -p dist-newstyle/cache
+              mv plans/plan-${runs-on}-${latest-ghc-version}.json dist-newstyle/cache/plan.json
+            '';
+          }
+          {
+            name = "check if licenses have changed";
+            run = ''
+              ${lib.toShellVar "packages" packages}
+              for package in "''${!packages[@]}"; do
+                {
+                  echo "**NB**: This captures the licenses associated with a particular set of dependency versions. If your own build solves differently, it’s possible that the licenses may have changed, or even that the set of dependencies itself is different. Please make sure you run [\`cabal-plan license-report\`](https://hackage.haskell.org/package/cabal-plan) on your own components rather than assuming this is authoritative."
+                  echo
+                  cabal-plan license-report "$package:lib:$package"
+                } >"''${packages[''${package}]}/docs/license-report.md"
+              done
+              git diff --exit-code */docs/license-report.md
             '';
           }
         ];

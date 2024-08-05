@@ -1,29 +1,33 @@
-cabal-version:  3.0
+cabal-version: 3.0
 
-name:        yaya-containers
-version:     0.1.2.0
-synopsis:    Pattern functors and instances for types in the containers package.
-author:      Greg Pfeil <greg@technomadic.org>
-maintainer:  Greg Pfeil <greg@technomadic.org>
-copyright:   2024 Greg Pfeil
-homepage:    https://github.com/sellout/yaya#readme
+name: yaya-containers
+version: 0.1.2.1
+synopsis: Pattern functors and instances for types in the containers package.
+author: Greg Pfeil <greg@technomadic.org>
+maintainer: Greg Pfeil <greg@technomadic.org>
+copyright: 2024 Greg Pfeil
+homepage: https://github.com/sellout/yaya#readme
 bug-reports: https://github.com/sellout/yaya/issues
-category:    Recursion
-build-type:  Custom
-license:     AGPL-3.0-or-later
+category: Recursion
+build-type: Custom
+license: AGPL-3.0-or-later
 license-files:
   LICENSE
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+  docs/*.md
 tested-with:
   GHC == {
---  GHCup   Nixpkgs
     8.6.1,
-    8.8.1,  8.8.4,
-    8.10.1,
-    9.0.1,
-    9.2.1,
-    9.4.1,  9.4.8,
-    9.6.1,
-            9.8.1
+    8.8.1,
+    8.10.1, 8.10.7,
+    9.0.1, 9.0.2,
+    9.2.1, 9.2.5,
+    9.4.1, 9.4.5,
+    9.6.1, 9.6.3,
+    9.8.1,
+    9.10.1
   }
 
 source-repository head
@@ -76,19 +80,28 @@ common GHC2021
     UnicodeSyntax
     NoExplicitNamespaces
 
+flag noisy-deprecations
+  description:
+    Prior to GHC 9.10, the `DEPRECATED` pragma can’t distinguish between terms
+    and types. Consenquently, you can get spurious warnings when there’s a name
+    collision and the name in the other namespace is deprecated. Or you can
+    choose to not get those warnings, at the risk of not being warned when
+    there’s a name collision and the namespace you’re referencing is the one
+    that’s deprecated.
+
 common defaults
   import: GHC2021
   build-depends:
-    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
+    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0},
   ghc-options:
     -Weverything
+    -- This one just reports unfixable things, AFAICT.
+    -Wno-all-missed-specialisations
     -- Type inference good.
     -Wno-missing-local-signatures
     -- Warns even when `Unsafe` is explicit, not inferred. See
     -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
     -Wno-unsafe
-    -- TODO: prune these warnings
-    -Wno-all-missed-specialisations
     -fpackage-trust
     -trust base
   if impl(ghc < 8.8.1)
@@ -125,7 +138,6 @@ common defaults
     -- QualifiedDo - uncomment if the oldest supported version is GHC 9.0.1+
     RecursiveDo
     -- RequiredTypeArguments - uncomment if the oldest supported version is GHC 9.10.1+
-    RoleAnnotations
     StrictData
     TemplateHaskellQuotes
     TransformListComp
@@ -133,25 +145,23 @@ common defaults
     NoImplicitPrelude
     NoMonomorphismRestriction
     NoPatternGuards
+    NoStarIsType
     NoTypeApplications
+  if flag(noisy-deprecations)
+    cpp-options: -DSELLOUT_NOISY_DEPRECATIONS
 
 custom-setup
   setup-depends:
     -- TODO: Remove `Cabal` dep once haskell/cabal#3751 is fixed.
-    Cabal ^>= {3.0.0, 3.2.0, 3.4.0, 3.6.0, 3.8.0, 3.10.0},
-    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
+    Cabal ^>= {3.0.0, 3.2.0, 3.4.0, 3.6.0, 3.8.0, 3.10.0, 3.12.0},
+    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0},
     cabal-doctest ^>= {1.0.0},
 
 library
   import: defaults
   hs-source-dirs: src
-  exposed-modules:
-    Yaya.Containers.Pattern.IntMap
-    Yaya.Containers.Pattern.IntSet
-    Yaya.Containers.Pattern.Map
-    Yaya.Containers.Pattern.Set
   build-depends:
-    containers ^>= {0.6.0},
+    containers ^>= {0.6.0, 0.7},
     yaya ^>= {0.5.1, 0.6.0},
   ghc-options:
     -trust adjunctions
@@ -170,6 +180,11 @@ library
     -trust stm
     -trust text
     -trust transformers-compat
+  exposed-modules:
+    Yaya.Containers.Pattern.IntMap
+    Yaya.Containers.Pattern.IntSet
+    Yaya.Containers.Pattern.Map
+    Yaya.Containers.Pattern.Set
 
 test-suite doctests
   import: defaults
@@ -179,6 +194,12 @@ test-suite doctests
   build-depends:
     doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2},
     yaya-containers,
+  if impl(ghc >= 8.10.1)
+    ghc-options:
+      -- `doctest` requires the package containing the doctests as a dependency to
+      -- ensure it gets built before this test-suite, even though the package
+      -- appears to be unused.
+      -Wno-unused-packages
   -- TODO: The sections below here are necessary because we don’t have control
   --       over the generated `Build_doctests.hs` file. So we have to silence
   --       all of its warnings one way or another.

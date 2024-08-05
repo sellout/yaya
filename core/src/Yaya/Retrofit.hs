@@ -68,7 +68,6 @@ import safe "either" Data.Either.Validation
     validationToEither,
   )
 import safe qualified "template-haskell" Language.Haskell.TH as TH
-import safe qualified "template-haskell" Language.Haskell.TH.Syntax as TH.Syn
 import safe qualified "th-abstraction" Language.Haskell.TH.Datatype as TH.Abs
 import safe "this" Yaya.Fold
   ( Corecursive (ana),
@@ -236,10 +235,7 @@ deriveds =
   pure $
     TH.DerivClause
       (pure TH.StockStrategy)
-      [ TH.ConT functorTypeName,
-        TH.ConT foldableTypeName,
-        TH.ConT traversableTypeName
-      ]
+      [TH.ConT ''Foldable, TH.ConT ''Functor, TH.ConT ''Traversable]
 
 -- | A restricted version of `TH.Abs.DatatypeVariant` that excludes data family
 --   declarations.
@@ -472,19 +468,3 @@ toCon
             TH.Abs.UnspecifiedStrictness -> TH.NoSourceStrictness
             TH.Abs.Lazy -> TH.SourceLazy
             TH.Abs.Strict -> TH.SourceStrict
-
--------------------------------------------------------------------------------
--- Manually quoted names
--------------------------------------------------------------------------------
--- By manually generating these names we avoid needing to use the
--- TemplateHaskell language extension when compiling this library.
--- This allows the library to be used in stage1 cross-compilers.
-
-functorTypeName :: TH.Name
-functorTypeName = TH.Syn.mkNameG_tc "base" "GHC.Base" "Functor"
-
-foldableTypeName :: TH.Name
-foldableTypeName = TH.Syn.mkNameG_tc "base" "Data.Foldable" "Foldable"
-
-traversableTypeName :: TH.Name
-traversableTypeName = TH.Syn.mkNameG_tc "base" "Data.Traversable" "Traversable"
