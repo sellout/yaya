@@ -110,8 +110,6 @@ common defaults
     -- Warns even when `Unsafe` is explicit, not inferred. See
     -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
     -Wno-unsafe
-    -fpackage-trust
-    -trust base
   if impl(ghc < 8.8.1)
     ghc-options:
       -- This used to warn even when `Safe` was explicit.
@@ -122,8 +120,6 @@ common defaults
       -Wno-inferred-safe-imports
       -- We support GHC versions without qualified-post.
       -Wno-prepositive-qualified-module
-      -- `-trust` triggers this warning when applied to transitive dependencies.
-      -Wno-unused-packages
   if impl(ghc >= 9.2.1)
     ghc-options:
       -- We support GHC versions without kind signatures.
@@ -170,30 +166,11 @@ library
   hs-source-dirs:
     src
   build-depends:
-    bifunctors ^>= {5.5.7, 5.6},
     comonad ^>= 5.0.7,
     free ^>= {5.1.5, 5.2},
     -- `Control.Lens` in lens < 5 is `Unsafe`
     lens ^>= {5, 5.1, 5.2, 5.3},
     yaya ^>= {0.5.1, 0.6.0},
-  ghc-options:
-    -trust adjunctions
-    -trust array
-    -trust base-orphans
-    -trust binary
-    -trust bytestring
-    -trust containers
-    -trust distributive
-    -trust exceptions
-    -trust foldable1-classes-compat
-    -trust ghc-prim
-    -trust hashable
-    -trust lens
-    -trust profunctors
-    -trust semigroupoids
-    -trust stm
-    -trust text
-    -trust transformers-compat
   exposed-modules:
     Yaya.Unsafe.Applied
     Yaya.Unsafe.Fold
@@ -250,22 +227,4 @@ test-suite yaya-unsafe
     -fno-omit-yields
     -rtsopts
     -threaded
-    -trust adjunctions
-    -trust array
-    -trust base-orphans
-    -trust binary
-    -trust bytestring
-    -trust containers
-    -trust distributive
-    -trust exceptions
-    -trust foldable1-classes-compat
-    -trust ghc-prim
-    -trust hashable
-    -trust lens
-    -trust profunctors
-    -trust semigroupoids
-    -trust stm
-    -trust template-haskell
-    -trust text
-    -trust transformers-compat
     -with-rtsopts=-N

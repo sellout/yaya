@@ -105,8 +105,6 @@ common defaults
     -- Warns even when `Unsafe` is explicit, not inferred. See
     -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
     -Wno-unsafe
-    -fpackage-trust
-    -trust base
   if impl(ghc < 8.8.1)
     ghc-options:
       -- This used to warn even when `Safe` was explicit.
@@ -117,8 +115,6 @@ common defaults
       -Wno-inferred-safe-imports
       -- We support GHC versions without qualified-post.
       -Wno-prepositive-qualified-module
-      -- `-trust` triggers this warning when applied to transitive dependencies.
-      -Wno-unused-packages
   if impl(ghc >= 9.2.1)
     ghc-options:
       -- We support GHC versions without kind signatures.
@@ -167,31 +163,6 @@ library
   build-depends:
     QuickCheck ^>= {2.10, 2.13.2, 2.14.2},
     yaya ^>= {0.5.1, 0.6.0},
-    -- NB: splitmix is a transitive dependency … if we select QuickCheck >=
-    --     2.13. However, `-trust` only works for packages in the dependency
-    --     graph, so we make it explicit here for the times that it doesn’t get
-    --     included transitively.
-    splitmix ^>= {0.0.1, 0.1.0},
-  ghc-options:
-    -trust QuickCheck
-    -trust adjunctions
-    -trust array
-    -trust base-orphans
-    -trust binary
-    -trust bytestring
-    -trust containers
-    -trust distributive
-    -trust exceptions
-    -trust foldable1-classes-compat
-    -trust ghc-prim
-    -trust hashable
-    -trust profunctors
-    -trust random
-    -trust semigroupoids
-    -trust splitmix
-    -trust stm
-    -trust text
-    -trust transformers-compat
   exposed-modules:
     Yaya.QuickCheck.Fold
 

@@ -102,8 +102,6 @@ common defaults
     -- Warns even when `Unsafe` is explicit, not inferred. See
     -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
     -Wno-unsafe
-    -fpackage-trust
-    -trust base
   if impl(ghc < 8.8.1)
     ghc-options:
       -- This used to warn even when `Safe` was explicit.
@@ -114,8 +112,6 @@ common defaults
       -Wno-inferred-safe-imports
       -- We support GHC versions without qualified-post.
       -Wno-prepositive-qualified-module
-      -- `-trust` triggers this warning when applied to transitive dependencies.
-      -Wno-unused-packages
   if impl(ghc >= 9.2.1)
     ghc-options:
       -- We support GHC versions without kind signatures.
@@ -163,23 +159,6 @@ library
   build-depends:
     containers ^>= {0.6.0, 0.7},
     yaya ^>= {0.5.1, 0.6.0},
-  ghc-options:
-    -trust adjunctions
-    -trust array
-    -trust base-orphans
-    -trust binary
-    -trust bytestring
-    -trust containers
-    -trust distributive
-    -trust exceptions
-    -trust foldable1-classes-compat
-    -trust ghc-prim
-    -trust hashable
-    -trust profunctors
-    -trust semigroupoids
-    -trust stm
-    -trust text
-    -trust transformers-compat
   exposed-modules:
     Yaya.Containers.Pattern.IntMap
     Yaya.Containers.Pattern.IntSet
