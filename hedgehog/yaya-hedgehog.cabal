@@ -1,36 +1,36 @@
-cabal-version:  3.0
+cabal-version: 3.0
 
-name:        yaya-hedgehog
-version:     0.3.0.2
-synopsis:    Hedgehog testing support for the Yaya recursion scheme
-             library.
+name: yaya-hedgehog
+version: 0.3.0.3
+synopsis: Hedgehog testing support for the Yaya recursion scheme library.
 description: If you use Yaya in your own code and have tests written
              using Hedgehog, then this library will help you with
              generating trees, verifying type class instances, etc.
-author:      Greg Pfeil <greg@technomadic.org>
-maintainer:  Greg Pfeil <greg@technomadic.org>
-copyright:   2017 Greg Pfeil
-homepage:    https://github.com/sellout/yaya#readme
+author: Greg Pfeil <greg@technomadic.org>
+maintainer: Greg Pfeil <greg@technomadic.org>
+copyright: 2017 Greg Pfeil
+homepage: https://github.com/sellout/yaya#readme
 bug-reports: https://github.com/sellout/yaya/issues
-category:    Recursion
-build-type:  Custom
-license:     AGPL-3.0-or-later
+category: Recursion
+build-type: Custom
+license: AGPL-3.0-or-later
 license-files:
   LICENSE
-extra-source-files:
+extra-doc-files:
   CHANGELOG.md
   README.md
+  docs/*.md
 tested-with:
   GHC == {
---  GHCup   Nixpkgs
     8.6.1,
-    8.8.1,  8.8.4,
-    8.10.1,
-    9.0.1,
-    9.2.1,
-    9.4.1,  9.4.8,
-    9.6.1,
-            9.8.1
+    8.8.1,
+    8.10.1, 8.10.7,
+    9.0.1, 9.0.2,
+    9.2.1, 9.2.5,
+    9.4.1, 9.4.5,
+    9.6.1, 9.6.3,
+    9.8.1,
+    9.10.1
   }
 
 source-repository head
@@ -83,21 +83,28 @@ common GHC2021
     UnicodeSyntax
     NoExplicitNamespaces
 
+flag noisy-deprecations
+  description:
+    Prior to GHC 9.10, the `DEPRECATED` pragma can’t distinguish between terms
+    and types. Consenquently, you can get spurious warnings when there’s a name
+    collision and the name in the other namespace is deprecated. Or you can
+    choose to not get those warnings, at the risk of not being warned when
+    there’s a name collision and the namespace you’re referencing is the one
+    that’s deprecated.
+
 common defaults
   import: GHC2021
   build-depends:
-    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
+    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0},
   ghc-options:
     -Weverything
+    -- This one just reports unfixable things, AFAICT.
+    -Wno-all-missed-specialisations
     -- Type inference good.
     -Wno-missing-local-signatures
     -- Warns even when `Unsafe` is explicit, not inferred. See
     -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
     -Wno-unsafe
-    -- TODO: prune these warnings
-    -Wno-all-missed-specialisations
-    -fpackage-trust
-    -trust base
   if impl(ghc < 8.8.1)
     ghc-options:
       -- This used to warn even when `Safe` was explicit.
@@ -108,8 +115,6 @@ common defaults
       -Wno-inferred-safe-imports
       -- We support GHC versions without qualified-post.
       -Wno-prepositive-qualified-module
-      -- `-trust` triggers this warning when applied to transitive dependencies.
-      -Wno-unused-packages
   if impl(ghc >= 9.2.1)
     ghc-options:
       -- We support GHC versions without kind signatures.
@@ -132,7 +137,6 @@ common defaults
     -- QualifiedDo - uncomment if the oldest supported version is GHC 9.0.1+
     RecursiveDo
     -- RequiredTypeArguments - uncomment if the oldest supported version is GHC 9.10.1+
-    RoleAnnotations
     StrictData
     TemplateHaskellQuotes
     TransformListComp
@@ -140,44 +144,30 @@ common defaults
     NoImplicitPrelude
     NoMonomorphismRestriction
     NoPatternGuards
+    NoStarIsType
     NoTypeApplications
+  if flag(noisy-deprecations)
+    cpp-options: -DSELLOUT_NOISY_DEPRECATIONS
 
 custom-setup
   setup-depends:
     -- TODO: Remove `Cabal` dep once haskell/cabal#3751 is fixed.
-    Cabal ^>= {3.0.0, 3.2.0, 3.4.0, 3.6.0, 3.8.0, 3.10.0},
-    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
+    Cabal ^>= {3.0.0, 3.2.0, 3.4.0, 3.6.0, 3.8.0, 3.10.0, 3.12.0},
+    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0},
     cabal-doctest ^>= {1.0.0},
 
 library
   import: defaults
   hs-source-dirs:
     src
-  exposed-modules:
-    Yaya.Hedgehog
-    Yaya.Hedgehog.Expr
-    Yaya.Hedgehog.Fold
   build-depends:
     deriving-compat ^>= {0.5.9, 0.6},
     hedgehog ^>= {1.0, 1.1, 1.2, 1.4},
     yaya ^>= {0.5.1, 0.6.0},
-  ghc-options:
-    -trust adjunctions
-    -trust array
-    -trust base-orphans
-    -trust binary
-    -trust bytestring
-    -trust containers
-    -trust distributive
-    -trust exceptions
-    -trust foldable1-classes-compat
-    -trust ghc-prim
-    -trust hashable
-    -trust profunctors
-    -trust semigroupoids
-    -trust stm
-    -trust text
-    -trust transformers-compat
+  exposed-modules:
+    Yaya.Hedgehog
+    Yaya.Hedgehog.Expr
+    Yaya.Hedgehog.Fold
 
 test-suite doctests
   import: defaults
@@ -187,6 +177,12 @@ test-suite doctests
   build-depends:
     doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2},
     yaya-hedgehog,
+  if impl(ghc >= 8.10.1)
+    ghc-options:
+      -- `doctest` requires the package containing the doctests as a dependency to
+      -- ensure it gets built before this test-suite, even though the package
+      -- appears to be unused.
+      -Wno-unused-packages
   -- TODO: The sections below here are necessary because we don’t have control
   --       over the generated `Build_doctests.hs` file. So we have to silence
   --       all of its warnings one way or another.
@@ -225,20 +221,4 @@ test-suite yaya
   ghc-options:
     -rtsopts
     -threaded
-    -trust adjunctions
-    -trust array
-    -trust base-orphans
-    -trust binary
-    -trust bytestring
-    -trust containers
-    -trust distributive
-    -trust exceptions
-    -trust foldable1-classes-compat
-    -trust ghc-prim
-    -trust hashable
-    -trust profunctors
-    -trust semigroupoids
-    -trust stm
-    -trust text
-    -trust transformers-compat
     -with-rtsopts=-N

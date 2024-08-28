@@ -1,3 +1,6 @@
+flags:
+  -noisy-deprecations
+
 program-options
   ghc-options:
     -Werror
