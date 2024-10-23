@@ -9,8 +9,8 @@
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
     ];
     ## Isolate the build.
-    registries = false;
     sandbox = "relaxed";
+    use-registries = false;
   };
 
   ### This is a complicated flake. Here’s the rundown:
@@ -35,10 +35,11 @@
     flaky-haskell,
     nixpkgs,
     self,
+    systems,
   }: let
     pname = "yaya";
 
-    supportedSystems = flaky.lib.defaultSystems;
+    supportedSystems = import systems;
 
     cabalPackages = pkgs: hpkgs:
       flaky-haskell.lib.cabalProject2nix
@@ -71,7 +72,8 @@
       overlays = {
         default = final: prev:
           flaky-haskell.lib.overlayHaskellPackages
-          (self.lib.supportedGhcVersions final.system)
+          (map self.lib.nixifyGhcVersion
+            (self.lib.supportedGhcVersions final.system))
           (final: prev:
             nixpkgs.lib.composeManyExtensions [
               ## TODO: I think this overlay is only needed by formatters,
@@ -111,8 +113,11 @@
           supportedSystems);
 
       lib = {
+        nixifyGhcVersion = version:
+          "ghc" + nixpkgs.lib.replaceStrings ["."] [""] version;
+
         ## TODO: Extract this automatically from `pkgs.haskellPackages`.
-        defaultCompiler = "ghc965";
+        defaultGhcVersion = "9.6.5";
 
         ## Test the oldest revision possible for each minor release. If it’s not
         ## available in nixpkgs, test the oldest available, then try an older
@@ -120,18 +125,15 @@
         ## explicit conditionalization. And check whatever version `pkgs.ghc`
         ## maps to in the nixpkgs we depend on.
         testedGhcVersions = system: [
-          self.lib.defaultCompiler
-          "ghc8107"
-          "ghc902"
-          "ghc925"
-          "ghc945"
-          "ghc963"
-          "ghc981"
-          ## Nix doesn’t yet have good enough support for GHC 9.10. Try this
-          ## once https://github.com/NixOS/nixpkgs/blob/release-24.05/pkgs/development/haskell-modules/configuration-ghc-9.10.x.nix
-          ## is updated after 2024–08–23.
-          # "ghc9101"
-          # "ghcHEAD"
+          self.lib.defaultGhcVersion
+          "8.10.7"
+          "9.0.2"
+          "9.2.5"
+          "9.4.5"
+          "9.6.3"
+          "9.8.1"
+          "9.10.1"
+          # "ghcHEAD" # doctest doesn’t work on current HEAD
         ];
 
         ## The versions that are older than those supported by Nix that we
@@ -155,14 +157,15 @@
         supportedGhcVersions = system:
           self.lib.testedGhcVersions system
           ++ [
-            "ghc926"
-            "ghc927"
-            "ghc928"
-            "ghc946"
-            "ghc947"
-            "ghc948"
-            "ghc964"
-            "ghc982"
+            "9.2.6"
+            "9.2.7"
+            "9.2.8"
+            "9.4.6"
+            "9.4.7"
+            "9.4.8"
+            "9.6.4"
+            "9.6.5"
+            "9.8.2"
           ];
 
         ## These are versions that we don’t build against, but that we want the
@@ -183,44 +186,63 @@
           ## `cabal-plan-bounds` throw it out.
           "th-abstraction-0.5.0.0"
         ];
+
+        githubSystems = [
+          "macos-13" # x86_64-darwin
+          "macos-14" # aarch64-darwin
+          "ubuntu-24.04" # x86_64-linux
+          "windows-2022"
+        ];
       };
     }
     // flake-utils.lib.eachSystem supportedSystems
     (system: let
-      pkgs = import nixpkgs {
-        inherit system;
-        ## NB: This uses `self.overlays.default` because packages need to
-        ##     be able to find other packages in this flake as dependencies.
-        overlays = [self.overlays.default];
-      };
+      pkgs = nixpkgs.legacyPackages.${system}.appendOverlays [
+        flaky.overlays.dependencies
+        ## NB: This uses `self.overlays.default` because packages need to be
+        ##     able to find other packages in this flake as dependencies.
+        self.overlays.default
+      ];
     in {
       packages =
-        {default = self.packages.${system}."${self.lib.defaultCompiler}_all";}
+        {
+          default =
+            self.packages.${system}."${self.lib.nixifyGhcVersion self.lib.defaultGhcVersion}_all";
+        }
         // flaky-haskell.lib.mkPackages
         pkgs
-        (self.lib.supportedGhcVersions system)
+        (map self.lib.nixifyGhcVersion (self.lib.supportedGhcVersions system))
         cabalPackages;
 
       devShells =
-        {default = self.devShells.${system}.${self.lib.defaultCompiler};}
+        {
+          default =
+            self.devShells.${system}.${self.lib.nixifyGhcVersion self.lib.defaultGhcVersion};
+        }
         // flaky-haskell.lib.mkDevShells
         pkgs
-        (self.lib.supportedGhcVersions system)
+        (map self.lib.nixifyGhcVersion (self.lib.supportedGhcVersions system))
         cabalPackages
         (hpkgs:
           [self.projectConfigurations.${system}.packages.path]
           ## NB: Haskell Language Server no longer supports GHC <9.2, and 9.4
           ##     has an issue with it on i686-linux.
+          ## TODO: Remove the restriction on GHC 9.10 once
+          ##       https://github.com/NixOS/nixpkgs/commit/e87381d634cb1ddd2bd7e121c44fbc926a8c026a
+          ##       finds its way into 24.05.
           ++ nixpkgs.lib.optional
           (
-            if system == "i686-linux"
-            then nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.4"
-            else nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.2"
+            (
+              if system == "i686-linux"
+              then nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.4"
+              else nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.2"
+            )
+            && nixpkgs.lib.versionOlder hpkgs.ghc.version "9.10"
           )
           hpkgs.haskell-language-server);
 
       projectConfigurations =
-        flaky.lib.projectConfigurations.default {inherit pkgs self;};
+        flaky.lib.projectConfigurations.haskell {inherit pkgs self;};
 
       checks = self.projectConfigurations.${system}.checks;
       formatter = self.projectConfigurations.${system}.formatter;
@@ -232,6 +254,7 @@
 
     flake-utils.follows = "flaky/flake-utils";
     nixpkgs.follows = "flaky/nixpkgs";
+    systems.follows = "flaky/systems";
 
     flaky-haskell = {
       inputs.flaky.follows = "flaky";
