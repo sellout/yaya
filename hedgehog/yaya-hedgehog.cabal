@@ -37,28 +37,32 @@ source-repository head
   type: git
   location: https://github.com/sellout/yaya
 
--- This mimics the GHC2021 extension
--- (https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/control.html?highlight=doandifthenelse#extension-GHC2021),
+-- This mimics the GHC2024 extension
+-- (https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/control.html?highlight=doandifthenelse#extension-GHC2024),
 -- but supporting compilers back to GHC 7.10. If the oldest supported compiler
--- is GHC 9.2, then this stanza can be removed and `import: GHC2021` can be
--- replaced by `default-language: GHC2021`.
-common GHC2021
+-- is GHC 9.10, then this stanza can be removed and `import: GHC2024` can be
+-- replaced by `default-language: GHC2024`. If the oldest supported compiler is
+-- GHC 9.2, then this can be simplified by setting `default-language: GHC2021`
+-- and only including the extensions added by GHC2024.
+common GHC2024
   default-language: Haskell2010
   default-extensions:
     BangPatterns
     BinaryLiterals
     ConstraintKinds
+    DataKinds
     DeriveDataTypeable
     DeriveGeneric
     -- DeriveLift -- uncomment if the oldest supported version is GHC 8.10.1+
     DeriveTraversable
     DerivingStrategies
+    DisambiguateRecordFields
     DoAndIfThenElse
     EmptyCase
     ExistentialQuantification
     FlexibleContexts
     FlexibleInstances
-    GADTSyntax
+    GADTs
     GeneralizedNewtypeDeriving
     HexFloatLiterals
     -- ImportQualifiedPost -- uncomment if the oldest supported version is GHC 8.10.1+
@@ -74,6 +78,7 @@ common GHC2021
     PolyKinds
     PostfixOperators
     RankNTypes
+    RoleAnnotations
     ScopedTypeVariables
     StandaloneDeriving
     -- StandaloneKindSignatures -- uncomment if the oldest supported version is GHC 8.10.1+
@@ -81,7 +86,6 @@ common GHC2021
     TypeApplications
     TypeOperators
     UnicodeSyntax
-    NoExplicitNamespaces
 
 flag noisy-deprecations
   description:
@@ -93,7 +97,7 @@ flag noisy-deprecations
     that’s deprecated.
 
 common defaults
-  import: GHC2021
+  import: GHC2024
   build-depends:
     base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0},
   ghc-options:
@@ -126,6 +130,7 @@ common defaults
       -- Inference good.
       -Wno-missing-role-annotations
   default-extensions:
+    BlockArguments
     DefaultSignatures
     ExplicitNamespaces
     FunctionalDependencies
@@ -179,8 +184,8 @@ test-suite doctests
     yaya-hedgehog,
   if impl(ghc >= 8.10.1)
     ghc-options:
-      -- `doctest` requires the package containing the doctests as a dependency to
-      -- ensure it gets built before this test-suite, even though the package
+      -- `doctest` requires the package containing the doctests as a dependency
+      -- to ensure it gets built before this test-suite, even though the package
       -- appears to be unused.
       -Wno-unused-packages
   -- TODO: The sections below here are necessary because we don’t have control
@@ -192,7 +197,6 @@ test-suite doctests
     -Wno-safe
   if impl(ghc >= 8.8.1)
     ghc-options:
-      -- This used to warn even when `Safe` was explicit.
       -Wno-missing-deriving-strategies
   default-extensions:
     -- Since we can’t add `{-# LANGUAGE Safe -#}` to the generated
