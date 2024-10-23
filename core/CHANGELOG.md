@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog 1.1](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.6.2.2] - 2024-10-23
+
+### Changed
+
+- simplified Template Haskell internals in `Yaya.Retrofit`
+
 ## [0.6.2.1] - 2024-08-26
 
 ### Added

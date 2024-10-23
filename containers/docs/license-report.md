@@ -10,7 +10,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | --- | --- | --- | --- | --- |
 | **`base`** | [`4.20.0.0`](http://hackage.haskell.org/package/base-4.20.0.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/base-4.20.0.0/src/LICENSE) | Core data structures and operations | *(core library)* |
 | **`containers`** | [`0.7`](http://hackage.haskell.org/package/containers-0.7) | [`BSD-3-Clause`](http://hackage.haskell.org/package/containers-0.7/src/LICENSE) | Assorted concrete container types | `adjunctions`, `bifunctors`, `binary`, `comonad`, `free`, `hashable`, `indexed-traversable`, `invariant`, `kan-extensions`, `lens`, `parallel`, `semigroupoids`, `th-abstraction` |
-| `yaya` | [`0.6.2.1`](http://hackage.haskell.org/package/yaya-0.6.2.1) |  *MISSING* | *MISSING* |  |
+| `yaya` | [`0.6.2.2`](http://hackage.haskell.org/package/yaya-0.6.2.2) |  *MISSING* | *MISSING* |  |
 
 ## Indirect transitive dependencies
 

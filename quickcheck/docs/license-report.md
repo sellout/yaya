@@ -10,7 +10,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | --- | --- | --- | --- | --- |
 | `QuickCheck` | [`2.14.3`](http://hackage.haskell.org/package/QuickCheck-2.14.3) | [`BSD-3-Clause`](http://hackage.haskell.org/package/QuickCheck-2.14.3/src/LICENSE) | Automatic testing of Haskell programs |  |
 | **`base`** | [`4.20.0.0`](http://hackage.haskell.org/package/base-4.20.0.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/base-4.20.0.0/src/LICENSE) | Core data structures and operations | *(core library)* |
-| `yaya` | [`0.6.2.1`](http://hackage.haskell.org/package/yaya-0.6.2.1) |  *MISSING* | *MISSING* |  |
+| `yaya` | [`0.6.2.2`](http://hackage.haskell.org/package/yaya-0.6.2.2) |  *MISSING* | *MISSING* |  |
 
 ## Indirect transitive dependencies
 
