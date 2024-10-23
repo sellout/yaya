@@ -12,7 +12,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | `comonad` | [`5.0.8`](http://hackage.haskell.org/package/comonad-5.0.8) | [`BSD-3-Clause`](http://hackage.haskell.org/package/comonad-5.0.8/src/LICENSE) | Comonads | `adjunctions`, `bifunctors`, `free`, `invariant`, `kan-extensions`, `lens`, `profunctors`, `semigroupoids`, `yaya` |
 | `free` | [`5.2`](http://hackage.haskell.org/package/free-5.2) | [`BSD-3-Clause`](http://hackage.haskell.org/package/free-5.2/src/LICENSE) | Monads for free | `adjunctions`, `kan-extensions`, `lens`, `yaya` |
 | `lens` | [`5.3.2`](http://hackage.haskell.org/package/lens-5.3.2) | [`BSD-2-Clause`](http://hackage.haskell.org/package/lens-5.3.2/src/LICENSE) | Lenses, Folds and Traversals | `yaya` |
-| `yaya` | [`0.6.2.1`](http://hackage.haskell.org/package/yaya-0.6.2.1) |  *MISSING* | *MISSING* |  |
+| `yaya` | [`0.6.2.2`](http://hackage.haskell.org/package/yaya-0.6.2.2) |  *MISSING* | *MISSING* |  |
 
 ## Indirect transitive dependencies
 
