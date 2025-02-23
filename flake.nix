@@ -187,6 +187,9 @@
           ## This is the version used by Nix, so we can’t have
           ## `cabal-plan-bounds` throw it out.
           "th-abstraction-0.5.0.0"
+          ## This only solves at 0.7.1, but the Haskell didn’t change, so keep
+          ## the previous bound.
+          "th-abstraction-0.7.0.0"
         ];
 
         githubSystems = [
