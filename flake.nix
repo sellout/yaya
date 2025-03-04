@@ -118,25 +118,30 @@
         nixifyGhcVersion = version:
           "ghc" + nixpkgs.lib.replaceStrings ["."] [""] version;
 
-        ## TODO: Extract this automatically from `pkgs.haskellPackages`.
-        defaultGhcVersion = "9.6.5";
+        ## For testing, we build against the _oldest_ version of each minor GHC
+        ## release. However, for general development, we want to use Nixpkgs
+        ## default GHC to maximize the cache benefit, etc.
+        ##
+        ## FIXME: This should be the assert below, but currently we have dependencies on this that don’t allow us to make it system-dependent.
+        defaultGhcVersion = "9.6.6";
 
         ## Test the oldest revision possible for each minor release. If it’s not
         ## available in nixpkgs, test the oldest available, then try an older
         ## one via GitHub workflow. Additionally, check any revisions that have
         ## explicit conditionalization. And check whatever version `pkgs.ghc`
         ## maps to in the nixpkgs we depend on.
-        testedGhcVersions = system: [
-          self.lib.defaultGhcVersion
-          "8.10.7"
-          "9.0.2"
-          "9.2.5"
-          "9.4.5"
-          "9.6.3"
-          "9.8.1"
-          "9.10.1"
-          # "ghcHEAD" # doctest doesn’t work on current HEAD
-        ];
+        testedGhcVersions = system:
+          assert self.lib.defaultGhcVersion == nixpkgs.legacyPackages.${system}.haskellPackages.ghc.version; [
+            self.lib.defaultGhcVersion
+            "8.10.7"
+            "9.0.2"
+            "9.2.5"
+            "9.4.5"
+            "9.6.3"
+            "9.8.1"
+            "9.10.1"
+            # "ghcHEAD" # doctest doesn’t work on current HEAD
+          ];
 
         ## The versions that are older than those supported by Nix that we
         ## prefer to test against.
