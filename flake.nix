@@ -70,21 +70,23 @@
       # - NixOS/nixpkgs#26561
       # - https://discourse.nixos.org/t/nix-haskell-development-2020/6170
       overlays = {
-        default = final: prev:
-          flaky-haskell.lib.overlayHaskellPackages
-          (map self.lib.nixifyGhcVersion
-            (self.lib.supportedGhcVersions final.system))
-          (final: prev:
-            nixpkgs.lib.composeManyExtensions [
-              ## TODO: I think this overlay is only needed by formatters,
-              ##       devShells, etc., so it shouldn’t be included in the
-              ##       standard overlay.
-              (flaky.overlays.haskellDependencies final prev)
-              (self.overlays.haskell final prev)
-              (self.overlays.haskellDependencies final prev)
-            ])
-          final
-          prev;
+        default = final:
+          nixpkgs.lib.composeManyExtensions [
+            flaky.overlays.default
+            (flaky-haskell.lib.overlayHaskellPackages
+              (map self.lib.nixifyGhcVersion
+                (self.lib.supportedGhcVersions final.system))
+              (final: prev:
+                nixpkgs.lib.composeManyExtensions [
+                  ## TODO: I think this overlay is only needed by formatters,
+                  ##       devShells, etc., so it shouldn’t be included in the
+                  ##       standard overlay.
+                  (flaky.overlays.haskellDependencies final prev)
+                  (self.overlays.haskell final prev)
+                  (self.overlays.haskellDependencies final prev)
+                ]))
+          ]
+          final;
 
         haskell = flaky-haskell.lib.haskellOverlay cabalPackages;
 
@@ -116,25 +118,30 @@
         nixifyGhcVersion = version:
           "ghc" + nixpkgs.lib.replaceStrings ["."] [""] version;
 
-        ## TODO: Extract this automatically from `pkgs.haskellPackages`.
-        defaultGhcVersion = "9.6.5";
+        ## For testing, we build against the _oldest_ version of each minor GHC
+        ## release. However, for general development, we want to use Nixpkgs
+        ## default GHC to maximize the cache benefit, etc.
+        ##
+        ## FIXME: This should be the assert below, but currently we have dependencies on this that don’t allow us to make it system-dependent.
+        defaultGhcVersion = "9.6.6";
 
         ## Test the oldest revision possible for each minor release. If it’s not
         ## available in nixpkgs, test the oldest available, then try an older
         ## one via GitHub workflow. Additionally, check any revisions that have
         ## explicit conditionalization. And check whatever version `pkgs.ghc`
         ## maps to in the nixpkgs we depend on.
-        testedGhcVersions = system: [
-          self.lib.defaultGhcVersion
-          "8.10.7"
-          "9.0.2"
-          "9.2.5"
-          "9.4.5"
-          "9.6.3"
-          "9.8.1"
-          "9.10.1"
-          # "ghcHEAD" # doctest doesn’t work on current HEAD
-        ];
+        testedGhcVersions = system:
+          assert self.lib.defaultGhcVersion == nixpkgs.legacyPackages.${system}.haskellPackages.ghc.version; [
+            self.lib.defaultGhcVersion
+            "8.10.7"
+            "9.0.2"
+            "9.2.5"
+            "9.4.5"
+            "9.6.3"
+            "9.8.1"
+            "9.10.1"
+            # "ghcHEAD" # doctest doesn’t work on current HEAD
+          ];
 
         ## The versions that are older than those supported by Nix that we
         ## prefer to test against.
@@ -185,6 +192,9 @@
           ## This is the version used by Nix, so we can’t have
           ## `cabal-plan-bounds` throw it out.
           "th-abstraction-0.5.0.0"
+          ## This only solves at 0.7.1, but the Haskell didn’t change, so keep
+          ## the previous bound.
+          "th-abstraction-0.7.0.0"
         ];
 
         githubSystems = [
@@ -198,7 +208,7 @@
     // flake-utils.lib.eachSystem supportedSystems
     (system: let
       pkgs = nixpkgs.legacyPackages.${system}.appendOverlays [
-        flaky.overlays.dependencies
+        flaky.overlays.default
         ## NB: This uses `self.overlays.default` because packages need to be
         ##     able to find other packages in this flake as dependencies.
         self.overlays.default
