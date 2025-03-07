@@ -10,7 +10,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | --- | --- | --- | --- | --- |
 | **`base`** | [`4.20.0.0`](http://hackage.haskell.org/package/base-4.20.0.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/base-4.20.0.0/src/LICENSE) | Core data structures and operations | *(core library)* |
 | `deriving-compat` | [`0.6.7`](http://hackage.haskell.org/package/deriving-compat-0.6.7) | [`BSD-3-Clause`](http://hackage.haskell.org/package/deriving-compat-0.6.7/src/LICENSE) | Backports of GHC deriving extensions |  |
-| `hedgehog` | [`1.4`](http://hackage.haskell.org/package/hedgehog-1.4) | [`BSD-3-Clause`](http://hackage.haskell.org/package/hedgehog-1.4/src/LICENSE) | Release with confidence. |  |
+| `hedgehog` | [`1.5`](http://hackage.haskell.org/package/hedgehog-1.5) | [`BSD-3-Clause`](http://hackage.haskell.org/package/hedgehog-1.5/src/LICENSE) | Release with confidence. |  |
 | `yaya` | [`0.6.2.2`](http://hackage.haskell.org/package/yaya-0.6.2.2) | [`AGPL-3.0-or-later`](http://hackage.haskell.org/package/yaya-0.6.2.2/src/LICENSE) | Total recursion schemes. |  |
 
 ## Indirect transitive dependencies
