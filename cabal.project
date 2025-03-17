@@ -23,6 +23,8 @@ constraints:
   no-recursion >= 0.2.0,
   -- 0.4 is the first version with many of the operations we use
   strict >= 0.4,
+  -- < 0.3 has different field names
+  th-abstraction >= 0.3,
 
 allow-newer:
   -- The latest versions of these don’t have bounds that support GHC 9.14.
@@ -43,5 +45,6 @@ packages:
   ./core/yaya.cabal
   ./hedgehog/yaya-hedgehog.cabal
   ./lens/yaya-lens.cabal
+  ./native/yaya-native.cabal
   ./quickcheck/yaya-quickcheck.cabal
   ./unsafe/yaya-unsafe.cabal

@@ -7,16 +7,15 @@
 
 -- | This module only exists to restrict the scope of @NoStrictData@. Everything
 --    is re-exported via "Yaya.Fold".
-module Yaya.Fold.Native.Internal
+module Yaya.Native.Fold.Internal
   ( Cofix,
   )
 where
 
-import "base" Control.Category ((.))
-import "base" Data.Functor (Functor, fmap)
+import "base" Data.Functor (Functor)
 import "base" Data.Functor.Classes (Read1)
 import "base" Text.Read (Read, readListPrec, readListPrecDefault, readPrec)
-import "this" Yaya.Fold
+import "yaya" Yaya.Fold
   ( Corecursive,
     Projectable,
     Steppable,
@@ -25,6 +24,7 @@ import "this" Yaya.Fold
     project,
     steppableReadPrec,
   )
+import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 
 -- | A fixed-point constructor that uses Haskell's built-in recursion. This is
 --   lazy/corecursive.
@@ -39,7 +39,7 @@ instance Steppable (->) (Cofix f) f where
   embed = Cofix
 
 instance (Functor f) => Corecursive (->) (Cofix f) f where
-  ana φ = embed . fmap (ana φ) . φ
+  ana = Unsafe.unsafeAna
   {-# INLINEABLE ana #-}
 
 -- | @since 0.6.1.0

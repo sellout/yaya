@@ -2,12 +2,15 @@ cabal-version: 3.0
 -- ^ Cabal 3.0 is the first with the `Universal-FOSS-exception-1.0` SPDX license
 --   exception.
 
-name: yaya-hedgehog
-version: 0.4.0.0
-synopsis: Hedgehog testing support for the Yaya recursion scheme library.
-description: If you use Yaya in your own code and have tests written
-             using Hedgehog, then this library will help you with
-             generating trees, verifying type class instances, etc.
+name: yaya-native
+version: 0.0.1.0
+synopsis: Total recursion schemes.
+description: Recursion schemes allow you to separate recursion from your
+             business logic – making your own operations simpler, more modular,
+             and less error-prone. This library also provides tools for
+             combining your operations in ways that reduce the number of passes
+             over your data and is designed to encourage total (i.e.,
+             successfully terminating) functions.
 maintainer: Greg Pfeil <greg@technomadic.org>
 author: Greg Pfeil <greg@technomadic.org>
 copyright: 2017 Greg Pfeil
@@ -43,12 +46,12 @@ bug-reports: https://github.com/sellout/yaya/issues
 source-repository head
   type: git
   location: https://github.com/sellout/yaya.git
-  subdir: hedgehog
+  subdir: native
 
 source-repository this
   type: git
   location: https://github.com/sellout/yaya.git
-  subdir: hedgehog
+  subdir: native
   -- NB: This is the repo version, which is distinct from the package version.
   tag: v4.0.0
 
@@ -144,6 +147,8 @@ common defaults
     base ^>= {4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
   ghc-options:
     -Weverything
+    -- This one just reports unfixable things, AFAICT.
+    -Wno-all-missed-specialisations
     -- Type inference good.
     -Wno-missing-local-signatures
     -- Warns even when `Unsafe` is explicit, not inferred. See
@@ -153,7 +158,6 @@ common defaults
     ghc-options:
       -- This used to warn even when `Safe` was explicit.
       -Wno-safe
-  -- remove if the oldest supported version is GHC 8.10.1+
   if impl(ghc >= 8.10.1)
     ghc-options:
       -- If we didn’t allow inferred-safe imports, nothing would be `Safe`.
@@ -170,12 +174,6 @@ common defaults
       -Wno-missing-poly-kind-signatures
       -- Inference good.
       -Wno-missing-role-annotations
-  -- remove if the oldest supported version is GHC 9.14.1+
-  if impl(ghc >= 9.14.1)
-    ghc-options:
-      -- See
-      -- https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0581-namespace-specified-imports.rst#deprecate-use-of-pattern-in-import-export-lists
-      -Wno-pattern-namespace-specifier
   default-extensions:
     BlockArguments
     DefaultSignatures
@@ -212,13 +210,21 @@ library
   hs-source-dirs:
     src
   build-depends:
-    deriving-compat ^>= {0.5.9, 0.6},
-    hedgehog ^>= {1.0.1, 1.1, 1.2, 1.4, 1.5, 1.7},
-    yaya ^>= {0.5.1, 0.6.0, 0.7.0},
+    comonad ^>= 5.0.7,
+    either ^>= 5,
+    free ^>= {5.1.5, 5.2},
+    template-haskell ^>= {2.14.0, 2.15.0, 2.16.0, 2.17.0, 2.18.0, 2.19.0, 2.20.0, 2.21.0, 2.22.0},
+    th-abstraction ^>= {0.4.1, 0.5.0, 0.6.0, 0.7.0},
+    yaya,
+    yaya-unsafe,
   exposed-modules:
-    Yaya.Hedgehog
-    Yaya.Hedgehog.Expr
-    Yaya.Hedgehog.Fold
+    Yaya.Native.Applied
+    Yaya.Native.Fold
+    Yaya.Native.Retrofit
+    Yaya.Native.Unsafe.Fold
+    Yaya.Native.Unsafe.Fold.Instances
+  other-modules:
+    Yaya.Native.Fold.Internal
 
 test-suite doctests
   import: defaults
@@ -228,7 +234,7 @@ test-suite doctests
   main-is: doctests.hs
   build-depends:
     doctest ^>= {0.16.2, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
-    yaya-hedgehog,
+    yaya,
   if impl(ghc >= 8.10.1)
     ghc-options:
       -- `doctest` requires the package containing the doctests as a dependency
@@ -251,21 +257,22 @@ test-suite doctests
     -- doctests.hs, which is `Unsafe`.
     Unsafe
 
--- NB: This suite should be in the `yaya` package, but it can’t because it
---     depends on `yaya-hedgehog`.
-test-suite yaya
+test-suite native
   import: defaults
   type: exitcode-stdio-1.0
   hs-source-dirs:
     tests
   main-is: test.hs
   other-modules:
-    Test.Fold
-    Test.Fold.Common
+    Test.Native.Fold
+    Test.Native.Retrofit
+    Test.Native.Unsafe.Fold
   build-depends:
-    hedgehog ^>= {1.0.1, 1.1, 1.2, 1.4, 1.5, 1.7},
+    deriving-compat ^>= {0.5.9, 0.6},
+    hedgehog ^>= {1.0, 1.1, 1.2, 1.4, 1.5},
     yaya ^>= {0.5.1, 0.6.0, 0.7.0},
     yaya-hedgehog,
+    yaya-native,
   ghc-options:
     -rtsopts
     -threaded

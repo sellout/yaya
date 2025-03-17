@@ -3,12 +3,29 @@
 {
   config,
   lib,
+  pkgs,
   self,
   ...
 }: {
   project = {
     name = "yaya";
     summary = "Yet another … yet another recursion scheme library for Haskell";
+    devPackages = let
+      hpkgs = pkgs.haskellPackages;
+    in [
+      # (pkgs.haskell.lib.addBuildDepends (hpkgs.cabal-plan.overrideAttrs (old: {
+      #     configureFlags = old.configureFlags or [] ++ ["-flicense-report"];
+      #   }))
+      #   [
+      #     hpkgs.Cabal-syntax
+      #     hpkgs.cabal-install-parsers
+      #     hpkgs.filepath
+      #     hpkgs.tar
+      #     hpkgs.zlib
+      #   ])
+
+      pkgs.haskellPackages.cabal-plan-bounds
+    ];
     ## TODO: Move something like this to Flaky.
     file = let
       copyLicenses = dir: {
@@ -23,6 +40,7 @@
       // copyLicenses "core"
       // copyLicenses "hedgehog"
       // copyLicenses "lens"
+      // copyLicenses "native"
       // copyLicenses "quickcheck"
       // copyLicenses "unsafe";
   };
@@ -74,6 +92,7 @@
       yaya-containers = "containers";
       yaya-hedgehog = "hedgehog";
       yaya-lens = "lens";
+      yaya-native = "native";
       yaya-quickcheck = "quickcheck";
       yaya-unsafe = "unsafe";
     };

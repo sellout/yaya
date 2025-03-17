@@ -1,10 +1,14 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE Unsafe #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Yaya.Hedgehog.Fold
-  ( corecursiveIsUnsafe,
-    embeddableOfHeight,
+  ( anaRefl,
+    cataCancel,
+    cataCompose,
+    cataRefl,
+    corecursiveIsUnsafe,
     genAlgebra,
     genCorecursive,
     law_anaRefl,
@@ -12,24 +16,24 @@ module Yaya.Hedgehog.Fold
     law_cataCompose,
     law_cataRefl,
     recursiveIsUnsafe,
+    steppableOfHeight,
   )
 where
 
 import safe "base" Control.Category ((.))
-import safe "base" Data.Bifunctor (bimap, first)
+import safe "base" Control.Monad ((<=<))
 import safe "base" Data.Eq (Eq)
 import safe "base" Data.Function (($))
 import safe "base" Data.Functor (Functor, fmap)
 import safe "base" Data.Proxy (Proxy (Proxy))
 import safe qualified "base" Data.Tuple as Tuple
 import safe "base" Data.Void (Void, absurd)
-import safe "base" Numeric.Natural (Natural)
 import safe "base" Text.Show (Show)
 import "hedgehog" Hedgehog
   ( Gen,
     MonadTest,
     Property,
-    Size,
+    forAll,
     property,
     withTests,
     (===),
@@ -45,33 +49,61 @@ import "yaya" Yaya.Fold
     embed,
     project,
   )
-import safe "yaya" Yaya.Fold.Common (diagonal)
-import safe "yaya" Yaya.Fold.Native ()
-import safe "yaya" Yaya.Pattern (Maybe, Pair ((:!:)), fst, maybe, uncurry)
+import safe qualified "yaya" Yaya.Fold.Law as Law
+import safe "yaya" Yaya.Pattern (Maybe, Pair ((:!:)), fst, maybe)
 import "this" Yaya.Hedgehog (evalNonterminating)
-import safe "base" Prelude (fromIntegral)
+
+#include "../../deprecation.h"
 
 {-# HLINT ignore "Use camelCase" #-}
 
 law_cataCancel ::
   ( Eq a,
     Show a,
-    Steppable (->) t f,
     Recursive (->) t f,
+    Steppable (->) t f,
     Functor f,
     MonadTest m
   ) =>
   Algebra (->) f a ->
   f t ->
   m ()
-law_cataCancel φ =
-  uncurry (===) . bimap (cata φ . embed) (φ . fmap (cata φ)) . diagonal
+law_cataCancel = Law.cataCancel (===)
+{- ORMOLU_DISABLE -}
+DEPRECATE(law_cataCancel, "Use ‘cataCancel’ instead.", "yaya-hedgehog-0.4")
+{- ORMOLU_ENABLE -}
+
+cataCancel ::
+  forall t a f.
+  ( Eq a,
+    Show a,
+    Show (f t),
+    Recursive (->) t f,
+    Steppable (->) t f,
+    Functor f
+  ) =>
+  Algebra (->) f a ->
+  Gen (f t) ->
+  Property
+cataCancel φ = property . (Law.cataCancel (===) φ <=< forAll)
+{-# INLINEABLE cataCancel #-}
 
 law_cataRefl ::
   (Eq t, Show t, Steppable (->) t f, Recursive (->) t f, MonadTest m) =>
   t ->
   m ()
-law_cataRefl = uncurry (===) . first (cata embed) . diagonal
+law_cataRefl = Law.cataRefl (===)
+{- ORMOLU_DISABLE -}
+DEPRECATE(law_cataRefl, "Use ‘cataRefl’ instead.", "yaya-hedgehog-0.4")
+{- ORMOLU_ENABLE -}
+
+cataRefl ::
+  forall t f.
+  (Eq t, Show t, Steppable (->) t f, Recursive (->) t f) =>
+  Gen t ->
+  Property
+cataRefl = property . (Law.cataRefl (===) <=< forAll)
+{-# INLINEABLE cataRefl #-}
 
 -- | NB: Since this requires both a `Corecursive` and `Eq` instance on the same
 --       type, it _likely_ requires instances from yaya-unsafe.
@@ -79,18 +111,18 @@ law_anaRefl ::
   (Eq t, Show t, Steppable (->) t f, Corecursive (->) t f, MonadTest m) =>
   t ->
   m ()
-law_anaRefl = uncurry (===) . first (ana project) . diagonal
+law_anaRefl = Law.anaRefl (===)
+{- ORMOLU_DISABLE -}
+DEPRECATE(law_anaRefl, "Use ‘anaRefl’ instead.", "yaya-hedgehog-0.4")
+{- ORMOLU_ENABLE -}
 
--- law_cataFusion ::
---   (Eq a, Show a, Recursive (->) t f, Functor f, MonadTest m) =>
---   (a -> a) ->
---   Algebra (->) f a ->
---   f a ->
---   t ->
---   m ()
--- law_cataFusion f φ fa t =
---   uncurry (==) (bimap (f . φ) (φ . fmap f) $ diagonal fa)
---     ==> uncurry (===) (bimap (f . cata φ) (cata φ) $ diagonal t)
+anaRefl ::
+  forall t f.
+  (Eq t, Show t, Steppable (->) t f, Corecursive (->) t f) =>
+  Gen t ->
+  Property
+anaRefl = property . (Law.anaRefl (===) <=< forAll)
+{-# INLINEABLE anaRefl #-}
 
 law_cataCompose ::
   forall t f u g m b.
@@ -106,34 +138,31 @@ law_cataCompose ::
   (forall a. f a -> g a) ->
   t ->
   m ()
-law_cataCompose Proxy φ ε =
-  uncurry (===)
-    . bimap (cata φ . cata (embed . ε :: f u -> u)) (cata (φ . ε))
-    . diagonal
-{-# INLINEABLE law_cataCompose #-}
+law_cataCompose = Law.cataCompose (===)
+{- ORMOLU_DISABLE -}
+DEPRECATE(law_cataCompose, "Use ‘cataCompose’ instead.", "yaya-hedgehog-0.4")
+{- ORMOLU_ENABLE -}
 
--- | Creates a generator for any `Steppable` type whose pattern functor has
---   terminal cases (e.g., not `Data.Functor.Identity` or `((,) a)`). @leaf@ can
---   only generate terminal cases, and @branch@ can generate any case.
---
---   This is similar to `Gen.recursive` in that it separates the non-recursive
---   cases from the recursive ones, except
---
--- * the types here also ensure that the non-recursive cases aren’t recursive,
---
--- * different generator distributions may be used for rec & non-rec cases, and
---
--- * the non-recursive cases aren’t included in recursive calls (see above for
---   why).
---
---   If there’s no existing @`Gen` (f `Void`)@ for your pattern functor, you can
---   either create one manually, or pass `Hedgehog.Gen.discard` to the usual
---   @`Gen` a -> `Gen` (f a)@ generator.
---
---  __NB__: Hedgehog’s `Size` is signed, so this can raise an exception if given
---          a negative `Size`.
-embeddableOfHeight ::
-  (Steppable (->) t f, Functor f) =>
+cataCompose ::
+  forall t a f u g proxy.
+  ( Eq a,
+    Show a,
+    Show t,
+    Recursive (->) t f,
+    Steppable (->) u g,
+    Recursive (->) u g
+  ) =>
+  proxy u ->
+  Algebra (->) g a ->
+  (forall x. f x -> g x) ->
+  Gen t ->
+  Property
+cataCompose proxy φ ε = property . (Law.cataCompose (===) proxy φ ε <=< forAll)
+{-# INLINEABLE cataCompose #-}
+
+steppableOfHeight ::
+  forall t n f.
+  (Steppable (->) t f, Functor f, Recursive (->) n Maybe) =>
   -- | A generator for terminal cases (leaf nodes).
   Gen (f Void) ->
   -- | A generator for arbitrary cases. If the provided value generates terminal
@@ -141,10 +170,9 @@ embeddableOfHeight ::
   --   otherwise it will be a perfect tree with a height of exactly the provided
   --  `Size`.
   (Gen t -> Gen (f t)) ->
-  Size ->
+  n ->
   Gen t
-embeddableOfHeight leaf branch size =
-  cata (genAlgebra leaf branch) (fromIntegral size :: Natural)
+steppableOfHeight leaf = cata . genAlgebra leaf
 
 -- | Builds a generic tree generator of a certain height.
 genAlgebra ::

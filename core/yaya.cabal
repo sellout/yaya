@@ -215,26 +215,21 @@ library
     src
   build-depends:
     comonad ^>= 5.0.7,
-    either ^>= 5,
     free ^>= {5.1.5, 5.2},
     kan-extensions ^>= 5.2,
     profunctors ^>= {5.5.2, 5.6},
     strict ^>= {0.4, 0.5},
-    template-haskell ^>= {2.15.0, 2.16.0, 2.17.0, 2.18.0, 2.19.0, 2.20.0, 2.21.0, 2.22.0, 2.23.0, 2.24.0},
-    th-abstraction ^>= {0.4.1, 0.6.0, 0.7.1},
     transformers ^>= {0.5.6, 0.6.1},
   exposed-modules:
+    Yaya.Alternatives
     Yaya.Applied
     Yaya.Experimental.Foldable
     Yaya.Fold
     Yaya.Fold.Common
-    Yaya.Fold.Native
+    Yaya.Fold.Law
     Yaya.Functor
     Yaya.Pattern
-    Yaya.Retrofit
     Yaya.Zoo
-  other-modules:
-    Yaya.Fold.Native.Internal
 
 test-suite doctests
   import: defaults

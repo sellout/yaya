@@ -101,6 +101,7 @@ import "base" Data.Ord (Ord, Ordering, compare, (<=))
 import "base" Data.String (String)
 import "base" Data.Traversable (Traversable, sequenceA, traverse)
 import "base" Data.Void (Void, absurd)
+import "base" Data.Word (Word, Word16, Word32, Word64, Word8)
 import "base" GHC.Read (expectP, list)
 import "base" GHC.Show (appPrec1)
 import "base" Numeric.Natural (Natural)
@@ -448,6 +449,26 @@ instance Projectable (->) Natural Maybe where
 
 instance Steppable (->) Natural Maybe where
   embed = maybe 0 succ
+
+instance Projectable (->) Word Maybe where
+  project 0 = Nothing
+  project n = Just (pred n)
+
+instance Projectable (->) Word16 Maybe where
+  project 0 = Nothing
+  project n = Just (pred n)
+
+instance Projectable (->) Word32 Maybe where
+  project 0 = Nothing
+  project n = Just (pred n)
+
+instance Projectable (->) Word64 Maybe where
+  project 0 = Nothing
+  project n = Just (pred n)
+
+instance Projectable (->) Word8 Maybe where
+  project 0 = Nothing
+  project n = Just (pred n)
 
 instance Projectable (->) Void Identity where
   project = Identity
