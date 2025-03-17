@@ -10,6 +10,22 @@
   project = {
     name = "yaya";
     summary = "Yet another … yet another recursion scheme library for Haskell";
+    devPackages = let
+      hpkgs = pkgs.haskellPackages;
+    in [
+      (pkgs.haskell.lib.addBuildDepends (hpkgs.cabal-plan.overrideAttrs (old: {
+          configureFlags = old.configureFlags or [] ++ ["-flicense-report"];
+        }))
+        [
+          hpkgs.Cabal-syntax
+          hpkgs.cabal-install-parsers
+          hpkgs.filepath
+          hpkgs.tar
+          hpkgs.zlib
+        ])
+
+      pkgs.haskellPackages.cabal-plan-bounds
+    ];
   };
 
   imports = [./hlint.nix];
