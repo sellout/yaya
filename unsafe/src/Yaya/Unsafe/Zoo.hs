@@ -1,18 +1,15 @@
 {-# LANGUAGE Safe #-}
 
 module Yaya.Unsafe.Zoo
-  ( chrono,
-    codyna,
+  ( codyna,
     coelgot,
     cotraverse,
-    dyna,
     elgot,
     fstream,
     futu,
     gpostpro,
     gprepro,
     stream,
-    zygoHistoPrepro,
   )
 where
 
@@ -27,8 +24,6 @@ import "base" Data.Functor.Compose (Compose (Compose, getCompose))
 import "base" Data.Functor.Identity (Identity (Identity, runIdentity))
 import "base" Data.Traversable (Traversable)
 import "comonad" Control.Comonad (Comonad)
-import "comonad" Control.Comonad.Env (EnvT)
-import "free" Control.Comonad.Cofree (Cofree)
 import "free" Control.Monad.Trans.Free (Free)
 import "yaya" Yaya.Fold
   ( Algebra,
@@ -42,31 +37,16 @@ import "yaya" Yaya.Fold
     Projectable (project),
     Recursive (cata),
     Steppable (embed),
-    distEnvT,
     distIdentity,
     gana,
     seqIdentity,
   )
 import "yaya" Yaya.Fold.Common (diagonal, fromEither)
-import "yaya" Yaya.Fold.Native (distCofreeT)
 import "yaya" Yaya.Pattern (Either, Maybe (Nothing), Pair ((:!:)), XNor (Both, Neither))
 import qualified "this" Yaya.Unsafe.Fold as Unsafe
-import qualified "this" Yaya.Unsafe.Fold.Instances as Unsafe -- FIXME: extremely unsafe
-
-chrono ::
-  (Functor f) =>
-  GAlgebra (->) (Cofree f) f b ->
-  GCoalgebra (->) (Free f) f a ->
-  a ->
-  b
-chrono = Unsafe.ghylo (distCofreeT id) (Unsafe.seqFreeT id)
 
 codyna :: (Functor f) => Algebra (->) f b -> GCoalgebra (->) (Free f) f a -> a -> b
 codyna φ = Unsafe.ghylo distIdentity (Unsafe.seqFreeT id) (φ . fmap runIdentity)
-
--- | [Recursion Schemes for Dynamic Programming](https://www.researchgate.net/publication/221440162_Recursion_Schemes_for_Dynamic_Programming)
-dyna :: (Functor f) => GAlgebra (->) (Cofree f) f b -> Coalgebra (->) f a -> a -> b
-dyna φ ψ = Unsafe.ghylo (distCofreeT id) seqIdentity φ (fmap Identity . ψ)
 
 -- | Unlike most `Unsafe.hylo`s, `elgot` composes an algebra and coalgebra in a
 --   way that allows information to move between them. The coalgebra can return,
@@ -104,7 +84,16 @@ gpostpro k e =
 
 -- | The metamorphism definition from [Gibbons’
 --   paper](https://www.cs.ox.ac.uk/jeremy.gibbons/publications/metamorphisms-scp.pdf).
-stream :: Coalgebra (->) (XNor c) b -> (b -> a -> b) -> b -> [a] -> [c]
+stream ::
+  ( Projectable (->) l (XNor a),
+    Steppable (->) s (XNor c),
+    Corecursive (->) s (XNor c)
+  ) =>
+  Coalgebra (->) (XNor c) b ->
+  (b -> a -> b) ->
+  b ->
+  l ->
+  s
 stream f g = fstream f g (const Neither)
 
 -- | Basically the definition from [Gibbons’
@@ -114,13 +103,17 @@ stream f g = fstream f g (const Neither)
 --   The implementation shows how `Unsafe.streamGApo` generalizes Gibbons’
 --  `fstream` (and `Unsafe.stream'` even more so).
 fstream ::
+  ( Projectable (->) l (XNor a),
+    Steppable (->) s (XNor c),
+    Corecursive (->) s (XNor c)
+  ) =>
   Coalgebra (->) (XNor c) b ->
   (b -> a -> b) ->
   -- | The flusher.
   Coalgebra (->) (XNor c) b ->
   b ->
-  [a] ->
-  [c]
+  l ->
+  s
 fstream f g h =
   Unsafe.streamGApo
     h
@@ -151,13 +144,3 @@ cotraverse ::
   t ->
   m u
 cotraverse f = Unsafe.anaM (bitraverse f pure . project)
-
--- | Zygohistomorphic prepromorphism – everyone’s favorite recursion scheme joke.
-zygoHistoPrepro ::
-  (Steppable (->) t f, Recursive (->) t f, Functor f) =>
-  (f b -> b) ->
-  (f (EnvT b (Cofree f) a) -> a) ->
-  (forall c. f c -> f c) ->
-  t ->
-  a
-zygoHistoPrepro φ' = gprepro (distEnvT φ' (distCofreeT id))

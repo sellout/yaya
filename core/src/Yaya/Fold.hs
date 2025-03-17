@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE Safe #-}
+{-# LANGUAGE Trustworthy #-}
 
 module Yaya.Fold
   ( Algebra,
@@ -68,32 +68,33 @@ module Yaya.Fold
   )
 where
 
-import "base" Control.Applicative (Applicative (pure), (*>))
-import "base" Control.Category (Category ((.)))
-import "base" Control.Monad (Monad, join, (<=<), (=<<))
-import "base" Data.Bifunctor (Bifunctor (bimap, first, second))
-import "base" Data.Bitraversable (bisequence)
-import "base" Data.Bool (Bool)
-import "base" Data.Eq (Eq ((==)))
-import "base" Data.Foldable (Foldable (toList))
-import "base" Data.Function (const, flip, ($))
-import "base" Data.Functor (Functor (fmap), (<$>))
-import "base" Data.Functor.Classes
+import safe "base" Control.Applicative (Applicative (pure), (*>))
+import safe "base" Control.Category (Category ((.)))
+import safe "base" Control.Monad (Monad, join, (<=<), (=<<))
+import safe "base" Data.Bifunctor (Bifunctor (bimap, first, second))
+import safe "base" Data.Bitraversable (bisequence)
+import safe "base" Data.Bool (Bool)
+import safe "base" Data.Eq (Eq ((==)))
+import safe "base" Data.Foldable (Foldable (toList))
+import safe "base" Data.Function (const, flip, ($))
+import safe "base" Data.Functor (Functor (fmap), (<$>))
+import safe "base" Data.Functor.Classes
   ( Eq1 (liftEq),
     Ord1 (liftCompare),
     Read1 (liftReadPrec),
     Show1,
   )
-import "base" Data.Int (Int)
-import "base" Data.List.NonEmpty (NonEmpty ((:|)))
-import "base" Data.Ord (Ord (compare, (<=)), Ordering)
-import "base" Data.String (String)
-import "base" Data.Traversable (sequenceA)
-import "base" Data.Void (Void, absurd)
-import "base" GHC.Read (expectP, list)
-import "base" GHC.Show (appPrec1)
-import "base" Numeric.Natural (Natural)
-import "base" Text.Read
+import safe "base" Data.Int (Int)
+import safe "base" Data.List.NonEmpty (NonEmpty ((:|)))
+import safe "base" Data.Ord (Ord (compare, (<=)), Ordering)
+import safe "base" Data.String (String)
+import safe "base" Data.Traversable (sequenceA)
+import safe "base" Data.Void (Void, absurd)
+import safe "base" Data.Word (Word, Word16, Word32, Word64, Word8)
+import safe "base" GHC.Read (expectP, list)
+import safe "base" GHC.Show (appPrec1)
+import safe "base" Numeric.Natural (Natural)
+import safe "base" Text.Read
   ( Read (readListPrec, readPrec),
     ReadPrec,
     parens,
@@ -101,19 +102,19 @@ import "base" Text.Read
     readListPrecDefault,
     step,
   )
-import qualified "base" Text.Read.Lex as Lex
-import "base" Text.Show (Show (showsPrec), ShowS, showParen, showString)
-import "comonad" Control.Comonad (Comonad (duplicate, extend, extract))
-import "comonad" Control.Comonad.Trans.Env
+import safe qualified "base" Text.Read.Lex as Lex
+import safe "base" Text.Show (Show (showsPrec), ShowS, showParen, showString)
+import safe "comonad" Control.Comonad (Comonad (duplicate, extend, extract))
+import safe "comonad" Control.Comonad.Trans.Env
   ( EnvT (EnvT),
     ask,
     lowerEnvT,
     runEnvT,
   )
-import "free" Control.Comonad.Cofree (Cofree ((:<)))
-import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free, runFree)
-import "kan-extensions" Data.Functor.Day (Day (Day))
-import "lens" Control.Lens
+import safe "free" Control.Comonad.Cofree (Cofree ((:<)))
+import safe "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free, runFree)
+import safe "kan-extensions" Data.Functor.Day (Day (Day))
+import safe "lens" Control.Lens
   ( Const (Const, getConst),
     Identity (Identity, runIdentity),
     Iso',
@@ -125,16 +126,16 @@ import "lens" Control.Lens
     review,
     view,
   )
-import "strict" Data.Strict.Classes (Strict (toStrict))
-import "this" Yaya.Fold.Common
+import safe "strict" Data.Strict.Classes (Strict (toStrict))
+import safe "this" Yaya.Fold.Common
   ( compareDay,
     diagonal,
     equalDay,
     fromEither,
     showsPrecF,
   )
-import "this" Yaya.Functor (DFunctor (dmap))
-import "this" Yaya.Pattern
+import safe "this" Yaya.Functor (DFunctor (dmap))
+import safe "this" Yaya.Pattern
   ( AndMaybe (Indeed, Only),
     Either (Left, Right),
     Maybe (Just, Nothing),
@@ -145,7 +146,7 @@ import "this" Yaya.Pattern
     snd,
     uncurry,
   )
-import "base" Prelude (Enum (pred, succ))
+import safe "base" Prelude (Enum (pred, succ))
 
 -- $setup
 -- >>> :seti -XTypeApplications
@@ -313,6 +314,7 @@ steppableReadPrec' readFPrec =
             ( readFPrec (steppableReadPrec' readFPrec) . list $
                 steppableReadPrec' readFPrec
             )
+{-# ANN steppableReadPrec' "Recursion" #-}
 
 -- | An implementation of `readPrec` for any `Steppable` instance.
 --
@@ -403,6 +405,26 @@ instance Projectable (->) Natural Maybe where
 
 instance Steppable (->) Natural Maybe where
   embed = maybe 0 succ
+
+instance Projectable (->) Word Maybe where
+  project 0 = Nothing
+  project n = Just (pred n)
+
+instance Projectable (->) Word16 Maybe where
+  project 0 = Nothing
+  project n = Just (pred n)
+
+instance Projectable (->) Word32 Maybe where
+  project 0 = Nothing
+  project n = Just (pred n)
+
+instance Projectable (->) Word64 Maybe where
+  project 0 = Nothing
+  project n = Just (pred n)
+
+instance Projectable (->) Word8 Maybe where
+  project 0 = Nothing
+  project n = Just (pred n)
 
 instance Projectable (->) Void Identity where
   project = Identity

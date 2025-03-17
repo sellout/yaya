@@ -103,6 +103,7 @@ common defaults
   import: GHC2024
   build-depends:
     base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0},
+    no-recursion ^>= {0.1.1.0},
   ghc-options:
     -Weverything
     -- This one just reports unfixable things, AFAICT.
@@ -112,6 +113,7 @@ common defaults
     -- Warns even when `Unsafe` is explicit, not inferred. See
     -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
     -Wno-unsafe
+    -fplugin NoRecursion
   if impl(ghc < 8.8.1)
     ghc-options:
       -- This used to warn even when `Safe` was explicit.
@@ -163,13 +165,13 @@ custom-setup
     Cabal ^>= {3.0.0, 3.2.0, 3.4.0, 3.6.0, 3.8.0, 3.10.0, 3.12.0},
     base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0},
     cabal-doctest ^>= {1.0.0},
+    no-recursion ^>= {0.1.1.0},
 
 library
   import: defaults
   hs-source-dirs: src
   build-depends:
     comonad ^>= 5.0.7,
-    either ^>= 5,
     free ^>= {5.1.5, 5.2},
     kan-extensions ^>= 5.2,
     -- `Control.Lens` in lens < 5 is `Unsafe`
@@ -177,22 +179,17 @@ library
     profunctors ^>= {5.5.2, 5.6},
     -- strict < 0.4 doesn’t export various combinators
     strict ^>= {0.4, 0.5},
-    template-haskell ^>= {2.14.0, 2.15.0, 2.16.0, 2.17.0, 2.18.0, 2.19.0, 2.20.0, 2.21.0, 2.22.0},
-    -- th-abstraction < 0.3 has different field names
-    th-abstraction ^>= {0.4.1, 0.5.0, 0.6.0, 0.7.0},
     transformers ^>= {0.5.5, 0.6.1},
   exposed-modules:
+    Yaya.Alternatives
     Yaya.Applied
     Yaya.Experimental.Foldable
     Yaya.Fold
     Yaya.Fold.Common
-    Yaya.Fold.Native
+    Yaya.Fold.Law
     Yaya.Functor
     Yaya.Pattern
-    Yaya.Retrofit
     Yaya.Zoo
-  other-modules:
-    Yaya.Fold.Native.Internal
 
 test-suite doctests
   import: defaults

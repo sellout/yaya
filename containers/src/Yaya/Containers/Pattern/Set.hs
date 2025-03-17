@@ -17,7 +17,7 @@ import "base" Data.Bool (Bool (False, True), (&&))
 import "base" Data.Eq (Eq ((==)))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (fmap), (<$), (<$>))
+import "base" Data.Functor (Functor, (<$), (<$>))
 import "base" Data.Ord (Ord (compare, (<=)), Ordering (EQ, GT, LT))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
@@ -32,6 +32,7 @@ import "yaya" Yaya.Fold
     Recursive (cata),
     Steppable (embed),
   )
+import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude (Num ((+)))
 #if MIN_VERSION_base(4, 18, 0)
 import "base" Data.Functor.Classes
@@ -78,7 +79,7 @@ instance Projectable (->) (Set.Set a) (SetF a) where
   project (Set.Bin size a l r) = BinF size a l r
 
 instance Recursive (->) (Set.Set a) (SetF a) where
-  cata φ = φ . fmap (cata φ) . project
+  cata = Unsafe.unsafeCata
 
 instance Steppable (->) (Set.Set a) (SetF a) where
   embed TipF = Set.Tip

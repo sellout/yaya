@@ -13,7 +13,7 @@ import "base" Data.Bool (Bool (False, True), (&&))
 import "base" Data.Eq (Eq ((==)))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (fmap), (<$), (<$>))
+import "base" Data.Functor (Functor, (<$), (<$>))
 import "base" Data.Ord (Ord (compare, (<=)), Ordering (EQ, GT, LT))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
@@ -28,6 +28,7 @@ import "yaya" Yaya.Fold
     Recursive (cata),
     Steppable (embed),
   )
+import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude (Num ((+)))
 #if MIN_VERSION_base(4, 18, 0)
 import "base" Data.Functor.Classes
@@ -73,17 +74,19 @@ data IntMapF a r
     )
 
 instance Projectable (->) (IntMap.IntMap a) (IntMapF a) where
-  project IntMap.Nil = NilF
-  project (IntMap.Tip key a) = TipF key a
-  project (IntMap.Bin prefix mask l r) = BinF prefix mask l r
+  project = \case
+    IntMap.Nil -> NilF
+    IntMap.Tip key a -> TipF key a
+    IntMap.Bin prefix mask l r -> BinF prefix mask l r
 
 instance Recursive (->) (IntMap.IntMap a) (IntMapF a) where
-  cata φ = φ . fmap (cata φ) . project
+  cata = Unsafe.unsafeCata
 
 instance Steppable (->) (IntMap.IntMap a) (IntMapF a) where
-  embed NilF = IntMap.Nil
-  embed (TipF key a) = IntMap.Tip key a
-  embed (BinF prefix mask l r) = IntMap.Bin prefix mask l r
+  embed = \case
+    NilF -> IntMap.Nil
+    TipF key a -> IntMap.Tip key a
+    BinF prefix mask l r -> IntMap.Bin prefix mask l r
 
 #if MIN_VERSION_base(4, 18, 0)
 instance (Eq a) => Eq1 (IntMapF a)

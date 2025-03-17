@@ -1,14 +1,17 @@
 cabal-version: 3.0
 
-name: yaya-quickcheck
-version: 0.2.0.2
-synopsis: QuickCheck testing support for the Yaya recursion scheme library.
-description: If you use Yaya in your own code and have tests written using
-             QuickCheck, then this library will help you with generating trees,
-             verifying type class instances, etc.
+name: yaya-native
+version: 0.1.0.0
+synopsis: Total recursion schemes.
+description: Recursion schemes allow you to separate recursion from your
+             business logic – making your own operations simpler, more modular,
+             and less error-prone. This library also provides tools for
+             combining your operations in ways that reduce the number of passes
+             over your data and is designed to encourage total (i.e.,
+             successfully terminating) functions.
 author: Greg Pfeil <greg@technomadic.org>
 maintainer: Greg Pfeil <greg@technomadic.org>
-copyright: 2017 Greg Pfeil
+copyright: 2017–2024 Greg Pfeil
 homepage: https://github.com/sellout/yaya#readme
 bug-reports: https://github.com/sellout/yaya/issues
 category: Recursion
@@ -166,13 +169,25 @@ custom-setup
 
 library
   import: defaults
-  hs-source-dirs:
-    src
+  hs-source-dirs: src
   build-depends:
-    QuickCheck ^>= {2.10, 2.13.2, 2.14.2},
-    yaya ^>= {0.5.1, 0.6.0},
+    comonad ^>= 5.0.7,
+    either ^>= 5,
+    free ^>= {5.1.5, 5.2},
+    template-haskell ^>= {2.14.0, 2.15.0, 2.16.0, 2.17.0, 2.18.0, 2.19.0, 2.20.0, 2.21.0, 2.22.0},
+    -- th-abstraction < 0.3 has different field names
+    th-abstraction ^>= {0.4.1, 0.5.0, 0.6.0, 0.7.0},
+    yaya,
+    yaya-unsafe,
   exposed-modules:
-    Yaya.QuickCheck.Fold
+    Yaya.Native.Applied
+    Yaya.Native.Fold
+    Yaya.Native.Retrofit
+    Yaya.Native.Unsafe.Fold
+    Yaya.Native.Unsafe.Fold.Instances
+    Yaya.Native.Unsafe.Zoo
+  other-modules:
+    Yaya.Native.Fold.Internal
 
 test-suite doctests
   import: defaults
@@ -181,7 +196,7 @@ test-suite doctests
   main-is: doctests.hs
   build-depends:
     doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2},
-    yaya-quickcheck,
+    yaya,
   if impl(ghc >= 8.10.1)
     ghc-options:
       -- `doctest` requires the package containing the doctests as a dependency
@@ -203,3 +218,23 @@ test-suite doctests
     -- “Build_doctests.hs”, we set it here, and that means it has to match
     -- doctests.hs, which is `Unsafe`.
     Unsafe
+
+test-suite native
+  import: defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs:
+    tests
+  main-is: test.hs
+  other-modules:
+    Test.Native.Fold
+    Test.Native.Retrofit
+  build-depends:
+    deriving-compat ^>= {0.5.9, 0.6},
+    hedgehog ^>= {1.0, 1.1, 1.2, 1.4, 1.5},
+    yaya ^>= {0.5.1, 0.6.0},
+    yaya-hedgehog,
+    yaya-native,
+  ghc-options:
+    -rtsopts
+    -threaded
+    -with-rtsopts=-N

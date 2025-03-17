@@ -16,7 +16,7 @@ import "base" Data.Bool (Bool (False, True), (&&))
 import "base" Data.Eq (Eq ((==)))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (fmap), (<$), (<$>))
+import "base" Data.Functor (Functor, (<$), (<$>))
 import "base" Data.Functor.Classes
   ( Eq1 (liftEq),
     Ord1 (liftCompare),
@@ -38,6 +38,7 @@ import "yaya" Yaya.Fold
     Recursive (cata),
     Steppable (embed),
   )
+import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude (Num ((+)))
 
 data IntSetF r
@@ -58,17 +59,19 @@ data IntSetF r
     )
 
 instance Projectable (->) IntSet.IntSet IntSetF where
-  project IntSet.Nil = NilF
-  project (IntSet.Tip prefix bm) = TipF prefix bm
-  project (IntSet.Bin prefix mask l r) = BinF prefix mask l r
+  project = \case
+    IntSet.Nil -> NilF
+    IntSet.Tip prefix bm -> TipF prefix bm
+    IntSet.Bin prefix mask l r -> BinF prefix mask l r
 
 instance Recursive (->) IntSet.IntSet IntSetF where
-  cata φ = φ . fmap (cata φ) . project
+  cata = Unsafe.unsafeCata
 
 instance Steppable (->) IntSet.IntSet IntSetF where
-  embed NilF = IntSet.Nil
-  embed (TipF prefix bm) = IntSet.Tip prefix bm
-  embed (BinF prefix mask l r) = IntSet.Bin prefix mask l r
+  embed = \case
+    NilF -> IntSet.Nil
+    TipF prefix bm -> IntSet.Tip prefix bm
+    BinF prefix mask l r -> IntSet.Bin prefix mask l r
 
 instance Eq1 IntSetF where
   liftEq f = Tuple.curry $ \case

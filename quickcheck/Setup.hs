@@ -12,6 +12,7 @@
 #else
 {-# OPTIONS_GHC -Wall #-}
 #endif
+{-# OPTIONS_GHC -fplugin NoRecursion #-}
 
 module Main (main) where
 
