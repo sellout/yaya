@@ -1,18 +1,5 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-methods:sconcat #-}
-
--- __NB__: base-4.17 moves `IsList` to its own module, which avoids the unsafety
---         of importing "GHC.Exts". With prior versions of base, we at least
---         mark the module @Trustworthy@.
-#if MIN_VERSION_base(4, 17, 0)
 {-# LANGUAGE Safe #-}
-#else
-{-# LANGUAGE Trustworthy #-}
-#endif
 
 module Yaya.Applied
   ( Void,
@@ -20,15 +7,22 @@ module Yaya.Applied
     append,
     at,
     atMay,
+    coappend,
     constantly,
+    defaultMconcat,
+    defaultSconcat,
+    defaultStimes,
     drop',
     drop,
     fibonacci,
     fibonacciPolynomials,
+    foldr',
+    foldr1,
     fromList,
-    fromListN,
     fromMaybe,
     height,
+    increment,
+    incrementNatural,
     jacobsthal,
     length,
     lucas,
@@ -43,33 +37,57 @@ module Yaya.Applied
     reverse',
     reverse,
     runToEnd,
+    stimes',
+    stimes'',
     succN,
     tail,
     take,
     takeUpTo,
-    toList,
+    toPositive,
     truncate,
     vacuous,
     zeroN,
+
+    -- * numeric constants
+    n0,
+    n1,
+    n2,
+    n3,
+    n4,
+    n5,
+    n6,
+    n7,
+    n8,
+    n9,
+    n10,
+    p1,
+    p2,
+    p3,
+    p4,
+    p5,
+    p6,
+    p7,
+    p8,
+    p9,
+    p10,
   )
 where
 
 import safe "base" Control.Category (id, (.))
+import safe "base" Data.Bool (Bool (False, True))
 import safe "base" Data.Foldable (Foldable, foldr)
-import safe "base" Data.Function (flip)
+import safe "base" Data.Function (flip, ($))
 import safe "base" Data.Functor (Functor, fmap)
 import safe "base" Data.Functor.Identity (Identity, runIdentity)
 import safe "base" Data.Int (Int)
 import safe "base" Data.Monoid (Monoid, mempty)
 import safe "base" Data.Ord (Ord, max)
-import safe "base" Data.Semigroup (Semigroup, stimes, stimesMonoid, (<>))
-import safe "base" Numeric.Natural (Natural)
+import safe "base" Data.Semigroup (Semigroup, (<>))
 import safe "free" Control.Monad.Trans.Free (FreeF (Free, Pure))
 import safe "this" Yaya.Fold
   ( Algebra,
     Corecursive,
     Mu,
-    Nu,
     Projectable,
     Recursive,
     Steppable,
@@ -94,24 +112,18 @@ import safe "this" Yaya.Fold.Common
     truncate',
     unarySequence,
   )
-import safe "this" Yaya.Fold.Native (Fix)
 import safe "this" Yaya.Pattern
-  ( Either (Left),
+  ( AndMaybe,
+    Either (Left),
+    Log2 (Double, DoublePlus, One),
     Maybe (Just, Nothing),
     Pair,
     XNor (Both, Neither),
+    andMaybe,
     maybe,
+    xnor,
   )
-import safe "base" Prelude (Integral, fromIntegral)
-
--- See comment on @{-# LANGUAGE Safe #-}@ above.
-#if MIN_VERSION_base(4, 17, 0)
-import "base" GHC.IsList (IsList)
-import qualified "base" GHC.IsList as IsList
-#else
-import "base" GHC.Exts (IsList)
-import qualified "base" GHC.Exts as IsList
-#endif
+import safe "base" Prelude (Integral)
 
 now :: (Steppable (->) t (Either a)) => a -> t
 now = embed . Left
@@ -140,6 +152,69 @@ zeroN = embed Nothing
 succN :: (Steppable (->) t Maybe) => t -> t
 succN = embed . Just
 
+n0 :: (Steppable (->) t Maybe) => t
+n0 = zeroN
+
+n1 :: (Steppable (->) t Maybe) => t
+n1 = succN n0
+
+n2 :: (Steppable (->) t Maybe) => t
+n2 = succN n1
+
+n3 :: (Steppable (->) t Maybe) => t
+n3 = succN n2
+
+n4 :: (Steppable (->) t Maybe) => t
+n4 = succN n3
+
+n5 :: (Steppable (->) t Maybe) => t
+n5 = succN n4
+
+n6 :: (Steppable (->) t Maybe) => t
+n6 = succN n5
+
+n7 :: (Steppable (->) t Maybe) => t
+n7 = succN n6
+
+n8 :: (Steppable (->) t Maybe) => t
+n8 = succN n7
+
+n9 :: (Steppable (->) t Maybe) => t
+n9 = succN n8
+
+n10 :: (Steppable (->) t Maybe) => t
+n10 = succN n9
+
+p1 :: (Steppable (->) t Log2) => t
+p1 = embed One
+
+p2 :: (Steppable (->) t Log2) => t
+p2 = embed $ Double p1
+
+p3 :: (Steppable (->) t Log2) => t
+p3 = embed $ DoublePlus p1
+
+p4 :: (Steppable (->) t Log2) => t
+p4 = embed $ Double p2
+
+p5 :: (Steppable (->) t Log2) => t
+p5 = embed $ DoublePlus p2
+
+p6 :: (Steppable (->) t Log2) => t
+p6 = embed $ Double p3
+
+p7 :: (Steppable (->) t Log2) => t
+p7 = embed $ DoublePlus p3
+
+p8 :: (Steppable (->) t Log2) => t
+p8 = embed $ Double p4
+
+p9 :: (Steppable (->) t Log2) => t
+p9 = embed $ DoublePlus p4
+
+p10 :: (Steppable (->) t Log2) => t
+p10 = embed $ Double p5
+
 height :: (Foldable f, Steppable (->) n Maybe, Ord n) => f n -> n
 height = foldr (max . succN) zeroN
 
@@ -152,19 +227,75 @@ length = cata height
 append :: (Recursive (->) t (XNor a), Steppable (->) u (XNor a)) => t -> u -> u
 append front back = cata (embed . replaceNeither (project back)) front
 
-instance Semigroup (Fix (XNor a)) where
-  (<>) = append
-  stimes = stimesMonoid
+coappend ::
+  (Projectable (->) t (XNor a), Corecursive (->) u (XNor a)) => t -> t -> u
+coappend front back = ana (replaceNeither (project back) . project) front
 
-instance Monoid (Fix (XNor a)) where
-  mempty = embed Neither
+foldr' :: (Recursive (->) t (XNor a)) => (a -> b -> b) -> b -> t -> b
+foldr' op = cata . flip xnor op
 
-instance Semigroup (Mu (XNor a)) where
-  (<>) = append
-  stimes = stimesMonoid
+foldr1 :: (Recursive (->) t (AndMaybe a)) => (a -> a -> a) -> t -> a
+foldr1 = cata . andMaybe id
 
-instance Monoid (Mu (XNor a)) where
-  mempty = embed Neither
+-- | This is a recursion-free implementation of `sconcat`. However, the
+--   specialization to `NonEmpty` for `Semigroup` will cause it to use `Native`
+--   recursion.
+defaultSconcat :: (Semigroup a, Recursive (->) t (AndMaybe a)) => t -> a
+defaultSconcat = foldr1 (<>)
+
+defaultMconcat :: (Monoid a, Recursive (->) t (XNor a)) => t -> a
+defaultMconcat = foldr' (<>) mempty
+
+-- | A total variant of `stimes` that doesn’t allow @0@ times.
+defaultStimes :: (Semigroup a, Recursive (->) p Log2) => p -> a -> a
+defaultStimes = flip $ stimes' (<>)
+
+stimes'' :: (a -> a -> a) -> a -> Log2 a -> a
+stimes'' f x = \case
+  One -> x
+  Double x' -> f x' x'
+  DoublePlus x' -> f x (f x' x')
+
+stimes' :: (Recursive (->) p Log2) => (a -> a -> a) -> a -> p -> a
+stimes' f = cata . stimes'' f
+
+-- TODO: Move these instances to `Native`, because they rely on folding a `NonEmpty` for `sconcat`.
+-- NB: Translating `stimes` to recursion schemes could be interesting, because it does a logarithmic number of applications. E.g., I can imagine folding the Nat to a structure that represents doublings and increments somehow.
+
+-- | Converts a natural number to a positive number, returning `Nothing` if the
+--   input is zero.
+toPositive ::
+  forall p n.
+  ( Projectable (->) n Maybe,
+    Recursive (->) n Maybe,
+    Recursive (->) p Log2,
+    Steppable (->) p Log2
+  ) =>
+  n ->
+  Maybe p
+toPositive = fmap (cata $ embed . incrementNatural) . project
+
+-- | Infallibly converts a natural number to a positive number by adding one.
+incrementNatural :: (Recursive (->) p Log2, Steppable (->) p Log2) => Maybe p -> Log2 p
+incrementNatural = maybe One increment
+
+-- | Increment the positive number /iff/ the `Bool` argument is `True`.
+--
+--  __NB__: This is a slightly awkward algebra that probably only make sense in
+--          the context of `increment`.
+maybeIncrement ::
+  (Steppable (->) p Log2) => Bool -> Log2 (Bool -> Log2 p) -> Log2 p
+maybeIncrement incp =
+  if incp
+    then \case
+      One -> Double $ embed One
+      Double pf -> DoublePlus . embed $ pf False
+      DoublePlus pf -> Double . embed $ pf True
+    else fmap $ embed . ($ False)
+
+-- | Increment a positive number.
+increment :: (Recursive (->) p Log2, Steppable (->) p Log2) => p -> Log2 p
+increment = flip (cata $ flip maybeIncrement) True
 
 -- |
 --
@@ -179,7 +310,7 @@ drop :: (Recursive (->) n Maybe, Projectable (->) t (XNor a)) => n -> t -> t
 drop = cata drop'
 
 tail :: (Projectable (->) t (XNor a)) => t -> t
-tail = drop (1 :: Natural)
+tail = drop (embed . Just $ embed Nothing :: Mu Maybe)
 
 reverse' ::
   (Steppable (->) t (XNor a)) =>
@@ -291,25 +422,3 @@ truncate = cata2 (embed . truncate')
 --  `XNor`.
 fromList :: (Corecursive (->) t (XNor a)) => [a] -> t
 fromList = ana project
-
--- | An implementation of `IsList.fromListN` for `Steppable` fixed-points of
---  `XNor`.
---
---   This should return an empty structure if the `Int` is negative.
---
---   If the target structure isn’t `Steppable` or the target structure is
---  `Corecursive` (i.e., `Yaya.Unsafe.Fold.Applied.unsafeFromList` isn’t used),
---   then the default definition for `fromListN` should suffice.
-fromListN :: (Steppable (->) t (XNor a)) => Int -> [a] -> t
-fromListN = cata2 (embed . takeAvailable) . fromIntegral @_ @Natural
-
--- | An implementation of `IsList.toList` for `Projectable` fixed-points of
---  `XNor`.
-toList :: (Projectable (->) t (XNor a)) => t -> [a]
-toList = ana project
-
--- | This instance is safe, since both structures are lazy.
-instance IsList (Nu (XNor a)) where
-  type Item (Nu (XNor a)) = a
-  fromList = fromList
-  toList = toList

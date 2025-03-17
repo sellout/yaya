@@ -10,6 +10,7 @@ module Yaya.Pattern
     module Data.Strict.Maybe,
     module Data.Strict.Tuple,
     AndMaybe (Indeed, Only),
+    Log2 (One, Double, DoublePlus),
     XNor (Both, Neither),
     andMaybe,
     xnor,
@@ -31,15 +32,15 @@ import "base" Data.Bool (Bool (False, True), (&&))
 import "base" Data.Eq (Eq, (==))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor, (<$), (<$>))
+import "base" Data.Functor (Functor, ($>), (<$), (<$>))
 import "base" Data.Functor.Classes
-  ( Eq1,
+  ( Eq1 (liftEq),
     Eq2,
     Ord1,
     Ord2,
     Read1,
     Read2,
-    Show1,
+    Show1 (liftShowsPrec),
     Show2,
     liftCompare,
     liftCompare2,
@@ -253,6 +254,69 @@ instance Show2 AndMaybe where
 
 instance Bifunctor AndMaybe where
   bimap f g = andMaybe (Only . f) (\a -> Indeed (f a) . g)
+
+data Log2 a
+  = -- | 1
+    One
+  | -- | 2a
+    Double a
+  | -- | 2a + 1
+    DoublePlus a
+  deriving stock
+    ( Eq,
+      Generic,
+      Read,
+      Show,
+      Foldable,
+      Functor,
+      Generic1,
+      Traversable
+    )
+
+instance Eq1 Log2 where
+  liftEq f = Tuple.curry $ \case
+    (One, One) -> True
+    (Double x, Double x') -> f x x'
+    (DoublePlus x, DoublePlus x') -> f x x'
+    (_, _) -> False
+
+-- | This definition is different from the one that is derivable. For example,
+--   the derived instance would always have
+--   @`compare` (`Double` x) (`DoublePlus` x') `==` `LT`@, but this instance
+--   will return `GT` if @`compare` x x' `==` `GT`@.
+instance (Ord a) => Ord (Log2 a) where
+  compare = liftCompare compare
+
+instance Ord1 Log2 where
+  liftCompare f = Tuple.curry \case
+    (One, One) -> EQ
+    (One, _) -> LT
+    (_, One) -> GT
+    (Double x, Double x') -> f x x'
+    (Double x, DoublePlus x') -> f x x' <> LT
+    (DoublePlus x, Double x') -> f x x' <> GT
+    (DoublePlus x, DoublePlus x') -> f x x'
+
+-- | @since 0.6.1.0
+instance Read1 Log2 where
+  liftReadPrec readPrecX _ =
+    let appPrec = 10
+     in parens . prec appPrec $
+          expectP (Lex.Ident "One") $> One
+            <|> expectP (Lex.Ident "Double")
+              *> (Double <$> step readPrecX)
+            <|> expectP (Lex.Ident "DoublePlus")
+              *> (DoublePlus <$> step readPrecX)
+
+instance Show1 Log2 where
+  liftShowsPrec showsPrecX _ p =
+    let appPrec = 10
+        nextPrec = appPrec + 1
+     in showParen (nextPrec <= p)
+          . \case
+            One -> showString "One"
+            Double x -> showString "Double " . showsPrecX nextPrec x
+            DoublePlus x -> showString "DoublePlus " . showsPrecX nextPrec x
 
 -- * orphan instances for types from the strict library
 

@@ -27,7 +27,7 @@
 --   Another difference when you have control is that it means you may migrate
 --   away from direct recursion entirely, at which point this import should
 --   disappear.
-module Yaya.Retrofit
+module Yaya.Native.Retrofit
   ( module Yaya.Fold,
     PatternFunctorRules (PatternFunctorRules),
     defaultRules,
@@ -69,7 +69,7 @@ import safe "either" Data.Either.Validation
   )
 import safe qualified "template-haskell" Language.Haskell.TH as TH
 import safe qualified "th-abstraction" Language.Haskell.TH.Datatype as TH.Abs
-import safe "this" Yaya.Fold
+import safe "yaya" Yaya.Fold
   ( Corecursive,
     Projectable,
     Recursive,
@@ -87,6 +87,7 @@ import safe "this" Yaya.Fold
     steppableReadPrec,
     steppableReadPrec',
   )
+import safe qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 
 #if MIN_VERSION_template_haskell(2, 21, 0)
 type TyVarBndrUnit = TH.TyVarBndrUnit
@@ -343,10 +344,10 @@ makePrimForDI' rules safeVariant tyName vars cons = do
         embed = $(TH.LamCaseE <$> mkMorphism (patternCon rules) id cons')
 
       instance Recursive (->) $(pure s) $(pure $ conAppsT tyNameF vars') where
-        cata φ = φ . fmap (cata φ) . project
+        cata = Unsafe.unsafeCata
 
       instance Corecursive (->) $(pure s) $(pure $ conAppsT tyNameF vars') where
-        ana ψ = embed . fmap (ana ψ) . ψ
+        ana = Unsafe.unsafeAna
       |]
 
 -- | makes clauses to rename constructors

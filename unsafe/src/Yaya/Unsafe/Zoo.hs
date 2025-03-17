@@ -52,13 +52,7 @@ import "yaya" Yaya.Fold
     seqIdentity,
   )
 import "yaya" Yaya.Fold.Common (diagonal, fromEither)
-import "yaya" Yaya.Fold.Native ()
-import "yaya" Yaya.Pattern
-  ( Either,
-    Maybe (Nothing),
-    Pair ((:!:)),
-    XNor (Both, Neither),
-  )
+import "yaya" Yaya.Pattern (Either, Maybe (Nothing), Pair ((:!:)), XNor (Both, Neither))
 import qualified "this" Yaya.Unsafe.Fold as Unsafe
 
 chrono ::
@@ -141,7 +135,16 @@ gpostpro k e =
 
 -- | The metamorphism definition from [Gibbons’
 --   paper](https://www.cs.ox.ac.uk/jeremy.gibbons/publications/metamorphisms-scp.pdf).
-stream :: Coalgebra (->) (XNor c) b -> (b -> a -> b) -> b -> [a] -> [c]
+stream ::
+  ( Projectable (->) l (XNor a),
+    Steppable (->) s (XNor c),
+    Corecursive (->) s (XNor c)
+  ) =>
+  Coalgebra (->) (XNor c) b ->
+  (b -> a -> b) ->
+  b ->
+  l ->
+  s
 stream f g = fstream f g (const Neither)
 
 -- | Basically the definition from [Gibbons’
@@ -151,13 +154,17 @@ stream f g = fstream f g (const Neither)
 --   The implementation shows how `Unsafe.streamGApo` generalizes Gibbons’
 --  `fstream` (and `Unsafe.stream'` even more so).
 fstream ::
+  ( Projectable (->) l (XNor a),
+    Steppable (->) s (XNor c),
+    Corecursive (->) s (XNor c)
+  ) =>
   Coalgebra (->) (XNor c) b ->
   (b -> a -> b) ->
   -- | The flusher.
   Coalgebra (->) (XNor c) b ->
   b ->
-  [a] ->
-  [c]
+  l ->
+  s
 fstream f g h =
   Unsafe.streamGApo
     h

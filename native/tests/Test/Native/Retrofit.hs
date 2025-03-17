@@ -3,7 +3,7 @@
 
 -- | The point of this module is that it should compile _without_ importing any
 --   other Yaya modules.
-module Test.Retrofit (tests) where
+module Test.Native.Retrofit (tests) where
 
 import safe "base" Data.Bool (Bool)
 import safe "base" Data.Eq (Eq, (==))
@@ -22,7 +22,7 @@ import safe "deriving-compat" Data.Ord.Deriving (deriveOrd1)
 import safe "deriving-compat" Text.Read.Deriving (deriveRead1)
 import safe "deriving-compat" Text.Show.Deriving (deriveShow1)
 import safe "hedgehog" Hedgehog (checkParallel, discover)
-import safe "yaya" Yaya.Retrofit
+import safe "yaya-native" Yaya.Native.Retrofit
   ( defaultRules,
     extractPatternFunctor,
     recursiveCompare,
