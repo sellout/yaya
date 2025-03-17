@@ -100,6 +100,7 @@ common defaults
   import: GHC2024
   build-depends:
     base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0},
+    no-recursion ^>= {0.1.1.0},
   ghc-options:
     -Weverything
     -- This one just reports unfixable things, AFAICT.
@@ -109,6 +110,7 @@ common defaults
     -- Warns even when `Unsafe` is explicit, not inferred. See
     -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
     -Wno-unsafe
+    -fplugin NoRecursion
   if impl(ghc < 8.8.1)
     ghc-options:
       -- This used to warn even when `Safe` was explicit.
@@ -160,6 +162,7 @@ custom-setup
     Cabal ^>= {3.0.0, 3.2.0, 3.4.0, 3.6.0, 3.8.0, 3.10.0, 3.12.0},
     base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0},
     cabal-doctest ^>= {1.0.0},
+    no-recursion ^>= {0.1.1.0},
 
 library
   import: defaults
@@ -215,7 +218,6 @@ test-suite yaya
   other-modules:
     Test.Fold
     Test.Fold.Common
-    Test.Fold.Native
     Test.Retrofit
   build-depends:
     deriving-compat ^>= {0.5.9, 0.6},

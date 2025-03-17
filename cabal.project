@@ -11,5 +11,6 @@ packages:
   ./containers/yaya-containers.cabal
   ./core/yaya.cabal
   ./hedgehog/yaya-hedgehog.cabal
+  ./native/yaya-native.cabal
   ./quickcheck/yaya-quickcheck.cabal
   ./unsafe/yaya-unsafe.cabal

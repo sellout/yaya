@@ -10,6 +10,7 @@ module Yaya.Unsafe.Fold
     ghyloM,
     hylo,
     hyloM,
+    seqFreeT,
     stream',
     streamAna,
     streamGApo,
@@ -18,14 +19,15 @@ module Yaya.Unsafe.Fold
   )
 where
 
-import "base" Control.Applicative (Applicative (pure))
-import "base" Control.Category (Category ((.)))
+import "base" Control.Applicative (pure)
+import "base" Control.Category ((.))
 import "base" Control.Monad (Monad, (<=<))
 import "base" Data.Function (flip, ($))
-import "base" Data.Functor (Functor (fmap))
-import "base" Data.Functor.Compose (Compose (Compose, getCompose))
-import "base" Data.Traversable (Traversable (sequenceA))
-import "comonad" Control.Comonad (Comonad (extract))
+import "base" Data.Functor (Functor, fmap, (<$>))
+import "base" Data.Functor.Compose (Compose (Compose), getCompose)
+import "base" Data.Traversable (Traversable, sequenceA)
+import "comonad" Control.Comonad (Comonad, extract)
+import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free)
 import "lens" Control.Lens (Prism', matching, prism, review)
 import "yaya" Yaya.Fold
   ( Algebra,
@@ -33,19 +35,23 @@ import "yaya" Yaya.Fold
     Coalgebra,
     CoalgebraM,
     CoalgebraPrism,
-    Corecursive (ana),
+    Corecursive,
     DistributiveLaw,
     GAlgebra,
     GAlgebraM,
     GCoalgebra,
     GCoalgebraM,
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
+    cata,
+    embed,
     lowerAlgebra,
     lowerAlgebraM,
     lowerCoalgebra,
     lowerCoalgebraM,
+    project,
   )
 import "yaya" Yaya.Pattern (Maybe, Pair, maybe, uncurry)
 
@@ -268,3 +274,16 @@ corecursivePrism ::
   CoalgebraPrism f a ->
   Prism' a t
 corecursivePrism alg = prism (cata $ review alg) (anaM $ matching alg)
+
+-- TODO: If we can generalize this to an arbitrary 'Recursive (->) t (FreeF h a)'
+--       then it would no longer be unsafe.
+seqFreeT ::
+  (Functor f, Functor h) =>
+  DistributiveLaw (->) h f ->
+  DistributiveLaw (->) (Free h) f
+seqFreeT k =
+  unsafeCata
+    ( \case
+        Pure a -> free . Pure <$> a
+        Free ft -> free . Free <$> k ft
+    )

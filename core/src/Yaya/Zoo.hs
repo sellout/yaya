@@ -19,7 +19,6 @@ module Yaya.Zoo
     contramap,
     gapo,
     gmutu,
-    histo,
     insidePartial,
     map,
     mutu,
@@ -31,18 +30,17 @@ module Yaya.Zoo
   )
 where
 
-import "base" Control.Applicative (Applicative (pure, (<*>)))
-import "base" Control.Category (Category (id, (.)))
-import "base" Control.Monad (Monad ((>>=)), (<=<))
-import "base" Data.Bifunctor (Bifunctor (bimap, first))
-import "base" Data.Bitraversable (Bitraversable (bitraverse), bisequence)
+import "base" Control.Applicative (Applicative, pure, (<*>))
+import "base" Control.Category ((.))
+import "base" Control.Monad (Monad, (<=<), (>>=))
+import "base" Data.Bifunctor (Bifunctor, bimap, first)
+import "base" Data.Bitraversable (Bitraversable, bisequence, bitraverse)
 import "base" Data.Function (flip, ($))
-import "base" Data.Functor (Functor (fmap))
-import "base" Data.Traversable (Traversable (sequenceA))
-import "comonad" Control.Comonad (Comonad (duplicate, extract))
+import "base" Data.Functor (Functor, fmap)
+import "base" Data.Traversable (Traversable, sequenceA)
+import "comonad" Control.Comonad (Comonad, duplicate, extract)
 import "comonad" Control.Comonad.Env (EnvT (EnvT))
-import "free" Control.Comonad.Cofree (Cofree)
-import "profunctors" Data.Profunctor (Profunctor (lmap))
+import "profunctors" Data.Profunctor (Profunctor, lmap)
 import "this" Yaya.Fold
   ( Algebra,
     AlgebraM,
@@ -64,7 +62,6 @@ import "this" Yaya.Fold
     seqEither,
   )
 import "this" Yaya.Fold.Common (diagonal, fromEither)
-import "this" Yaya.Fold.Native (distCofreeT)
 import "this" Yaya.Pattern
   ( AndMaybe,
     Either (Left, Right),
@@ -177,10 +174,6 @@ mutuM ::
   t ->
   m a
 mutuM φ' φ = fmap snd . cataM (bisequence . bimap (φ' . fmap swap) φ . diagonal)
-
-histo ::
-  (Recursive (->) t f, Functor f) => GAlgebra (->) (Cofree f) f a -> t -> a
-histo = gcata $ distCofreeT id
 
 -- | A recursion scheme that gives you access to the original structure as you
 --   fold. (A specialization of `zygo`.)

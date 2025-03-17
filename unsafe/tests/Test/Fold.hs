@@ -5,38 +5,20 @@
 
 module Test.Fold (tests) where
 
-import safe "base" Control.Category (Category (id))
-import safe "base" Control.Monad ((=<<))
+import safe "base" Control.Category (id)
 import safe "base" Data.Bool (Bool)
-import safe "base" Data.Function (($))
 import safe "base" Data.Int (Int)
 import safe "base" Data.Proxy (Proxy (Proxy))
 import safe "base" System.IO (IO)
-import safe "hedgehog" Hedgehog
-  ( Property,
-    checkParallel,
-    discover,
-    forAll,
-    property,
-  )
+import safe "hedgehog" Hedgehog (Property, checkParallel, discover)
 import safe qualified "hedgehog" Hedgehog.Gen as Gen
 import safe "yaya" Yaya.Fold (Mu, Nu)
 import safe "yaya" Yaya.Fold.Common (size)
 import safe "yaya" Yaya.Fold.Native (Cofix, Fix)
-import safe "yaya-hedgehog" Yaya.Hedgehog.Expr
-  ( Expr,
-    genCofixExpr,
-    genExpr,
-    genFixExpr,
-    genMuExpr,
-    genNuExpr,
-  )
+import safe "yaya-hedgehog" Yaya.Hedgehog.Expr (Expr)
+import safe qualified "yaya-hedgehog" Yaya.Hedgehog.Expr as Expr
 import safe "yaya-hedgehog" Yaya.Hedgehog.Fold
   ( corecursiveIsUnsafe,
-    law_anaRefl,
-    law_cataCancel,
-    law_cataCompose,
-    law_cataRefl,
     recursiveIsUnsafe,
   )
 import safe qualified "yaya-unsafe" Yaya.Unsafe.Fold.Instances ()
@@ -45,52 +27,60 @@ import safe qualified "yaya-unsafe" Yaya.Unsafe.Fold.Instances ()
 {-# HLINT ignore "Unused LANGUAGE pragma" #-}
 
 prop_fixAnaRefl :: Property
-prop_fixAnaRefl =
-  property $ law_anaRefl =<< forAll (Gen.sized genFixExpr)
+prop_fixAnaRefl = Expr.anaRefl (Proxy :: Proxy (Fix Expr)) Gen.word8 0 20
 
--- | NB: Only in yaya-unsafe instead of yaya because the `Eq (Cofix f)` instance
---       is needed.
+-- |
+--
+--  __NB__: Only in yaya-unsafe instead of yaya because the `Eq (Cofix f)`
+--          instance is needed.
 prop_cofixAnaRefl :: Property
-prop_cofixAnaRefl =
-  property $ law_anaRefl =<< forAll (Gen.sized genCofixExpr)
+prop_cofixAnaRefl = Expr.anaRefl (Proxy :: Proxy (Cofix Expr)) Gen.word8 0 20
 
 prop_cofixCataCancel :: Property
 prop_cofixCataCancel =
-  property $ law_cataCancel size =<< forAll (genExpr (Gen.sized genCofixExpr))
+  Expr.cataCancel (Proxy :: Proxy (Mu Expr)) size Gen.word8 0 20
 
 prop_cofixCataRefl :: Property
-prop_cofixCataRefl =
-  property $ law_cataRefl =<< forAll (Gen.sized genCofixExpr)
+prop_cofixCataRefl = Expr.cataRefl (Proxy :: Proxy (Cofix Expr)) Gen.word8 0 20
 
 prop_cofixCataCompose :: Property
 prop_cofixCataCompose =
-  property $
-    law_cataCompose (Proxy :: Proxy (Fix Expr)) size id
-      =<< forAll (Gen.sized genCofixExpr)
+  Expr.cataCompose
+    (Proxy :: Proxy (Cofix Expr))
+    (Proxy :: Proxy (Cofix Expr))
+    size
+    id
+    Gen.word8
+    0
+    20
 
--- | NB: Only in yaya-unsafe instead of yaya because the `Eq (Nu f)` instance is
---       needed.
+-- |
+--
+--  __NB__: Only in yaya-unsafe instead of yaya because the `Eq (Nu f)` instance
+--          is needed.
 prop_nuAnaRefl :: Property
-prop_nuAnaRefl =
-  property $ law_anaRefl =<< forAll (Gen.sized genNuExpr)
+prop_nuAnaRefl = Expr.anaRefl (Proxy :: Proxy (Nu Expr)) Gen.word8 0 20
 
 prop_nuCataCancel :: Property
 prop_nuCataCancel =
-  property $ law_cataCancel size =<< forAll (genExpr (Gen.sized genNuExpr))
+  Expr.cataCancel (Proxy :: Proxy (Nu Expr)) size Gen.word8 0 20
 
 prop_nuCataRefl :: Property
-prop_nuCataRefl =
-  property $ law_cataRefl =<< forAll (Gen.sized genNuExpr)
+prop_nuCataRefl = Expr.cataRefl (Proxy :: Proxy (Nu Expr)) Gen.word8 0 20
 
 prop_nuCataCompose :: Property
 prop_nuCataCompose =
-  property $
-    law_cataCompose (Proxy :: Proxy (Nu Expr)) size id
-      =<< forAll (Gen.sized genNuExpr)
+  Expr.cataCompose
+    (Proxy :: Proxy (Nu Expr))
+    (Proxy :: Proxy (Nu Expr))
+    size
+    id
+    Gen.word8
+    0
+    20
 
 prop_muAnaRefl :: Property
-prop_muAnaRefl =
-  property $ law_anaRefl =<< forAll (Gen.sized genMuExpr)
+prop_muAnaRefl = Expr.anaRefl (Proxy :: Proxy (Mu Expr)) Gen.word8 0 20
 
 -- * These tests try to verify non-termination behavior.
 

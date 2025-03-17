@@ -7,4 +7,5 @@ import qualified "this" Test.Fold.Common as Fold.Common
 import qualified "this" Test.Retrofit as Retrofit
 
 main :: IO ()
-main = defaultMain [Fold.tests, Fold.Common.tests, Retrofit.tests]
+main =
+  defaultMain [Fold.tests, Fold.Common.tests, Retrofit.tests]
