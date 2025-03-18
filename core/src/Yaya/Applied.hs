@@ -1,5 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE Safe #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module Yaya.Applied
   ( Void,
@@ -96,6 +96,7 @@ import safe "this" Yaya.Fold
     cata2,
     embed,
     project,
+    pattern Embed,
   )
 import safe "this" Yaya.Fold.Common
   ( diagonal,
@@ -295,8 +296,13 @@ maybeIncrement incp =
 increment :: (Recursive (->) p Log2, Steppable (->) p Log2) => p -> Log2 p
 increment = flip (cata $ flip maybeIncrement) True
 
+-- |
+--
+--  __NB__: This can’t be implemented using `Day`, because we need to know that
+--          the `XNor` contains the fixed-point. And even if we could, it would
+--          require `Steppable` rather than just `Projectable`.
 drop' :: (Projectable (->) t (XNor a)) => Maybe (t -> t) -> t -> t
-drop' (Just fn) (project -> Both _ t) = fn t
+drop' (Just fn) (Embed (Both _ t)) = fn t
 drop' _ t = t
 
 drop :: (Recursive (->) n Maybe, Projectable (->) t (XNor a)) => n -> t -> t
