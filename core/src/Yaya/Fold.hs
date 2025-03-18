@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-decls:steppableReadPrec' #-}
 
 module Yaya.Fold
@@ -16,6 +18,8 @@ module Yaya.Fold
     ElgotAlgebra,
     ElgotAlgebraM,
     ElgotCoalgebra,
+    pattern Embed,
+    pattern Project,
     GAlgebra,
     GAlgebraM,
     GCoalgebra,
@@ -200,6 +204,34 @@ type GCoalgebraM c m n f a = a `c` m (f (n a))
 --  (which doesn’t).
 class Projectable c t f | t -> f where
   project :: Coalgebra c f t
+
+-- | This pattern is useful when you need to match multiple levels of a pattern
+--   functor. It won’t break exhaustiveness checking and, despite being named
+--   `Embed`, only requires `Projectable`.
+--
+-- >>> case 3 :: Natural of {x@(Embed y) -> (x, y)}
+-- (3,Just 2)
+--
+-- >>> case project [1, 2, 3] of {Both x (Embed (Both y z)) -> (x, y, z)}
+-- (1,2,[3])
+pattern Embed :: (Projectable (->) t f) => f t -> t
+pattern Embed ft <- (project -> ft)
+
+{-# COMPLETE Embed #-}
+
+-- | This pattern is useful when you need to match the projection of a structure
+--   that has nicer embedded syntax, or if you’re only going to call `embed` on
+--   the extracted values anyway. It won’t break exhaustiveness checking.
+--
+-- >>> case project (3 :: Natural) of {x@(Project y) -> (x, y)}
+-- (Just 2,3)
+--
+-- >>> case project [1, 2, 3] of {x@(Project [1, 2, 3]) -> x}
+-- Both 1 [2,3]
+pattern Project :: (Steppable (->) t f) => t -> f t
+pattern Project t <- (embed -> t)
+
+{-# COMPLETE Project #-}
 
 -- | Structures you can walk through step-by-step.
 class (Projectable c t f) => Steppable c t f | t -> f where
