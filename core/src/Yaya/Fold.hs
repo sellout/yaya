@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Yaya.Fold
   ( Algebra,
@@ -15,6 +17,7 @@ module Yaya.Fold
     ElgotAlgebra,
     ElgotAlgebraM,
     ElgotCoalgebra,
+    pattern Embed,
     GAlgebra,
     GAlgebraM,
     GCoalgebra,
@@ -182,6 +185,14 @@ type GCoalgebraM c m n f a = a `c` m (f (n a))
 --  (which doesn’t).
 class Projectable c t f | t -> f where
   project :: Coalgebra c f t
+
+-- | This pattern is useful when you need to match multiple levels of a pattern
+--   functor. It won’t break exhaustiveness checking and, despite being named
+--   `Embed`, only requires `Projectable`.
+pattern Embed :: (Projectable (->) t f) => f t -> t
+pattern Embed ft <- (project -> ft)
+
+{-# COMPLETE Embed #-}
 
 -- | Structures you can walk through step-by-step.
 class (Projectable c t f) => Steppable c t f | t -> f where
