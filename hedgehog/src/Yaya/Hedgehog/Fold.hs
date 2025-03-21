@@ -166,19 +166,23 @@ steppableOfHeight ::
   -- | A generator for terminal cases (leaf nodes).
   Gen (f Void) ->
   -- | A generator for arbitrary cases. If the provided value generates terminal
-  --   cases, then the resulting tree may have a height less than the `Size`,
+  --   cases, then the resulting tree may have a height less than @n@,
   --   otherwise it will be a perfect tree with a height of exactly the provided
-  --  `Size`.
-  (Gen t -> Gen (f t)) ->
+  --   @n@.
+  --
+  --  __NB__: This needs to take @`Gen` a@, because we don’t know how many @a@s
+  --          it is going to need for a given case of @f@.
+  (forall a. Gen a -> Gen (f a)) ->
   n ->
   Gen t
-steppableOfHeight leaf = cata . genAlgebra leaf
+steppableOfHeight leaf branch = cata $ genAlgebra leaf branch
 
 -- | Builds a generic tree generator of a certain height.
 genAlgebra ::
+  forall t f.
   (Steppable (->) t f, Functor f) =>
   Gen (f Void) ->
-  (Gen t -> Gen (f t)) ->
+  (forall a. Gen a -> Gen (f a)) ->
   Algebra (->) Maybe (Gen t)
 genAlgebra leaf branch =
   maybe (fmap (embed . fmap absurd) leaf) (fmap embed . branch)
