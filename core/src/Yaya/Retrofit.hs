@@ -37,6 +37,7 @@ module Yaya.Retrofit
       ),
     defaultRules,
     extractPatternFunctor,
+    qualifiedRules,
   )
 where
 
@@ -55,12 +56,13 @@ import safe "base" Data.Foldable (Foldable (foldl, length, null))
 import safe "base" Data.Function (const, flip, ($))
 import safe "base" Data.Functor (Functor (fmap), (<$>))
 import safe "base" Data.Functor.Identity (Identity (Identity, runIdentity))
-import safe "base" Data.List (all, zip, zip3)
+import safe "base" Data.List (all, elemIndex, splitAt, zip, zip3)
 import safe "base" Data.List.NonEmpty (NonEmpty)
 import safe "base" Data.Maybe (Maybe (Just, Nothing), maybe)
 import safe "base" Data.Semigroup (Semigroup ((<>)))
 import safe "base" Data.String (String)
 import safe "base" Data.Traversable (Traversable (traverse))
+import safe "base" Data.Tuple (snd)
 import safe "base" Text.Read.Lex (isSymbolChar)
 import safe "base" Text.Show (Show (show))
 import safe "either" Data.Either.Validation
@@ -170,6 +172,22 @@ defaultRules =
       patternCon = toFName,
       patternField = toFName
     }
+
+-- | Use these rules when you are defining the pattern functor in a different
+--   module from the directly-recursive type, and the directly-recursive type is
+--   imported qualified (so the functor can use the same names for everything).
+qualifiedRules :: PatternFunctorRules
+qualifiedRules =
+  PatternFunctorRules
+    { patternType = stripQualifiers,
+      patternCon = stripQualifiers,
+      patternField = stripQualifiers
+    }
+
+stripQualifiers :: TH.Name -> TH.Name
+stripQualifiers = TH.mkName . f . TH.nameBase
+  where
+    f name = maybe name (snd . flip splitAt name) $ elemIndex '.' name
 
 toFName :: TH.Name -> TH.Name
 toFName = TH.mkName . f . TH.nameBase
