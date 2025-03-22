@@ -43,6 +43,7 @@ allow-newer:
 packages:
   ./containers/yaya-containers.cabal
   ./core/yaya.cabal
+  ./examples/yaya-examples.cabal
   ./hedgehog/yaya-hedgehog.cabal
   ./lens/yaya-lens.cabal
   ./native/yaya-native.cabal
