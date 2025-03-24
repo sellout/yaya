@@ -20,8 +20,7 @@ where
 import safe "base" Control.Applicative (pure)
 import safe "base" Control.Arrow ((&&&))
 import safe "base" Control.Category ((.))
-import safe "base" Control.Monad (join, (<=<), (=<<))
-import safe "base" Data.Bifunctor (bimap)
+import safe "base" Control.Monad (Monad, join, (<=<), (=<<))
 import safe "base" Data.Bitraversable (bisequence)
 import safe "base" Data.Either (Either (Left), fromRight)
 import safe "base" Data.Eq (Eq)
@@ -100,6 +99,8 @@ deriveShow1 ''Json
 
 -- * filters
 
+-- | Extract an entry from an object. If the object is missing the key, return
+--  `None`, but if the argument isn’t an object, return `Left`.
 objectIndex :: Text -> Json a -> Either String (Maybe a)
 objectIndex key = \case
   Object entries -> pure $ Map.lookup key entries
@@ -184,20 +185,19 @@ utf8ByteLength = \case
   String text -> pure . fromIntegral . ByteString.length $ encodeUtf8 text
   _ -> Left "attempted to get the utf8bytelength of a non-string"
 
--- |
+-- | Performs a binary operation on the results of two `jq` filters.
 --
 --  __FIXME__: Not sure how @jq@ handles filters that return multiple results –
 --             Cartesian product? zip?
 binop ::
-  (Steppable (->) json Json) =>
-  (Json json -> Json json -> Either String (Json json)) ->
-  (json -> Either String [json]) ->
-  (json -> Either String [json]) ->
-  json ->
-  Either String [json]
+  (Monad m) =>
+  (Json a -> Json a -> m (Json a)) ->
+  (Json a -> m [Json a]) ->
+  (Json a -> m [Json a]) ->
+  Json a ->
+  m [Json a]
 binop op filtA filtB =
-  traverse (fmap embed . uncurry op . bimap project project) . bisequence
-    <=< bisequence . (filtA &&& filtB)
+  traverse (uncurry op) . bisequence <=< bisequence . (filtA &&& filtB)
 
 -- $setup
 -- >>> :seti -XOverloadedStrings
@@ -206,35 +206,34 @@ binop op filtA filtB =
 
 -- | Convert a `Filter` to a function that filters the provided JSON structure.
 --
--- >>> let json = embed (Object (Map.fromList [("name", embed (String "bob")), ("title", embed (String "boss"))]))
+-- >>> let json = Object (Map.fromList [("name", embed (String "bob")), ("title", embed (String "boss"))])
 -- >>> cata @_ @(Mu Filter) (filter @(Mu Json)) (embed (ObjectIndex "title")) json
--- Right [embed (String "boss")]
+-- Right [String "boss"]
 -- >>> cata @_ @(Mu Filter) (filter @(Mu Json)) (embed (Pipe [embed (ObjectIndex "title"), embed (Slice 1 3)])) json
--- Right [embed (String "os")]
+-- Right [String "os"]
 -- >>> cata @_ @(Mu Filter) (filter @(Mu Json)) (embed Iterator) json
--- Right [embed (String "bob"),embed (String "boss")]
+-- Right [String "bob",String "boss"]
 -- >>> cata @_ @(Mu Filter) (filter @(Mu Json)) (embed (Pipe [embed Iterator, embed (Slice 1 3)])) json
--- Right [embed (String "ob"),embed (String "os")]
+-- Right [String "ob",String "os"]
 filter ::
   (Eq json, Steppable (->) json Json) =>
-  Filter (json -> Either String [json]) ->
-  json ->
-  Either String [json]
+  Filter (Json json -> Either String [Json json]) ->
+  Json json ->
+  Either String [Json json]
 filter = \case
   Identity -> pure . pure
   Optional filt -> pure . fromRight [] . filt
-  ObjectIndex key -> fmap (maybe [embed Null] pure) . objectIndex key . project
-  ArrayIndex index ->
-    fmap (maybe [embed Null] pure) . arrayIndex index . project
-  Slice start end -> fmap (pure . embed) . slice start end . project
-  Iterator -> iterator . project
+  ObjectIndex key -> fmap (maybe [Null] (pure . project)) . objectIndex key
+  ArrayIndex index -> fmap (maybe [Null] (pure . project)) . arrayIndex index
+  Slice start end -> fmap pure . slice start end
+  Iterator -> fmap (fmap project) . iterator
   Fork filts -> fmap join . sequenceA . sequenceA filts
   Pipe filts ->
     foldr (\prev next -> fmap join . traverse next <=< prev) (pure . pure) filts
   ConstructArray filts ->
-    fmap (pure . embed . Array . join) . sequenceA . sequenceA filts
+    fmap (pure . Array . fmap embed . join) . sequenceA . sequenceA filts
   ConstructObject filts ->
-    fmap (pure . embed . Object . Map.fromList . (sequenceA =<<))
+    fmap (pure . Object . fmap embed . Map.fromList . (sequenceA =<<))
       . traverse sequenceA
       . traverse sequenceA filts
   Add filtA filtB -> binop add filtA filtB
@@ -242,5 +241,5 @@ filter = \case
   Multiply filtA filtB -> binop multiply filtA filtB
   Divide filtA filtB -> binop divide filtA filtB
   Modulo filtA filtB -> binop modulo filtA filtB
-  Abs -> fmap (pure . embed . Number) . abs . project
-  Length -> fmap (pure . embed . Number . fromIntegral) . length . project
+  Abs -> fmap (pure . Number) . abs
+  Length -> fmap (pure . Number . fromIntegral) . length
