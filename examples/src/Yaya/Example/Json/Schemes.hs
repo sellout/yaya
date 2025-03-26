@@ -22,10 +22,10 @@ import safe "base" Control.Arrow ((&&&))
 import safe "base" Control.Category ((.))
 import safe "base" Control.Monad (Monad, join, (<=<), (=<<))
 import safe "base" Data.Bitraversable (bisequence)
-import safe "base" Data.Either (Either (Left), fromRight)
+import safe "base" Data.Either (Either (Left), either, fromRight)
 import safe "base" Data.Eq (Eq)
 import safe "base" Data.Foldable (foldr, notElem)
-import safe "base" Data.Function (($))
+import safe "base" Data.Function (const, ($))
 import safe "base" Data.Functor (fmap)
 import safe "base" Data.Int (Int)
 import safe "base" Data.List ((!!))
@@ -48,7 +48,15 @@ import safe "deriving-compat" Text.Show.Deriving (deriveShow1)
 import safe "text" Data.Text (Text)
 import safe qualified "text" Data.Text as Text
 import safe "text" Data.Text.Encoding (encodeUtf8)
-import safe "yaya" Yaya.Fold (Steppable, embed, project)
+import safe "yaya" Yaya.Fold
+  ( Recursive,
+    Steppable,
+    distTuple,
+    embed,
+    gcata,
+    project,
+  )
+import safe "yaya" Yaya.Pattern (fst, snd)
 import safe qualified "yaya-native" Yaya.Native.Retrofit as Retrofit
 import safe qualified "this" Yaya.Example.Json as Direct
 import safe "base" Prelude
@@ -127,6 +135,15 @@ iterator = \case
   Object entries -> pure $ Map.elems entries
   _ -> Left "applied “.[]” to something other than an array or object"
 
+-- | This basically applies `iterator` recursively, collecting everything into a
+--   single list.
+recursiveDescent ::
+  (Recursive (->) json Json, Steppable (->) json Json) => json -> [Json json]
+recursiveDescent =
+  gcata (distTuple embed) \orig ->
+    let self = fmap fst orig
+     in either (const [self]) (self :) . iterator <=< sequenceA $ fmap snd orig
+
 add :: Json a -> Json a -> Either String (Json a)
 add = curry \case
   (Null, b) -> pure b
@@ -155,7 +172,8 @@ divide = curry \case
 
 modulo :: Json a -> Json a -> Either String (Json a)
 modulo = curry \case
-  (Number a, Number b) -> pure . Number . fromIntegral @Integer $ truncate a `mod` truncate b
+  (Number a, Number b) ->
+    pure . Number . fromIntegral @Integer $ truncate a `mod` truncate b
   (_, _) -> Left "attempted to modulo non-numbers"
 
 abs :: Json a -> Either String Double
@@ -206,17 +224,40 @@ binop op filtA filtB =
 
 -- | Convert a `Filter` to a function that filters the provided JSON structure.
 --
--- >>> let json = Object (Map.fromList [("name", embed (String "bob")), ("title", embed (String "boss"))])
--- >>> cata @_ @(Mu Filter) (filter @(Mu Json)) (embed (ObjectIndex "title")) json
+-- >>> :{
+--   let json = Object @(Mu Json) . Map.fromList $
+--         [("name", embed (String "bob")), ("title", embed (String "boss"))]
+-- :}
+--
+-- >>> cata @_ @(Mu Filter) filter (embed (ObjectIndex "title")) json
 -- Right [String "boss"]
--- >>> cata @_ @(Mu Filter) (filter @(Mu Json)) (embed (Pipe [embed (ObjectIndex "title"), embed (Slice 1 3)])) json
+-- >>> cata @_ @(Mu Filter) filter (embed (Pipe [embed (ObjectIndex "title"), embed (Slice 1 3)])) json
 -- Right [String "os"]
--- >>> cata @_ @(Mu Filter) (filter @(Mu Json)) (embed Iterator) json
+-- >>> cata @_ @(Mu Filter) filter (embed Iterator) json
 -- Right [String "bob",String "boss"]
--- >>> cata @_ @(Mu Filter) (filter @(Mu Json)) (embed (Pipe [embed Iterator, embed (Slice 1 3)])) json
+-- >>> cata @_ @(Mu Filter) filter (embed (Pipe [embed Iterator, embed (Slice 1 3)])) json
 -- Right [String "ob",String "os"]
+-- >>> cata @_ @(Mu Filter) filter (embed RecursiveDescent) json
+-- Right [Object (fromList [("name",embed (String "bob")),("title",embed (String "boss"))]),String "bob",String "boss"]
+--
+--   There are two ways to view operations that operate on multiple recursive
+--   structures:
+-- - as functions that move through both structures together or
+-- - as functions that traverse one of the structures to build a function that
+--   steps through the other structures.
+--
+--   The latter is how the implementations actually, work, but the former is
+--   often a helpful mental model. In some cases (not `filter`) there are ways
+--   to implement it that make the former more apparent.
+--
+--   In the case of @`cata` `filter`@, we fold over the `Filter` fixed point to
+--   build a function that peels the `Json` structure as much as necessary. In
+--   most cases, each `Filter` peels one layer of `Json`, and the former view
+--   maps well. But, for example, in the `RecursiveDescent` case, we actually
+--   have to perform a fold over the `Json` structure, which exposes the falsity
+--   of that view.
 filter ::
-  (Eq json, Steppable (->) json Json) =>
+  (Eq json, Recursive (->) json Json, Steppable (->) json Json) =>
   Filter (Json json -> Either String [Json json]) ->
   Json json ->
   Either String [Json json]
@@ -236,6 +277,7 @@ filter = \case
     fmap (pure . Object . fmap embed . Map.fromList . (sequenceA =<<))
       . traverse sequenceA
       . traverse sequenceA filts
+  RecursiveDescent -> pure . recursiveDescent . embed
   Add filtA filtB -> binop add filtA filtB
   Subtract filtA filtB -> binop subtract filtA filtB
   Multiply filtA filtB -> binop multiply filtA filtB
