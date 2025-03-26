@@ -1,4 +1,4 @@
-{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Safe #-}
 
 -- | An illustration of fairly basic recursion schemes via an implementation of
 --   [jq](https://jqlang.org/).
@@ -12,7 +12,9 @@ module Yaya.Example.Json
 where
 
 import "base" Data.Bool (Bool)
+import "base" Data.Either (Either)
 import "base" Data.Int (Int)
+import "base" Data.String (String)
 import "containers" Data.Map (Map)
 import "text" Data.Text (Text)
 import "base" Prelude (Double)
@@ -44,10 +46,5 @@ data Filter
     ConstructObject [(Text, Filter)]
   | -- | `.. | .a?` - Optional (ObjectIndex "a" (RecursiveDescent Identity))
     RecursiveDescent
-  | Add Filter Filter
-  | Subtract Filter Filter
-  | Multiply Filter Filter
-  | Divide Filter Filter
-  | Modulo Filter Filter
-  | Abs
-  | Length
+  | Binop (Json -> Json -> Either String Json) Filter Filter
+  | Unop (Json -> Either String Json)
