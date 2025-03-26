@@ -43,9 +43,9 @@ data Filter
     --
     --  __TODO__: Generalize the keys here to support filters
     ConstructObject [(Text, Filter)]
-  | -- \| -- | `.. | .a?` - Optional (ObjectIndex "a" (RecursiveDescent Identity))
-    --   RecursiveDescent
-    Add Filter Filter
+  | -- | `.. | .a?` - Optional (ObjectIndex "a" (RecursiveDescent Identity))
+    RecursiveDescent
+  | Add Filter Filter
   | Subtract Filter Filter
   | Multiply Filter Filter
   | Divide Filter Filter
