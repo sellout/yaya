@@ -12,8 +12,22 @@
 --   Another interesting reference might be [Chris Penner’s post on jq with
 --   optics](https://chrispenner.ca/posts/traversal-systems)
 module Yaya.Example.Json.Schemes
-  ( filter,
+  ( abs,
+    add,
+    and,
+    divide,
+    filter,
+    keys,
+    keysUnsorted,
+    length,
+    modulo,
+    multiply,
+    not,
+    or,
+    subtract,
     utf8ByteLength,
+    wrapBinop,
+    wrapUnop,
   )
 where
 
@@ -21,12 +35,14 @@ import safe "base" Control.Applicative (pure)
 import safe "base" Control.Arrow ((&&&))
 import safe "base" Control.Category ((.))
 import safe "base" Control.Monad (Monad, join, (<=<), (=<<))
+import safe "base" Data.Bifunctor (bimap)
 import safe "base" Data.Bitraversable (bisequence)
+import safe "base" Data.Bool (Bool (False, True))
 import safe "base" Data.Either (Either (Left), either, fromRight)
 import safe "base" Data.Eq (Eq)
 import safe "base" Data.Foldable (foldr, notElem)
 import safe "base" Data.Function (const, ($))
-import safe "base" Data.Functor (fmap)
+import safe "base" Data.Functor (fmap, (<$>))
 import safe "base" Data.Int (Int)
 import safe "base" Data.List ((!!))
 import safe qualified "base" Data.List as List
@@ -51,6 +67,7 @@ import safe "text" Data.Text.Encoding (encodeUtf8)
 import safe "yaya" Yaya.Fold
   ( Recursive,
     Steppable,
+    cata,
     distTuple,
     embed,
     gcata,
@@ -78,19 +95,6 @@ import safe qualified "base" Prelude as Base
 -- existing code.
 Retrofit.extractPatternFunctor Retrofit.qualifiedRules ''Direct.Filter
 Retrofit.extractPatternFunctor Retrofit.qualifiedRules ''Direct.Json
-
-deriving stock instance (Eq a) => Eq (Filter a)
-
-deriving stock instance (Ord a) => Ord (Filter a)
-
-deriving stock instance (Read a) => Read (Filter a)
-
-deriving stock instance (Show a) => Show (Filter a)
-
-deriveEq1 ''Filter
-deriveOrd1 ''Filter
-deriveRead1 ''Filter
-deriveShow1 ''Filter
 
 deriving stock instance (Eq a) => Eq (Json a)
 
@@ -160,20 +164,19 @@ subtract = curry \case
   (Array a, Array b) -> pure . Array $ List.filter (`notElem` b) a
   (_, _) -> Left "attempted to subtract two non-subtractable things"
 
-multiply :: Json a -> Json a -> Either String (Json a)
+multiply :: Json a -> Json a -> Either String Double
 multiply = curry \case
-  (Number a, Number b) -> pure . Number $ a * b
+  (Number a, Number b) -> pure $ a * b
   (_, _) -> Left "attempted to multiply non-numbers"
 
-divide :: Json a -> Json a -> Either String (Json a)
+divide :: Json a -> Json a -> Either String Double
 divide = curry \case
-  (Number a, Number b) -> pure . Number $ a / b
+  (Number a, Number b) -> pure $ a / b
   (_, _) -> Left "attempted to divide non-numbers"
 
-modulo :: Json a -> Json a -> Either String (Json a)
+modulo :: Json a -> Json a -> Either String Integer
 modulo = curry \case
-  (Number a, Number b) ->
-    pure . Number . fromIntegral @Integer $ truncate a `mod` truncate b
+  (Number a, Number b) -> pure $ truncate a `mod` truncate b
   (_, _) -> Left "attempted to modulo non-numbers"
 
 abs :: Json a -> Either String Double
@@ -202,6 +205,40 @@ utf8ByteLength :: Json a -> Either String Natural
 utf8ByteLength = \case
   String text -> pure . fromIntegral . ByteString.length $ encodeUtf8 text
   _ -> Left "attempted to get the utf8bytelength of a non-string"
+
+keys :: Json a -> Either String [Json a]
+keys = \case
+  Array elements -> pure $ Number . fromIntegral <$> [0 .. List.length elements]
+  Object entries -> pure . fmap String . List.sort $ Map.keys entries
+  _ -> Left "attempted to get the keys of a non-structure"
+
+keysUnsorted :: Json a -> Either String [Json a]
+keysUnsorted = \case
+  Array elements -> pure $ Number . fromIntegral <$> [0 .. List.length elements]
+  Object entries -> pure $ String <$> Map.keys entries
+  _ -> Left "attempted to get the keys of a non-structure"
+
+and :: Json a -> Json a -> Bool
+and = curry \case
+  (Null, _) -> False
+  (Bool False, _) -> False
+  (_, Null) -> False
+  (_, Bool False) -> False
+  (_, _) -> True
+
+or :: Json a -> Json a -> Bool
+or = curry \case
+  (Null, Null) -> False
+  (Null, Bool False) -> False
+  (Bool False, Null) -> False
+  (Bool False, Bool False) -> False
+  (_, _) -> True
+
+not :: Json a -> Bool
+not = \case
+  Null -> True
+  Bool False -> True
+  _ -> False
 
 -- | Performs a binary operation on the results of two `jq` filters.
 --
@@ -257,7 +294,7 @@ binop op filtA filtB =
 --   have to perform a fold over the `Json` structure, which exposes the falsity
 --   of that view.
 filter ::
-  (Eq json, Recursive (->) json Json, Steppable (->) json Json) =>
+  (Recursive (->) json Json, Steppable (->) json Json) =>
   Filter (Json json -> Either String [Json json]) ->
   Json json ->
   Either String [Json json]
@@ -278,10 +315,30 @@ filter = \case
       . traverse sequenceA
       . traverse sequenceA filts
   RecursiveDescent -> pure . recursiveDescent . embed
-  Add filtA filtB -> binop add filtA filtB
-  Subtract filtA filtB -> binop subtract filtA filtB
-  Multiply filtA filtB -> binop multiply filtA filtB
-  Divide filtA filtB -> binop divide filtA filtB
-  Modulo filtA filtB -> binop modulo filtA filtB
-  Abs -> fmap (pure . Number) . abs
-  Length -> fmap (pure . Number . fromIntegral) . length
+  -- See the docs on `wrapBinop`.
+  Binop op filtA filtB ->
+    binop
+      ( curry $
+          fmap (project . cata embed)
+            . uncurry op
+            . bimap (cata embed . embed) (cata embed . embed)
+      )
+      filtA
+      filtB
+  -- See the docs on `wrapUnop`.
+  Unop op -> fmap (pure . project . cata embed) . op . cata embed . embed
+
+-- | Because `Json` is extracted from `Direct.Json`, this is needed to be able
+--   to pass our pattern functor operations (like `add`) to `Binop`.
+wrapBinop ::
+  (Json Direct.Json -> Json Direct.Json -> Either String (Json Direct.Json)) ->
+  a ->
+  a ->
+  Filter a
+wrapBinop op = Binop . curry $ fmap embed . uncurry op . bimap project project
+
+-- | Because `Json` is extracted from `Direct.Json`, this is needed to be able
+--   to pass our pattern functor operations (like `abs`) to `Unop`.
+wrapUnop ::
+  (Json Direct.Json -> Either String (Json Direct.Json)) -> Filter a
+wrapUnop op = Unop $ fmap embed . op . project
