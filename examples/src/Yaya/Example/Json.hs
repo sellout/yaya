@@ -14,6 +14,7 @@ where
 import "base" Data.Bool (Bool)
 import "base" Data.Either (Either)
 import "base" Data.Int (Int)
+import "base" Data.Maybe (Maybe)
 import "base" Data.String (String)
 import "containers" Data.Map (Map)
 import "text" Data.Text (Text)
@@ -34,7 +35,7 @@ data Filter
   | Optional Filter
   | ObjectIndex Text
   | ArrayIndex Int
-  | Slice Int Int
+  | Slice Int (Maybe Int)
   | Iterator
   | -- | The comma filter
     Fork [Filter]

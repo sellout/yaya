@@ -46,8 +46,8 @@ import safe "base" Data.Functor (fmap, (<$>))
 import safe "base" Data.Int (Int)
 import safe "base" Data.List ((!!))
 import safe qualified "base" Data.List as List
-import safe "base" Data.Maybe (Maybe, maybe)
-import safe "base" Data.Ord (Ord)
+import safe "base" Data.Maybe (Maybe (Nothing), maybe)
+import safe "base" Data.Ord (Ord, (<))
 import safe "base" Data.Semigroup ((<>))
 import safe "base" Data.String (String)
 import safe "base" Data.Traversable (sequenceA, traverse)
@@ -89,6 +89,12 @@ import safe "base" Prelude
   )
 import safe qualified "base" Prelude as Base
 
+-- $setup
+-- >>> :seti -XOverloadedStrings
+-- >>> :seti -XTypeApplications
+-- >>> import "base" Data.Maybe (Maybe (Just))
+-- >>> import "yaya" Yaya.Fold (Mu, cata)
+
 -- This is not the recommended way to define a pattern functor. This is only
 -- done to show how we can use the same origirnal representation as the direct
 -- approach, but get the benefits of recursion schemes without rewriting
@@ -113,26 +119,75 @@ deriveShow1 ''Json
 
 -- | Extract an entry from an object. If the object is missing the key, return
 --  `None`, but if the argument isn’t an object, return `Left`.
+--
+-- >>> objectIndex "foo" . Object $ Map.fromList [("foo", Number 42), ("bar", String "less interesting data")]
+-- Right (Just (Number 42.0))
+-- >>> objectIndex "foo" . Object $ Map.fromList [("notfoo", True), ("alsonotfoo", False)]
+-- Right Nothing
 objectIndex :: Text -> Json a -> Either String (Maybe a)
 objectIndex key = \case
   Object entries -> pure $ Map.lookup key entries
   _ -> Left "applied “.[<string>]” to a non-object"
 
+-- |
+--
+-- >>> arrayIndex 0 $ Array [[("name", String "JSON"), ("good", Bool True)], [("name", String "XML"), ("good", Bool False)]]
+-- Right (Just [("name",String "JSON"),("good",Bool True)])
+-- >>> arrayIndex 2 $ Array [[("name", String "JSON"), ("good", Bool True)], [("name", String "XML"), ("good", Bool False)]]
+-- Right Nothing
+-- >>> arrayIndex -2 $ Array [1, 2, 3]
+-- Right (Just 2)
 arrayIndex :: Int -> Json a -> Either String (Maybe a)
 arrayIndex index = \case
-  -- FIXME: This should use `!?`, but it’s not supported yet.
-  Array elements -> pure . pure $ elements !! index
+  Array elements ->
+    let normalizedIndex =
+          if index < 0 then List.length elements + index else index
+     in pure $
+          -- FIXME: This should use `!?`, but it’s not supported yet.
+          if normalizedIndex < List.length elements
+            then pure $ elements !! normalizedIndex
+            else Nothing
   _ -> Left "applied “.[<number>]” to a non-array"
 
-slice :: Int -> Int -> Json a -> Either String (Json a)
+-- |
+--
+-- >>> slice 2 (Just 4) $ Array ["a", "b", "c", "d", "e"]
+-- Right (Array ["c","d"])
+-- >>> slice 2 (Just 4) $ String "abcdefghi"
+-- Right (String "cd")
+-- >>> slice 0 (Just 3) $ Array ["a", "b", "c", "d", "e"]
+-- Right (Array ["a","b","c"])
+-- >>> slice -2 Nothing  $ Array ["a", "b", "c", "d", "e"]
+-- Right (Array ["d","e"])
+slice :: Int -> Maybe Int -> Json a -> Either String (Json a)
 slice start end = \case
   Array elements ->
-    pure . Array . List.take (end - start) $ List.drop start elements
-  String text -> pure . String . Text.take (end - start) $ Text.drop start text
+    let normalizedStart =
+          if start < 0 then List.length elements + start else start
+     in pure . Array $
+          foldr
+            (List.take . (\x -> x - normalizedStart))
+            (List.drop normalizedStart elements)
+            end
+  String text ->
+    let normalizedStart = if start < 0 then Text.length text + start else start
+     in pure . String $
+          foldr
+            (Text.take . (\x -> x - normalizedStart))
+            (Text.drop normalizedStart text)
+            end
   _ ->
     Left
       "applied “.[<number>:<number>]” to something other than an array or string."
 
+-- |
+--
+-- >>> iterator $ Array [[("name", String "JSON"), ("good", Bool True)], [("name", String "XML"), ("good", Bool False)]]
+-- Right [[("name",String "JSON"),("good",Bool True)],[("name",String "XML"),("good",Bool False)]]
+-- >>> iterator $ Array []
+-- Right []
+-- >>> iterator . Object $ Map.fromList [("a", 1), ("b", 1)]
+-- Right [1,1]
 iterator :: Json a -> Either String [a]
 iterator = \case
   Array elements -> pure elements
@@ -254,11 +309,6 @@ binop ::
 binop op filtA filtB =
   traverse (uncurry op) . bisequence <=< bisequence . (filtA &&& filtB)
 
--- $setup
--- >>> :seti -XOverloadedStrings
--- >>> :seti -XTypeApplications
--- >>> import "yaya" Yaya.Fold (Mu, cata)
-
 -- | Convert a `Filter` to a function that filters the provided JSON structure.
 --
 -- >>> :{
@@ -268,11 +318,11 @@ binop op filtA filtB =
 --
 -- >>> cata @_ @(Mu Filter) filter (embed (ObjectIndex "title")) json
 -- Right [String "boss"]
--- >>> cata @_ @(Mu Filter) filter (embed (Pipe [embed (ObjectIndex "title"), embed (Slice 1 3)])) json
+-- >>> cata @_ @(Mu Filter) filter (embed (Pipe [embed (ObjectIndex "title"), embed (Slice 1 (Just 3))])) json
 -- Right [String "os"]
 -- >>> cata @_ @(Mu Filter) filter (embed Iterator) json
 -- Right [String "bob",String "boss"]
--- >>> cata @_ @(Mu Filter) filter (embed (Pipe [embed Iterator, embed (Slice 1 3)])) json
+-- >>> cata @_ @(Mu Filter) filter (embed (Pipe [embed Iterator, embed (Slice 1 (Just 3))])) json
 -- Right [String "ob",String "os"]
 -- >>> cata @_ @(Mu Filter) filter (embed RecursiveDescent) json
 -- Right [Object (fromList [("name",embed (String "bob")),("title",embed (String "boss"))]),String "bob",String "boss"]
