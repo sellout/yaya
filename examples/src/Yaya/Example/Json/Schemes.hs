@@ -12,7 +12,9 @@
 --   Another interesting reference might be [Chris Penner’s post on jq with
 --   optics](https://chrispenner.ca/posts/traversal-systems)
 module Yaya.Example.Json.Schemes
-  ( abs,
+  ( Filter (..),
+    Json (..),
+    abs,
     add,
     and,
     divide,

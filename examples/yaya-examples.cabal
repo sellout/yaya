@@ -215,12 +215,14 @@ library
     bytestring,
     containers ^>= {0.6.2, 0.7, 0.8},
     deriving-compat ^>= {0.5.9, 0.6},
+    megaparsec,
     text,
     yaya ^>= {0.5.1, 0.6.0, 0.7.0},
     yaya-native ^>= {0.0.1},
   exposed-modules:
     Yaya.Example.Json
     Yaya.Example.Json.Schemes
+    Yaya.Example.Json.Schemes.JsonParser
 
 test-suite doctests
   import: defaults
