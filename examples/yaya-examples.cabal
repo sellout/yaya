@@ -172,12 +172,14 @@ library
     containers,
     deriving-compat ^>= {0.5.9, 0.6},
     -- hedgehog ^>= {1.0, 1.1, 1.2, 1.4, 1.5},
+    megaparsec,
     text,
     yaya ^>= {0.5.1, 0.6.0},
     yaya-native,
   exposed-modules:
     Yaya.Example.Json
     Yaya.Example.Json.Schemes
+    Yaya.Example.Json.Schemes.JsonParser
 
 test-suite doctests
   import: defaults
