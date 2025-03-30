@@ -8,9 +8,9 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 
 | Name | Version | [SPDX](https://spdx.org/licenses/) License Id | Description | Also depended upon by |
 | --- | --- | --- | --- | --- |
-| `QuickCheck` | [`2.14.3`](http://hackage.haskell.org/package/QuickCheck-2.14.3) | [`BSD-3-Clause`](http://hackage.haskell.org/package/QuickCheck-2.14.3/src/LICENSE) | Automatic testing of Haskell programs |  |
+| `QuickCheck` | [`2.15.0.1`](http://hackage.haskell.org/package/QuickCheck-2.15.0.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/QuickCheck-2.15.0.1/src/LICENSE) | Automatic testing of Haskell programs |  |
 | **`base`** | [`4.20.0.0`](http://hackage.haskell.org/package/base-4.20.0.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/base-4.20.0.0/src/LICENSE) | Core data structures and operations | *(core library)* |
-| `yaya` | [`0.6.2.2`](http://hackage.haskell.org/package/yaya-0.6.2.2) | [`AGPL-3.0-or-later`](http://hackage.haskell.org/package/yaya-0.6.2.2/src/LICENSE) | Total recursion schemes. |  |
+| `yaya` | [`0.6.2.3`](http://hackage.haskell.org/package/yaya-0.6.2.3) |  *MISSING* | *MISSING* |  |
 
 ## Indirect transitive dependencies
 
@@ -51,7 +51,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | **`pretty`** | [`1.1.3.6`](http://hackage.haskell.org/package/pretty-1.1.3.6) | [`BSD-3-Clause`](http://hackage.haskell.org/package/pretty-1.1.3.6/src/LICENSE) | Pretty-printing library | `template-haskell` |
 | `primitive` | [`0.9.0.0`](http://hackage.haskell.org/package/primitive-0.9.0.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/primitive-0.9.0.0/src/LICENSE) | Primitive memory-related operations | `vector` |
 | `profunctors` | [`5.6.2`](http://hackage.haskell.org/package/profunctors-5.6.2) | [`BSD-3-Clause`](http://hackage.haskell.org/package/profunctors-5.6.2/src/LICENSE) | Profunctors | `adjunctions`, `either`, `free`, `invariant`, `kan-extensions`, `lens`, `yaya` |
-| `random` | [`1.2.1.3`](http://hackage.haskell.org/package/random-1.2.1.3) | [`BSD-3-Clause`](http://hackage.haskell.org/package/random-1.2.1.3/src/LICENSE) | Pseudo-random number generation | `QuickCheck` |
+| `random` | [`1.3.0`](http://hackage.haskell.org/package/random-1.3.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/random-1.3.0/src/LICENSE) | Pseudo-random number generation | `QuickCheck` |
 | `reflection` | [`2.1.9`](http://hackage.haskell.org/package/reflection-2.1.9) | [`BSD-3-Clause`](http://hackage.haskell.org/package/reflection-2.1.9/src/LICENSE) | Reifies arbitrary terms into types that can be reflected back into terms | `lens` |
 | `semigroupoids` | [`6.0.1`](http://hackage.haskell.org/package/semigroupoids-6.0.1) | [`BSD-2-Clause`](http://hackage.haskell.org/package/semigroupoids-6.0.1/src/LICENSE) | Semigroupoids: Category sans id | `adjunctions`, `either`, `free`, `kan-extensions`, `lens` |
 | `semigroups` | [`0.20`](http://hackage.haskell.org/package/semigroups-0.20) | [`BSD-3-Clause`](http://hackage.haskell.org/package/semigroups-0.20/src/LICENSE) | Anything that associates | `adjunctions` |
@@ -63,7 +63,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | **`text`** | [`2.1.1`](http://hackage.haskell.org/package/text-2.1.1) | [`BSD-2-Clause`](http://hackage.haskell.org/package/text-2.1.1/src/LICENSE) | An efficient packed Unicode text type. | `hashable`, `lens`, `strict` |
 | `th-abstraction` | [`0.7.1.0`](http://hackage.haskell.org/package/th-abstraction-0.7.1.0) | [`ISC`](http://hackage.haskell.org/package/th-abstraction-0.7.1.0/src/LICENSE) | Nicer interface for reified information about data types | `bifunctors`, `free`, `invariant`, `lens`, `yaya` |
 | `these` | [`1.2.1`](http://hackage.haskell.org/package/these-1.2.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/these-1.2.1/src/LICENSE) | An either-or-both data type. | `lens`, `strict` |
-| **`transformers`** | [`0.6.1.1`](http://hackage.haskell.org/package/transformers-0.6.1.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/transformers-0.6.1.1/src/LICENSE) | Concrete functor and monad transformers | `QuickCheck`, `StateVar`, `adjunctions`, `bifunctors`, `comonad`, `contravariant`, `distributive`, `exceptions`, `free`, `indexed-traversable`, `invariant`, `kan-extensions`, `lens`, `mtl`, `primitive`, `profunctors`, `semigroupoids`, `strict`, `tagged`, `transformers-base`, `transformers-compat`, `yaya` |
+| **`transformers`** | [`0.6.1.1`](http://hackage.haskell.org/package/transformers-0.6.1.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/transformers-0.6.1.1/src/LICENSE) | Concrete functor and monad transformers | `QuickCheck`, `StateVar`, `adjunctions`, `bifunctors`, `comonad`, `contravariant`, `distributive`, `exceptions`, `free`, `indexed-traversable`, `invariant`, `kan-extensions`, `lens`, `mtl`, `primitive`, `profunctors`, `random`, `semigroupoids`, `strict`, `tagged`, `transformers-base`, `transformers-compat`, `yaya` |
 | `transformers-base` | [`0.4.6`](http://hackage.haskell.org/package/transformers-base-0.4.6) | [`BSD-3-Clause`](http://hackage.haskell.org/package/transformers-base-0.4.6/src/LICENSE) | Lift computations from the bottom of a transformer stack | `free` |
 | `transformers-compat` | [`0.7.2`](http://hackage.haskell.org/package/transformers-compat-0.7.2) | [`BSD-3-Clause`](http://hackage.haskell.org/package/transformers-compat-0.7.2/src/LICENSE) | A small compatibility shim for the transformers library | `adjunctions`, `comonad`, `invariant`, `lens`, `semigroupoids`, `transformers-base` |
 | `unordered-containers` | [`0.2.20`](http://hackage.haskell.org/package/unordered-containers-0.2.20) | [`BSD-3-Clause`](http://hackage.haskell.org/package/unordered-containers-0.2.20/src/LICENSE) | Efficient hashing-based container types | `indexed-traversable-instances`, `invariant`, `lens`, `semigroupoids` |

@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name: yaya
-version: 0.6.2.2
+version: 0.6.2.3
 synopsis: Total recursion schemes.
 description: Recursion schemes allow you to separate recursion from your
              business logic – making your own operations simpler, more modular,
@@ -200,7 +200,7 @@ test-suite doctests
   hs-source-dirs: tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2},
+    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
     yaya,
   if impl(ghc >= 8.10.1)
     ghc-options:

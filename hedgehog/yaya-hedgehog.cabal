@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name: yaya-hedgehog
-version: 0.3.0.4
+version: 0.3.0.5
 synopsis: Hedgehog testing support for the Yaya recursion scheme library.
 description: If you use Yaya in your own code and have tests written
              using Hedgehog, then this library will help you with
@@ -180,7 +180,7 @@ test-suite doctests
   hs-source-dirs: tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2},
+    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
     yaya-hedgehog,
   if impl(ghc >= 8.10.1)
     ghc-options:
