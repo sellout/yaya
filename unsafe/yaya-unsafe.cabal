@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name: yaya-unsafe
-version: 0.4.1.3
+version: 0.4.1.4
 synopsis: Non-total extensions to the Yaya recursion scheme library.
 description: Yaya is designed as a _total_ library. However, it is often
              expedient to use partial operations in some cases, and this package
@@ -188,7 +188,7 @@ test-suite doctests
   hs-source-dirs: tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2},
+    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
     yaya-unsafe,
   if impl(ghc >= 8.10.1)
     ghc-options:

@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name: yaya-quickcheck
-version: 0.2.0.2
+version: 0.2.0.3
 synopsis: QuickCheck testing support for the Yaya recursion scheme library.
 description: If you use Yaya in your own code and have tests written using
              QuickCheck, then this library will help you with generating trees,
@@ -166,7 +166,7 @@ library
   hs-source-dirs:
     src
   build-depends:
-    QuickCheck ^>= {2.10, 2.13.2, 2.14.2},
+    QuickCheck ^>= {2.10, 2.13.2, 2.14.2, 2.15.0},
     yaya ^>= {0.5.1, 0.6.0},
   exposed-modules:
     Yaya.QuickCheck.Fold
@@ -177,7 +177,7 @@ test-suite doctests
   hs-source-dirs: tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2},
+    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
     yaya-quickcheck,
   if impl(ghc >= 8.10.1)
     ghc-options:

@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name: yaya-containers
-version: 0.1.2.1
+version: 0.1.2.2
 synopsis: Pattern functors and instances for types in the containers package.
 author: Greg Pfeil <greg@technomadic.org>
 maintainer: Greg Pfeil <greg@technomadic.org>
@@ -176,7 +176,7 @@ test-suite doctests
   hs-source-dirs: tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2},
+    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
     yaya-containers,
   if impl(ghc >= 8.10.1)
     ghc-options:
