@@ -47,7 +47,7 @@ import safe "base" Control.Category (id, (.))
 import safe "base" Control.Monad ((<=<))
 import safe "base" Control.Monad.Fail (fail)
 import safe "base" Data.Bifunctor (bimap)
-import safe "base" Data.Bool (Bool, otherwise, (&&))
+import safe "base" Data.Bool (Bool (True), otherwise, (&&))
 import safe "base" Data.Either (Either (Left), either)
 import safe "base" Data.Eq ((==))
 import safe "base" Data.Foldable (Foldable, foldl, length, null)
@@ -87,6 +87,7 @@ import safe "this" Yaya.Fold
     steppableReadPrec,
     steppableReadPrec',
   )
+import safe "this" Yaya.Strict (IsNonStrict, IsStrict, Strict)
 
 #if MIN_VERSION_template_haskell(2, 21, 0)
 type TyVarBndrUnit = TH.TyVarBndrUnit
@@ -336,16 +337,18 @@ makePrimForDI' rules safeVariant tyName vars cons = do
 
   (makeDataDefinition safeVariant tyNameF varsF consF :)
     <$> [d|
+      type instance Strict $(pure $ conAppsT tyNameF vars') = 'True
+
       instance Projectable (->) $(pure s) $(pure $ conAppsT tyNameF vars') where
         project = $(TH.LamCaseE <$> mkMorphism id (patternCon rules) cons')
 
       instance Steppable (->) $(pure s) $(pure $ conAppsT tyNameF vars') where
         embed = $(TH.LamCaseE <$> mkMorphism (patternCon rules) id cons')
 
-      instance Recursive (->) $(pure s) $(pure $ conAppsT tyNameF vars') where
+      instance (IsStrict $(pure s)) => Recursive (->) $(pure s) $(pure $ conAppsT tyNameF vars') where
         cata φ = φ . fmap (cata φ) . project
 
-      instance Corecursive (->) $(pure s) $(pure $ conAppsT tyNameF vars') where
+      instance (IsNonStrict $(pure s)) => Corecursive (->) $(pure s) $(pure $ conAppsT tyNameF vars') where
         ana ψ = embed . fmap (ana ψ) . ψ
       |]
 

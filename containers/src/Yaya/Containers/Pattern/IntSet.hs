@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.IntSet
@@ -44,15 +45,20 @@ import "yaya" Yaya.Fold
     project,
   )
 import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
+import "yaya" Yaya.Strict (Strict)
 import "base" Prelude ((+))
 #if MIN_VERSION_containers(0, 8, 0)
 import qualified "containers" Data.IntSet.Internal.IntTreeCommons as IntSet
   ( Prefix (Prefix),
   )
+#endif
+
+type instance Strict IntSet.IntSet = 'True
 
 data IntSetF r
   = NilF
   | TipF Int IntSet.BitMap
+#if MIN_VERSION_containers(0, 8, 0)
   | BinF IntSet.Prefix r r
   deriving stock
     ( Eq,
@@ -63,9 +69,6 @@ data IntSetF r
       Traversable
     )
 #else
-data IntSetF r
-  = NilF
-  | TipF Int IntSet.BitMap
   | BinF IntSet.Prefix IntSet.Mask r r
   deriving stock
     ( Eq,
@@ -76,6 +79,10 @@ data IntSetF r
       Traversable
     )
 #endif
+
+type instance Strict IntSetF = 'True
+
+type instance Strict (IntSetF _r) = 'True
 
 instance Projectable (->) IntSet.IntSet IntSetF where
   project = \case

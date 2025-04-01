@@ -2,6 +2,8 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
+-- Needed by `PartialTypeError` constraints in GHC 9.4.
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-methods:sconcat #-}
 
@@ -94,7 +96,7 @@ import safe "this" Yaya.Fold.Common
     truncate',
     unarySequence,
   )
-import safe "this" Yaya.Fold.Native (Fix)
+import safe "this" Yaya.Fold.Native (Cofix, Fix)
 import safe "this" Yaya.Pattern
   ( Either (Left),
     Maybe (Just, Nothing),
@@ -102,6 +104,7 @@ import safe "this" Yaya.Pattern
     XNor (Both, Neither),
     maybe,
   )
+import safe "this" Yaya.Strict (PartialTypeError, unsatisfiable)
 import safe "base" Prelude (Integral, fromIntegral)
 
 -- See comment on @{-# LANGUAGE Safe #-}@ above.
@@ -309,7 +312,27 @@ toList :: (Projectable (->) t (XNor a)) => t -> [a]
 toList = ana project
 
 -- | This instance is safe, since both structures are lazy.
+instance IsList (Cofix (XNor a)) where
+  type Item (Cofix (XNor a)) = a
+  fromList = fromList
+  fromListN = fromListN
+  toList = toList
+
+instance (PartialTypeError Fix) => IsList (Fix (XNor a)) where
+  type Item (Fix (XNor a)) = a
+  fromList = unsatisfiable
+  fromListN = fromListN
+  toList = toList
+
+instance (PartialTypeError Mu) => IsList (Mu (XNor a)) where
+  type Item (Mu (XNor a)) = a
+  fromList = unsatisfiable
+  fromListN = fromListN
+  toList = toList
+
+-- | This instance is safe, since both structures are lazy.
 instance IsList (Nu (XNor a)) where
   type Item (Nu (XNor a)) = a
   fromList = fromList
+  fromListN = fromListN
   toList = toList

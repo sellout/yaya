@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE Unsafe #-}
 
 module Yaya.Hedgehog.Expr
@@ -15,6 +16,7 @@ module Yaya.Hedgehog.Expr
 where
 
 import safe "base" Control.Applicative ((<*>))
+import safe "base" Data.Bool (Bool (True))
 import safe "base" Data.Eq (Eq)
 import safe "base" Data.Foldable (Foldable)
 import safe "base" Data.Functor (Functor, (<$>))
@@ -28,6 +30,7 @@ import safe qualified "hedgehog" Hedgehog.Gen as Gen
 import safe qualified "hedgehog" Hedgehog.Range as Range
 import safe "yaya" Yaya.Fold (Mu, Nu, Steppable)
 import safe "yaya" Yaya.Fold.Native (Cofix, Fix)
+import safe "yaya" Yaya.Strict (Strict)
 import safe "this" Yaya.Hedgehog.Fold (embeddableOfHeight)
 
 data Expr a
@@ -35,6 +38,10 @@ data Expr a
   | Add a a
   | Mult a a
   deriving stock (Eq, Show, Functor, Foldable, Traversable)
+
+type instance Strict Expr = 'True
+
+type instance Strict (Expr _a) = 'True
 
 deriveEq1 ''Expr
 deriveShow1 ''Expr
