@@ -6,9 +6,8 @@
 --   manner.
 module Yaya.Fold.Native
   ( module Yaya.Fold.Native.Internal,
-    Fix (Fix),
+    Fix,
     distCofreeT,
-    unFix,
   )
 where
 
@@ -45,7 +44,7 @@ import "this" Yaya.Fold
     steppableReadPrec,
   )
 import "this" Yaya.Fold.Common (diagonal)
-import "this" Yaya.Fold.Native.Internal (Cofix, unCofix)
+import "this" Yaya.Fold.Native.Internal (Cofix)
 import "this" Yaya.Pattern
   ( AndMaybe (Indeed, Only),
     Maybe,
@@ -55,10 +54,10 @@ import "this" Yaya.Pattern
 
 -- | A fixed-point constructor that uses Haskell's built-in recursion. This is
 --   strict/recursive.
-newtype Fix f = Fix {unFix :: f (Fix f)}
+newtype Fix f = Fix (f (Fix f))
 
 instance Projectable (->) (Fix f) f where
-  project = unFix
+  project (Fix fFix) = fFix
 
 instance Steppable (->) (Fix f) f where
   embed = Fix
