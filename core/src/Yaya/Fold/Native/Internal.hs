@@ -8,7 +8,7 @@
 -- | This module only exists to restrict the scope of @NoStrictData@. Everything
 --    is re-exported via "Yaya.Fold".
 module Yaya.Fold.Native.Internal
-  ( Cofix (Cofix, unCofix),
+  ( Cofix,
   )
 where
 
@@ -28,12 +28,12 @@ import "this" Yaya.Fold
 
 -- | A fixed-point constructor that uses Haskell's built-in recursion. This is
 --   lazy/corecursive.
-data Cofix f = Cofix {unCofix :: f (Cofix f)}
+data Cofix f = Cofix (f (Cofix f))
 
 {-# HLINT ignore Cofix "Use newtype instead of data" #-}
 
 instance Projectable (->) (Cofix f) f where
-  project = unCofix
+  project (Cofix fCofix) = fCofix
 
 instance Steppable (->) (Cofix f) f where
   embed = Cofix
