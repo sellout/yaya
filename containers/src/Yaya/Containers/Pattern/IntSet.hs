@@ -1,4 +1,5 @@
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.IntSet
@@ -41,7 +42,10 @@ import "yaya" Yaya.Fold
     embed,
     project,
   )
+import "yaya" Yaya.Strict (Strict)
 import "base" Prelude ((+))
+
+type instance Strict IntSet.IntSet = 'True
 
 data IntSetF r
   = NilF
@@ -59,6 +63,10 @@ data IntSetF r
       Generic1,
       Traversable
     )
+
+type instance Strict IntSetF = 'True
+
+type instance Strict (IntSetF _r) = 'True
 
 instance Projectable (->) IntSet.IntSet IntSetF where
   project IntSet.Nil = NilF

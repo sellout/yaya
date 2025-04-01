@@ -1,4 +1,5 @@
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.IntMap
@@ -49,11 +50,19 @@ import "yaya" Yaya.Fold
     embed,
     project,
   )
+import "yaya" Yaya.Strict (Strict)
 import "base" Prelude ((+))
+
+type instance Strict IntMap.IntMap = 'False
+
+-- |
+--
+--  __FIXME__: This is strict only if `a` is not non-strict.
+type instance Strict (IntMap.IntMap _a) = 'True
 
 data IntMapF a r
   = NilF
-  | TipF IntMap.Key a
+  | TipF IntMap.Key ~a
   | BinF IntMap.Prefix IntMap.Mask r r
   deriving stock
     ( Eq,
@@ -67,6 +76,18 @@ data IntMapF a r
       Generic1,
       Traversable
     )
+
+type instance Strict IntMapF = 'False
+
+-- |
+--
+--  __FIXME__: This is strict only if `a` is not non-strict.
+type instance Strict (IntMapF _a) = 'True
+
+-- |
+--
+--  __FIXME__: This is strict only if `a` is not non-strict.
+type instance Strict (IntMapF _a _r) = 'True
 
 instance Projectable (->) (IntMap.IntMap a) (IntMapF a) where
   project IntMap.Nil = NilF

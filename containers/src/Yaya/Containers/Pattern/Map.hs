@@ -1,4 +1,5 @@
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.Map
@@ -73,7 +74,17 @@ import "yaya" Yaya.Fold
     embed,
     project,
   )
+import "yaya" Yaya.Strict (Strict)
 import "base" Prelude ((+))
+
+type instance Strict Map.Map = 'False
+
+type instance Strict (Map.Map _k) = 'False
+
+-- |
+--
+--  __FIXME__: This is strict only if `v` is not non-strict.
+type instance Strict (Map.Map _k _v) = 'True
 
 data MapF k v r = TipF | BinF Map.Size k ~v r r
   deriving stock
@@ -88,6 +99,20 @@ data MapF k v r = TipF | BinF Map.Size k ~v r r
       Generic1,
       Traversable
     )
+
+type instance Strict MapF = 'False
+
+type instance Strict (MapF _k) = 'False
+
+-- |
+--
+--  __FIXME__: This is strict only if `v` is not non-strict.
+type instance Strict (MapF _k _v) = 'True
+
+-- |
+--
+--  __FIXME__: This is strict only if `v` is not non-strict.
+type instance Strict (MapF _k _v _r) = 'True
 
 instance Projectable (->) (Map.Map k v) (MapF k v) where
   project Map.Tip = TipF

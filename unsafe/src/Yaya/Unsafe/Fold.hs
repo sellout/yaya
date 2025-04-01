@@ -1,15 +1,20 @@
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeFamilies #-}
+-- For @type instance Strict (Unsafe t)@
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Definitions and instances that use direct recursion, which (because of
 --   laziness) can lead to non-termination.
 module Yaya.Unsafe.Fold
-  ( anaM,
+  ( Unsafe (..),
+    anaM,
     corecursivePrism,
     ganaM,
     ghylo,
     ghyloM,
     hylo,
     hyloM,
+    seqFreeT,
     stream',
     streamAna,
     streamGApo,
@@ -21,11 +26,20 @@ where
 import "base" Control.Applicative (pure)
 import "base" Control.Category ((.))
 import "base" Control.Monad (Monad, (<=<))
+import "base" Data.Eq (Eq, (==))
+import "base" Data.Foldable (Foldable)
 import "base" Data.Function (flip, ($))
-import "base" Data.Functor (Functor, fmap)
+import "base" Data.Functor (Functor, fmap, (<$>))
+import "base" Data.Functor.Classes (Eq1, Ord1, Show1)
 import "base" Data.Functor.Compose (Compose (Compose), getCompose)
+import "base" Data.List.NonEmpty (NonEmpty)
+import "base" Data.Ord (Ord, compare)
 import "base" Data.Traversable (Traversable, sequenceA)
+import "base" Data.Type.Bool (Not)
+import "base" GHC.Generics (Generic, Generic1)
+import "base" Text.Show (Show, showsPrec)
 import "comonad" Control.Comonad (Comonad, extract)
+import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free)
 import "lens" Control.Lens (Prism', matching, prism, review)
 import "yaya" Yaya.Fold
   ( Algebra,
@@ -39,6 +53,8 @@ import "yaya" Yaya.Fold
     GAlgebraM,
     GCoalgebra,
     GCoalgebraM,
+    Mu,
+    Nu,
     Projectable,
     Recursive,
     Steppable,
@@ -50,8 +66,13 @@ import "yaya" Yaya.Fold
     lowerCoalgebra,
     lowerCoalgebraM,
     project,
+    recursiveCompare,
+    recursiveEq,
+    recursiveShowsPrec,
   )
-import "yaya" Yaya.Pattern (Maybe, Pair, maybe, uncurry)
+import "yaya" Yaya.Fold.Native (Cofix, Fix)
+import "yaya" Yaya.Pattern (AndMaybe, Maybe, Pair, XNor, maybe, uncurry)
+import "yaya" Yaya.Strict (IsNonStrict, IsStrict, Strict)
 
 -- | Instances leak transitively, so while "Yaya.Unsafe.Fold.Instances" exists,
 --   it should only be used when it is unavoidable. If you are explicitly
@@ -78,6 +99,19 @@ unsafeAna = hylo embed
 --   the memory or overflow the stack.
 unsafeCata :: (Projectable (->) t f, Functor f) => Algebra (->) f a -> t -> a
 unsafeCata = flip hylo project
+
+-- |
+--
+--  __TODO__: If we can generalize this to an arbitrary @`Recursive` (->) t
+--           (`FreeF` h a)@ then it would no longer be unsafe.
+seqFreeT ::
+  (Functor f, Functor h) =>
+  DistributiveLaw (->) h f ->
+  DistributiveLaw (->) (Free h) f
+seqFreeT k =
+  unsafeCata \case
+    Pure a -> free . Pure <$> a
+    Free ft -> free . Free <$> k ft
 
 -- | This can’t be implemented in a total fashion. There is a /similar/ approach
 --   that can be total – with @ψ :: `CoalgebraM` (->) m f a@, @`ana` (`Compose`
@@ -272,3 +306,137 @@ corecursivePrism ::
   CoalgebraPrism f a ->
   Prism' a t
 corecursivePrism alg = prism (cata $ review alg) (anaM $ matching alg)
+
+-- | This is a trivial wrapper that exposes partial instances on recursive types.
+newtype Unsafe t = Unsafe t
+  deriving stock (Foldable, Functor, Generic, Generic1, Traversable)
+
+-- | The unsafe variant has the opposite strictness. Once we support “simple”
+--   types, this should probobly be `Nothing`.
+type instance Strict (Unsafe t) = Not (Strict t)
+
+unsafeProject :: (Projectable (->) t f, Functor f) => Unsafe t -> f (Unsafe t)
+unsafeProject (Unsafe t) = Unsafe <$> project t
+
+unsafeEmbed :: (Steppable (->) t f, Functor f) => f (Unsafe t) -> Unsafe t
+unsafeEmbed = Unsafe . embed . fmap (\(Unsafe t) -> t)
+
+-- instance (Projectable (->) t f) => Projectable (->) (Unsafe t) f where
+--   project = unsafeProject
+
+-- instance (Steppable (->) t f) => Steppable (->) (Unsafe t) f where
+--   embed = unsafeEmbed
+
+instance (Functor f) => Projectable (->) (Unsafe (Fix f)) f where
+  project = unsafeProject
+
+instance (Functor f) => Steppable (->) (Unsafe (Fix f)) f where
+  embed = unsafeEmbed
+
+instance
+  (IsNonStrict (Unsafe (Fix f)), Functor f) =>
+  Corecursive (->) (Unsafe (Fix f)) f
+  where
+  ana = unsafeAna
+
+instance (Functor f) => Projectable (->) (Unsafe (Cofix f)) f where
+  project = unsafeProject
+
+instance (Functor f) => Steppable (->) (Unsafe (Cofix f)) f where
+  embed = unsafeEmbed
+
+instance
+  (IsStrict f, IsStrict (Unsafe (Cofix f)), Functor f) =>
+  Recursive (->) (Unsafe (Cofix f)) f
+  where
+  cata = unsafeCata
+
+instance
+  (Recursive (->) (Unsafe (Cofix f)) f, Functor f, Foldable f, Eq1 f) =>
+  Eq (Unsafe (Cofix f))
+  where
+  (==) = recursiveEq
+
+instance
+  (Recursive (->) (Unsafe (Cofix f)) f, Functor f, Foldable f, Ord1 f) =>
+  Ord (Unsafe (Cofix f))
+  where
+  compare = recursiveCompare
+
+instance
+  (Recursive (->) (Unsafe (Cofix f)) f, Functor f, Show1 f) =>
+  Show (Unsafe (Cofix f))
+  where
+  showsPrec = recursiveShowsPrec
+
+instance
+  (Projectable (->) (Mu f) f, Functor f) =>
+  Projectable (->) (Unsafe (Mu f)) f
+  where
+  project = unsafeProject
+
+instance
+  (Steppable (->) (Mu f) f, Functor f) =>
+  Steppable (->) (Unsafe (Mu f)) f
+  where
+  embed = unsafeEmbed
+
+instance
+  (Steppable (->) (Mu f) f, IsNonStrict (Unsafe (Mu f)), Functor f) =>
+  Corecursive (->) (Unsafe (Mu f)) f
+  where
+  ana = unsafeAna
+
+instance (Functor f) => Projectable (->) (Unsafe (Nu f)) f where
+  project = unsafeProject
+
+instance (Functor f) => Steppable (->) (Unsafe (Nu f)) f where
+  embed = unsafeEmbed
+
+instance
+  (IsStrict f, IsStrict (Unsafe (Nu f)), Functor f) =>
+  Recursive (->) (Unsafe (Nu f)) f
+  where
+  cata = unsafeCata
+
+instance
+  (Recursive (->) (Nu f) f, Functor f, Foldable f, Eq1 f) =>
+  Eq (Unsafe (Nu f))
+  where
+  (==) = recursiveEq
+
+instance
+  (Recursive (->) (Nu f) f, Functor f, Foldable f, Ord1 f) =>
+  Ord (Unsafe (Nu f))
+  where
+  compare = recursiveCompare
+
+instance
+  (Recursive (->) (Nu f) f, Functor f, Show1 f) =>
+  Show (Unsafe (Nu f))
+  where
+  showsPrec = recursiveShowsPrec
+
+instance Projectable (->) (Unsafe [a]) (XNor a) where
+  project = unsafeProject
+
+instance Steppable (->) (Unsafe [a]) (XNor a) where
+  embed = unsafeEmbed
+
+instance Recursive (->) (Unsafe [a]) (XNor a) where
+  cata = unsafeCata
+
+instance Projectable (->) (Unsafe (NonEmpty a)) (AndMaybe a) where
+  project = unsafeProject
+
+instance Steppable (->) (Unsafe (NonEmpty a)) (AndMaybe a) where
+  embed = unsafeEmbed
+
+instance Recursive (->) (Unsafe (NonEmpty a)) (AndMaybe a) where
+  cata = unsafeCata
+
+-- instance (Functor f) => Recursive (->) (Unsafe (Cofree f a)) (EnvT a f) where
+--   cata = unsafeCata
+
+-- instance (Functor f) => Recursive (->) (Unsafe (Free f a)) (FreeF f a) where
+--   cata = unsafeCata

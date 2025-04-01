@@ -59,8 +59,6 @@ import "yaya" Yaya.Pattern
     XNor (Both, Neither),
   )
 import qualified "this" Yaya.Unsafe.Fold as Unsafe
--- __FIXME__: extremely unsafe
-import qualified "this" Yaya.Unsafe.Fold.Instances as Unsafe
 
 chrono ::
   (Functor f) =>

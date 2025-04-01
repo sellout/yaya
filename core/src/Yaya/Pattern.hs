@@ -1,4 +1,5 @@
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Common pattern functors (and instances for them).
@@ -94,6 +95,7 @@ import "strict" Data.Strict.Tuple
     zip,
     (:!:),
   )
+import "this" Yaya.Strict (Strict)
 import "base" Prelude ((+))
 
 -- | Isomorphic to @'Maybe` (a, b)@, it’s also the pattern functor for lists.
@@ -110,6 +112,12 @@ data XNor a b = Neither | Both ~a b
       Generic1,
       Traversable
     )
+
+type instance Strict XNor = 'False
+
+type instance Strict (XNor _a) = 'True
+
+type instance Strict (XNor _a _b) = 'True
 
 -- | Eliminator for `XNor`, akin to `Data.Either.either` or `Data.Maybe.maybe`.
 --
@@ -187,6 +195,12 @@ data AndMaybe a b = Only ~a | Indeed ~a b
       Generic1,
       Traversable
     )
+
+type instance Strict AndMaybe = 'False
+
+type instance Strict (AndMaybe _a) = 'True
+
+type instance Strict (AndMaybe _a _b) = 'True
 
 -- | Eliminator for `AndMaybe`, akin to `Data.Either.either` or
 --  `Data.Maybe.maybe`.
