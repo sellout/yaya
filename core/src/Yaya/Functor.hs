@@ -38,9 +38,9 @@ class DFunctor (d :: (Type -> Type) -> Type) where
 
 -- | This isn’t a Functor instance because of the position of the @a@, but you
 --   can use it like:
---   > newtype List a = List (Mu (XNor a))
---   > instance Functor List where
---   >   fmap f (List mu) = List (firstMap f mu)
+-- > newtype List a = List (Mu (XNor a))
+-- > instance Functor List where
+-- >   fmap f (List mu) = List (firstMap f mu)
 firstMap :: (DFunctor d, Bifunctor f) => (a -> b) -> d (f a) -> d (f b)
 firstMap f = dmap (first f)
 

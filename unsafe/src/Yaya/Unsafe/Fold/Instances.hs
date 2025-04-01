@@ -58,68 +58,8 @@ import "base" GHC.IsList (IsList (Item, fromList, fromListN, toList))
 import "base" GHC.Exts (IsList (Item, fromList, fromListN, toList))
 #endif
 
-instance (Functor f) => Corecursive (->) (Fix f) f where
-  ana = Unsafe.hylo embed
-
-instance (Functor f) => Recursive (->) (Cofix f) f where
-  cata = flip Unsafe.hylo project
-
-instance (Functor f, Foldable f, Eq1 f) => Eq (Cofix f) where
-  (==) = recursiveEq
-
--- | @since 0.4.1.0
-instance (Functor f, Foldable f, Ord1 f) => Ord (Cofix f) where
-  compare = recursiveCompare
-
-instance (Functor f, Show1 f) => Show (Cofix f) where
-  showsPrec = recursiveShowsPrec
-
-instance (Functor f) => Corecursive (->) (Mu f) f where
-  ana = Unsafe.unsafeAna
-
-instance (Functor f) => Recursive (->) (Nu f) f where
-  cata = Unsafe.unsafeCata
-
-instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
-  (==) = recursiveEq
-
--- | @since 0.4.1.0
-instance (Functor f, Foldable f, Ord1 f) => Ord (Nu f) where
-  compare = recursiveCompare
-
-instance (Functor f, Show1 f) => Show (Nu f) where
-  showsPrec = recursiveShowsPrec
-
-instance Recursive (->) [a] (XNor a) where
-  cata = Unsafe.unsafeCata
-
-instance Recursive (->) (NonEmpty a) (AndMaybe a) where
-  cata = Unsafe.unsafeCata
-
 instance (Functor f) => Recursive (->) (Cofree f a) (EnvT a f) where
   cata = Unsafe.unsafeCata
 
 instance (Functor f) => Recursive (->) (Free f a) (FreeF f a) where
   cata = Unsafe.unsafeCata
-
--- | `fromList` in this instance is unsafe, but `fromListN` is safe, because we
---   have a finite length to fold.
---
---   This means that most uses of @OverloadedLists@ should be fine, but not the
---   range (`..`) syntax.
-instance IsList (Fix (XNor a)) where
-  type Item (Fix (XNor a)) = a
-  fromList = unsafeFromList
-  fromListN = fromListN
-  toList = toList
-
--- | `fromList` in this instance is unsafe, but `fromListN` is safe, because we
---   have a finite length to fold.
---
---   This means that most uses of @OverloadedLists@ should be fine, but not the
---   range (`..`) syntax.
-instance IsList (Mu (XNor a)) where
-  type Item (Mu (XNor a)) = a
-  fromList = unsafeFromList
-  fromListN = fromListN
-  toList = toList

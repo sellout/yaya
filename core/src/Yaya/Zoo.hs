@@ -43,8 +43,6 @@ import "base" Data.Function (flip, ($))
 import "base" Data.Functor (Functor, fmap)
 import "base" Data.Traversable (Traversable, sequenceA)
 import "comonad" Control.Comonad (Comonad, duplicate, extract)
-import "comonad" Control.Comonad.Env (EnvT (EnvT))
-import "free" Control.Monad.Trans.Free (FreeF)
 import "profunctors" Data.Profunctor (Profunctor, lmap)
 import "this" Yaya.Fold
   ( Algebra,
@@ -76,6 +74,8 @@ import "this" Yaya.Fold.Common (diagonal, fromEither)
 import "this" Yaya.Pattern
   ( AndMaybe,
     Either (Left, Right),
+    EnvT (EnvT),
+    FreeF,
     Maybe,
     Pair ((:!:)),
     XNor,

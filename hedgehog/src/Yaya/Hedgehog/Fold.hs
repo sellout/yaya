@@ -1,43 +1,29 @@
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE Unsafe #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Yaya.Hedgehog.Fold
-  ( corecursiveIsUnsafe,
-    embeddableOfHeight,
+  ( embeddableOfHeight,
     genAlgebra,
     genCorecursive,
     law_anaRefl,
     law_cataCancel,
     law_cataCompose,
     law_cataRefl,
-    recursiveIsUnsafe,
   )
 where
 
 import safe "base" Control.Category ((.))
 import safe "base" Data.Bifunctor (bimap, first)
 import safe "base" Data.Eq (Eq)
-import safe "base" Data.Function (($))
 import safe "base" Data.Functor (Functor, fmap)
 import safe "base" Data.Proxy (Proxy (Proxy))
-import safe qualified "base" Data.Tuple as Tuple
 import safe "base" Data.Void (Void, absurd)
 import safe "base" Numeric.Natural (Natural)
 import safe "base" Text.Show (Show)
-import "hedgehog" Hedgehog
-  ( Gen,
-    MonadTest,
-    Property,
-    Size,
-    property,
-    withTests,
-    (===),
-  )
+import "hedgehog" Hedgehog (Gen, MonadTest, Size, (===))
 import "yaya" Yaya.Fold
   ( Algebra,
     Corecursive,
-    Projectable,
     Recursive,
     Steppable,
     ana,
@@ -47,8 +33,7 @@ import "yaya" Yaya.Fold
   )
 import safe "yaya" Yaya.Fold.Common (diagonal)
 import safe "yaya" Yaya.Fold.Native ()
-import safe "yaya" Yaya.Pattern (Maybe, Pair ((:!:)), fst, maybe, uncurry)
-import "this" Yaya.Hedgehog (evalNonterminating)
+import safe "yaya" Yaya.Pattern (Maybe, maybe, uncurry)
 import safe "base" Prelude (fromIntegral)
 
 {-# HLINT ignore "Use camelCase" #-}
@@ -157,49 +142,3 @@ genAlgebra leaf branch =
 -- | Creates a generator for potentially-infinite values.
 genCorecursive :: (Corecursive (->) t f) => (a -> f a) -> Gen a -> Gen t
 genCorecursive = fmap . ana
-
--- | Show that using a `Recursive` structure corecursively can lead to
---   non-termination.
-corecursiveIsUnsafe ::
-  forall t a.
-  ( Corecursive (->) (t (Pair a)) (Pair a),
-    Projectable (->) (t (Pair a)) (Pair a),
-    Corecursive (->) (t ((,) a)) ((,) a),
-    Projectable (->) (t ((,) a)) ((,) a),
-    Eq a,
-    Show a
-  ) =>
-  Proxy t ->
-  a ->
-  Property
-corecursiveIsUnsafe Proxy x =
-  withTests 1 . property $ do
-    -- a properly-finite data structure will diverge on infinite unfolding
-    evalNonterminating . fst . project @_ @(t (Pair a)) $ ana (\y -> y :!: y) x
-    -- but using a lazy functor loses this property
-    Tuple.fst (project @_ @(t ((,) a)) $ ana (\y -> (y, y)) x) === x
-
--- | Show that using a `Corecursive` structure recursively can lead to
---   non-termination.
-recursiveIsUnsafe ::
-  forall t a.
-  ( Corecursive (->) (t (Pair a)) (Pair a),
-    Projectable (->) (t (Pair a)) (Pair a),
-    Recursive (->) (t (Pair a)) (Pair a),
-    Corecursive (->) (t ((,) a)) ((,) a),
-    Recursive (->) (t ((,) a)) ((,) a),
-    Eq a,
-    Show a
-  ) =>
-  Proxy t ->
-  a ->
-  Property
-recursiveIsUnsafe Proxy x =
-  withTests 1 . property $ do
-    -- We can easily get the first element of a corecursive infinite sequence
-    fst (project $ ana @_ @(t (Pair a)) (\y -> y :!: y) x) === x
-    -- Of course, you can’t fold it.
-    evalNonterminating . cata fst $ ana @_ @(t (Pair a)) (\y -> y :!: y) x
-    -- But again, if you use a lazy functor, you lose that property, and you can
-    -- short-circuit.
-    cata Tuple.fst (ana @_ @(t ((,) a)) (\y -> (y, y)) x) === x

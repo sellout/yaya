@@ -1,11 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE Unsafe #-}
 
 -- | The point of this module is that it should compile _without_ importing any
 --   other Yaya modules.
 module Test.Retrofit (tests) where
 
-import safe "base" Data.Bool (Bool)
+import safe "base" Data.Bool (Bool (True))
 import safe "base" Data.Eq (Eq, (==))
 import safe "base" Data.Int (Int)
 import safe "base" Data.Ord (Ord, compare)
@@ -30,11 +32,14 @@ import safe "yaya" Yaya.Retrofit
     recursiveShowsPrec,
     steppableReadPrec,
   )
+import safe "yaya" Yaya.Strict (Strict)
 
 data DExpr
   = Lit Int
   | Add DExpr DExpr
   | Mult DExpr DExpr
+
+type instance Strict DExpr = 'True
 
 extractPatternFunctor defaultRules ''DExpr
 
