@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name: yaya-hedgehog
-version: 0.3.0.5
+version: 0.3.0.6
 synopsis: Hedgehog testing support for the Yaya recursion scheme library.
 description: If you use Yaya in your own code and have tests written
              using Hedgehog, then this library will help you with
