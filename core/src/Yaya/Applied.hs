@@ -1,4 +1,8 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-methods:sconcat #-}
 
 -- __NB__: base-4.17 moves `IsList` to its own module, which avoids the unsafety
@@ -9,10 +13,6 @@
 #else
 {-# LANGUAGE Trustworthy #-}
 #endif
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Applied
   ( Void,
@@ -54,35 +54,30 @@ module Yaya.Applied
   )
 where
 
-import safe "base" Control.Category (Category (id, (.)))
-import safe "base" Data.Foldable (Foldable (foldr))
+import safe "base" Control.Category (id, (.))
+import safe "base" Data.Foldable (Foldable, foldr)
 import safe "base" Data.Function (flip)
-import safe "base" Data.Functor (Functor (fmap))
-import safe "base" Data.Functor.Identity (Identity (runIdentity))
+import safe "base" Data.Functor (Functor, fmap)
+import safe "base" Data.Functor.Identity (Identity, runIdentity)
 import safe "base" Data.Int (Int)
-import safe "base" Data.Monoid (Monoid (mempty))
-import safe "base" Data.Ord (Ord (max))
+import safe "base" Data.Monoid (Monoid, mempty)
+import safe "base" Data.Ord (Ord, max)
 import safe "base" Data.Semigroup (Semigroup, stimes, stimesMonoid, (<>))
-
--- See comment on @{-# LANGUAGE Safe #-}@ above.
-#if MIN_VERSION_base(4, 17, 0)
-import "base" GHC.IsList (IsList)
-import qualified "base" GHC.IsList as IsList
-#else
-import "base" GHC.Exts (IsList)
-import qualified "base" GHC.Exts as IsList
-#endif
 import safe "base" Numeric.Natural (Natural)
 import safe "free" Control.Monad.Trans.Free (FreeF (Free, Pure))
 import safe "this" Yaya.Fold
   ( Algebra,
-    Corecursive (ana),
+    Corecursive,
     Mu,
     Nu,
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
+    cata,
     cata2,
+    embed,
+    project,
   )
 import safe "this" Yaya.Fold.Common
   ( diagonal,
@@ -108,6 +103,15 @@ import safe "this" Yaya.Pattern
   )
 import safe "base" Prelude (Integral, fromIntegral)
 
+-- See comment on @{-# LANGUAGE Safe #-}@ above.
+#if MIN_VERSION_base(4, 17, 0)
+import "base" GHC.IsList (IsList)
+import qualified "base" GHC.IsList as IsList
+#else
+import "base" GHC.Exts (IsList)
+import qualified "base" GHC.Exts as IsList
+#endif
+
 now :: (Steppable (->) t (Either a)) => a -> t
 now = embed . Left
 
@@ -117,7 +121,8 @@ runToEnd :: (Recursive (->) t (Either a)) => t -> a
 runToEnd = cata fromEither
 
 -- | Converts exceptional divergence to non-termination.
-fromMaybe :: (Steppable (->) t (Either a), Corecursive (->) t (Either a)) => Maybe a -> t
+fromMaybe ::
+  (Steppable (->) t (Either a), Corecursive (->) t (Either a)) => Maybe a -> t
 fromMaybe = maybe (ana (toRight . never) ()) now
 
 type Void = Mu Identity

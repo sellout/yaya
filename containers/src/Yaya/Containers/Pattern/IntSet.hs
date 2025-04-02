@@ -7,40 +7,43 @@ module Yaya.Containers.Pattern.IntSet
   )
 where
 
-import "base" Control.Applicative
-  ( Alternative ((<|>)),
-    Applicative ((<*>)),
-    (*>),
-  )
-import "base" Control.Category (Category ((.)))
+import "base" Control.Applicative ((*>), (<*>), (<|>))
+import "base" Control.Category ((.))
 import "base" Data.Bool (Bool (False, True), (&&))
-import "base" Data.Eq (Eq ((==)))
+import "base" Data.Eq (Eq, (==))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (fmap), (<$), (<$>))
+import "base" Data.Functor (Functor, fmap, (<$), (<$>))
 import "base" Data.Functor.Classes
-  ( Eq1 (liftEq),
-    Ord1 (liftCompare),
-    Read1 (liftReadPrec),
-    Show1 (liftShowsPrec),
+  ( Eq1,
+    Ord1,
+    Read1,
+    Show1,
+    liftCompare,
+    liftEq,
+    liftReadPrec,
+    liftShowsPrec,
   )
 import "base" Data.Int (Int)
-import "base" Data.Ord (Ord (compare, (<=)), Ordering (EQ, GT, LT))
+import "base" Data.Ord (Ord, Ordering (EQ, GT, LT), compare, (<=))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
 import qualified "base" Data.Tuple as Tuple
 import "base" GHC.Generics (Generic, Generic1)
-import "base" GHC.Read (Read (readPrec), expectP, parens, readListPrec)
+import "base" GHC.Read (Read, expectP, parens, readListPrec, readPrec)
 import "base" Text.ParserCombinators.ReadPrec (prec, step)
 import qualified "base" Text.Read.Lex as Lex
-import "base" Text.Show (Show (showsPrec), showList, showParen, showString)
+import "base" Text.Show (Show, showList, showParen, showString, showsPrec)
 import qualified "containers" Data.IntSet.Internal as IntSet
 import "yaya" Yaya.Fold
-  ( Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+  ( Projectable,
+    Recursive,
+    Steppable,
+    cata,
+    embed,
+    project,
   )
-import "base" Prelude (Num ((+)))
+import "base" Prelude ((+))
 #if MIN_VERSION_containers(0, 8, 0)
 import qualified "containers" Data.IntSet.Internal.IntTreeCommons as IntSet
   ( Prefix (Prefix),

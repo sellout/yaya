@@ -9,18 +9,13 @@ module Yaya.QuickCheck.Fold
 where
 
 import qualified "QuickCheck" Test.QuickCheck as QC
-import "base" Control.Applicative (Applicative (pure, (<*>)))
+import "base" Control.Applicative (pure, (<*>))
 import "base" Data.Foldable (Foldable)
 import qualified "base" Data.Foldable as Foldable
 import "base" Data.Function (flip)
 import "base" Data.Functor (Functor, (<$>))
-import "base" Data.Semigroup (Semigroup ((<>)))
-import "yaya" Yaya.Fold
-  ( Mu,
-    Nu,
-    Projectable (project),
-    Steppable (embed),
-  )
+import "base" Data.Semigroup ((<>))
+import "yaya" Yaya.Fold (Mu, Nu, Steppable, embed, project)
 import "yaya" Yaya.Fold.Native (Cofix, Fix)
 import "yaya" Yaya.Pattern (AndMaybe (Indeed, Only), XNor (Both, Neither))
 

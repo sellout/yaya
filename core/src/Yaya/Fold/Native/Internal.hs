@@ -1,7 +1,7 @@
 {-# LANGUAGE Safe #-}
--- NB: We disable @StrictData@ here in order for `Cofix` to be lazy. I don’t
---     think there is any way to explicitly add @~@ patterns that has the
---     correct semantics.
+-- __NB__: We disable @StrictData@ here in order for `Cofix` to be lazy. I don’t
+--         think there is any way to explicitly add @~@ patterns that has the
+--         correct semantics.
 {-# LANGUAGE NoStrictData #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
@@ -12,14 +12,17 @@ module Yaya.Fold.Native.Internal
   )
 where
 
-import "base" Control.Category (Category ((.)))
-import "base" Data.Functor (Functor (fmap))
+import "base" Control.Category ((.))
+import "base" Data.Functor (Functor, fmap)
 import "base" Data.Functor.Classes (Read1)
-import "base" Text.Read (Read (readListPrec, readPrec), readListPrecDefault)
+import "base" Text.Read (Read, readListPrec, readListPrecDefault, readPrec)
 import "this" Yaya.Fold
-  ( Corecursive (ana),
-    Projectable (project),
-    Steppable (embed),
+  ( Corecursive,
+    Projectable,
+    Steppable,
+    ana,
+    embed,
+    project,
     steppableReadPrec,
   )
 

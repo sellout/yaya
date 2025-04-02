@@ -29,40 +29,38 @@
 --   disappear.
 module Yaya.Retrofit
   ( module Yaya.Fold,
-    PatternFunctorRules
-      ( PatternFunctorRules,
-        patternCon,
-        patternField,
-        patternType
-      ),
+    PatternFunctorRules (PatternFunctorRules),
     defaultRules,
     extractPatternFunctor,
+    patternCon,
+    patternField,
+    patternType,
   )
 where
 
 -- NB: This module does not use the strict library, because its use of `Either`,
 --    `Maybe`, etc. is tied to template-haskell and does not involve recursion
 --     schemes.
-import safe "base" Control.Applicative (Applicative (pure))
-import safe "base" Control.Category (Category (id, (.)))
+import safe "base" Control.Applicative (Applicative, pure)
+import safe "base" Control.Category (id, (.))
 import safe "base" Control.Monad ((<=<))
-import safe "base" Control.Monad.Fail (MonadFail (fail))
-import safe "base" Data.Bifunctor (Bifunctor (bimap))
+import safe "base" Control.Monad.Fail (fail)
+import safe "base" Data.Bifunctor (bimap)
 import safe "base" Data.Bool (Bool, otherwise, (&&))
 import safe "base" Data.Either (Either (Left), either)
-import safe "base" Data.Eq (Eq ((==)))
-import safe "base" Data.Foldable (Foldable (foldl, length, null))
+import safe "base" Data.Eq ((==))
+import safe "base" Data.Foldable (Foldable, foldl, length, null)
 import safe "base" Data.Function (const, flip, ($))
-import safe "base" Data.Functor (Functor (fmap), (<$>))
-import safe "base" Data.Functor.Identity (Identity (Identity, runIdentity))
+import safe "base" Data.Functor (Functor, fmap, (<$>))
+import safe "base" Data.Functor.Identity (Identity (Identity), runIdentity)
 import safe "base" Data.List (all, zip, zip3)
 import safe "base" Data.List.NonEmpty (NonEmpty)
 import safe "base" Data.Maybe (Maybe (Just, Nothing), maybe)
-import safe "base" Data.Semigroup (Semigroup ((<>)))
+import safe "base" Data.Semigroup ((<>))
 import safe "base" Data.String (String)
-import safe "base" Data.Traversable (Traversable (traverse))
+import safe "base" Data.Traversable (Traversable, traverse)
 import safe "base" Text.Read.Lex (isSymbolChar)
-import safe "base" Text.Show (Show (show))
+import safe "base" Text.Show (Show, show)
 import safe "either" Data.Either.Validation
   ( Validation (Failure, Success),
     validationToEither,
@@ -70,10 +68,14 @@ import safe "either" Data.Either.Validation
 import safe qualified "template-haskell" Language.Haskell.TH as TH
 import safe qualified "th-abstraction" Language.Haskell.TH.Datatype as TH.Abs
 import safe "this" Yaya.Fold
-  ( Corecursive (ana),
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+  ( Corecursive,
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
+    cata,
+    embed,
+    project,
     recursiveCompare,
     recursiveCompare',
     recursiveEq,
@@ -102,7 +104,8 @@ conP' n = TH.ConP n []
 conP' = TH.ConP
 #endif
 
--- | Extract a pattern functor and relevant instances from a simply recursive type.
+-- | Extract a pattern functor and relevant instances from a simply recursive
+--   type.
 --
 -- /e.g./
 --
@@ -147,9 +150,12 @@ conP' = TH.ConP
 -- - `extractPatternFunctor` works properly only with ADTs.
 --   Existentials and GADTs aren't supported,
 --   as we don't try to do better than
---   <https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#deriving-functor-instances GHC's DeriveFunctor>.
--- - we always generate both `Recursive` and `Corecursive` instances, but one of these is always unsafe.
---   In future, we should check the strictness of the recursive parameter and generate only the appropriate one (unless overridden by a rule).
+--   <https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#deriving-functor-instances
+--   GHC's DeriveFunctor>.
+-- - we always generate both `Recursive` and `Corecursive` instances, but one of
+--   these is always unsafe. In future, we should check the strictness of the
+--   recursive parameter and generate only the appropriate one (unless
+--   overridden by a rule).
 extractPatternFunctor :: PatternFunctorRules -> TH.Name -> TH.Q [TH.Dec]
 extractPatternFunctor rules =
   either (fail . displayUnsupportedDatatype) id . makePrimForDI rules
@@ -162,7 +168,8 @@ data PatternFunctorRules = PatternFunctorRules
     patternField :: TH.Name -> TH.Name
   }
 
--- | Default 'PatternFunctorRules': append @F@ or @$@ to data type, constructors and field names.
+-- | Default 'PatternFunctorRules': append @F@ or @$@ to data type, constructors
+--   and field names.
 defaultRules :: PatternFunctorRules
 defaultRules =
   PatternFunctorRules
@@ -349,7 +356,8 @@ mkMorphism nFrom nTo =
 -------------------------------------------------------------------------------
 
 conNameTraversal :: Traversal' TH.Abs.ConstructorInfo TH.Name
-conNameTraversal = lens TH.Abs.constructorName (\s v -> s {TH.Abs.constructorName = v})
+conNameTraversal =
+  lens TH.Abs.constructorName (\s v -> s {TH.Abs.constructorName = v})
 
 conFieldNameTraversal :: Traversal' TH.Abs.ConstructorInfo TH.Name
 conFieldNameTraversal =

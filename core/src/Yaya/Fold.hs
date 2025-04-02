@@ -11,7 +11,7 @@ module Yaya.Fold
     Coalgebra,
     CoalgebraM,
     CoalgebraPrism,
-    Corecursive (ana),
+    Corecursive,
     DistributiveLaw,
     ElgotAlgebra,
     ElgotAlgebraM,
@@ -22,12 +22,14 @@ module Yaya.Fold
     GCoalgebraM,
     Mu (Mu),
     Nu (Nu),
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
     attributeAlgebra,
     attributeCoalgebra,
     birecursiveIso,
+    cata,
     cata2,
     colambek,
     constAna,
@@ -40,6 +42,7 @@ module Yaya.Fold
     elgotAna,
     elgotCata,
     elgotCataM,
+    embed,
     ezygoM,
     gana,
     gcata,
@@ -51,6 +54,7 @@ module Yaya.Fold
     lowerCoalgebra,
     lowerCoalgebraM,
     lowerDay,
+    project,
     recursiveCompare,
     recursiveCompare',
     recursiveEq,
@@ -69,25 +73,28 @@ module Yaya.Fold
   )
 where
 
-import "base" Control.Applicative (Applicative (pure), (*>))
-import "base" Control.Category (Category ((.)))
+import "base" Control.Applicative (Applicative, pure, (*>))
+import "base" Control.Category ((.))
 import "base" Control.Monad (Monad, join, (<=<), (=<<))
-import "base" Data.Bifunctor (Bifunctor (bimap, first, second))
+import "base" Data.Bifunctor (bimap, first, second)
 import "base" Data.Bitraversable (bisequence)
 import "base" Data.Bool (Bool)
-import "base" Data.Eq (Eq ((==)))
-import "base" Data.Foldable (Foldable (toList))
+import "base" Data.Eq (Eq, (==))
+import "base" Data.Foldable (Foldable, toList)
 import "base" Data.Function (const, flip, ($))
-import "base" Data.Functor (Functor (fmap), (<$>))
+import "base" Data.Functor (Functor, fmap, (<$>))
 import "base" Data.Functor.Classes
-  ( Eq1 (liftEq),
-    Ord1 (liftCompare),
-    Read1 (liftReadPrec),
+  ( Eq1,
+    Ord1,
+    Read1,
     Show1,
+    liftCompare,
+    liftEq,
+    liftReadPrec,
   )
 import "base" Data.Int (Int)
 import "base" Data.List.NonEmpty (NonEmpty ((:|)))
-import "base" Data.Ord (Ord (compare, (<=)), Ordering)
+import "base" Data.Ord (Ord, Ordering, compare, (<=))
 import "base" Data.String (String)
 import "base" Data.Traversable (sequenceA)
 import "base" Data.Void (Void, absurd)
@@ -95,16 +102,18 @@ import "base" GHC.Read (expectP, list)
 import "base" GHC.Show (appPrec1)
 import "base" Numeric.Natural (Natural)
 import "base" Text.Read
-  ( Read (readListPrec, readPrec),
+  ( Read,
     ReadPrec,
     parens,
     prec,
+    readListPrec,
     readListPrecDefault,
+    readPrec,
     step,
   )
 import qualified "base" Text.Read.Lex as Lex
-import "base" Text.Show (Show (showsPrec), ShowS, showParen, showString)
-import "comonad" Control.Comonad (Comonad (duplicate, extend, extract))
+import "base" Text.Show (Show, ShowS, showParen, showString, showsPrec)
+import "comonad" Control.Comonad (Comonad, duplicate, extend, extract)
 import "comonad" Control.Comonad.Trans.Env
   ( EnvT (EnvT),
     ask,
@@ -115,18 +124,21 @@ import "free" Control.Comonad.Cofree (Cofree ((:<)))
 import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free, runFree)
 import "kan-extensions" Data.Functor.Day (Day (Day))
 import "lens" Control.Lens
-  ( Const (Const, getConst),
-    Identity (Identity, runIdentity),
+  ( Const (Const),
+    Identity (Identity),
     Iso',
     Prism',
-    Traversable (traverse),
+    Traversable,
+    getConst,
     iso,
     matching,
     prism,
     review,
+    runIdentity,
+    traverse,
     view,
   )
-import "strict" Data.Strict.Classes (Strict (toStrict))
+import "strict" Data.Strict.Classes (toStrict)
 import "this" Yaya.Fold.Common
   ( compareDay,
     diagonal,
@@ -134,7 +146,7 @@ import "this" Yaya.Fold.Common
     fromEither,
     showsPrecF,
   )
-import "this" Yaya.Functor (DFunctor (dmap))
+import "this" Yaya.Functor (DFunctor, dmap)
 import "this" Yaya.Pattern
   ( AndMaybe (Indeed, Only),
     Either (Left, Right),
@@ -146,7 +158,7 @@ import "this" Yaya.Pattern
     snd,
     uncurry,
   )
-import "base" Prelude (Enum (pred, succ))
+import "base" Prelude (pred, succ)
 
 -- $setup
 -- >>> :seti -XTypeApplications

@@ -6,15 +6,17 @@
 module Test.Retrofit (tests) where
 
 import safe "base" Data.Bool (Bool)
-import safe "base" Data.Eq (Eq ((==)))
+import safe "base" Data.Eq (Eq, (==))
 import safe "base" Data.Int (Int)
-import safe "base" Data.Ord (Ord (compare))
+import safe "base" Data.Ord (Ord, compare)
 import safe "base" System.IO (IO)
 import safe "base" Text.Read
-  ( Read (readListPrec, readPrec),
+  ( Read,
+    readListPrec,
     readListPrecDefault,
+    readPrec,
   )
-import safe "base" Text.Show (Show (showsPrec))
+import safe "base" Text.Show (Show, showsPrec)
 import safe "deriving-compat" Data.Eq.Deriving (deriveEq1)
 import safe "deriving-compat" Data.Ord.Deriving (deriveOrd1)
 import safe "deriving-compat" Text.Read.Deriving (deriveRead1)
