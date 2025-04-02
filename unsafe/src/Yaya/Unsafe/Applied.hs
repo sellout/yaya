@@ -5,7 +5,7 @@ module Yaya.Unsafe.Applied
   )
 where
 
-import "yaya" Yaya.Fold (Steppable (embed))
+import "yaya" Yaya.Fold (Steppable, embed)
 import "yaya" Yaya.Pattern (XNor)
 import "this" Yaya.Unsafe.Fold (unsafeCata)
 

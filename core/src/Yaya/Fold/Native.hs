@@ -6,41 +6,46 @@
 --   manner.
 module Yaya.Fold.Native
   ( module Yaya.Fold.Native.Internal,
-    Fix (Fix, unFix),
+    Fix (Fix),
     distCofreeT,
+    unFix,
   )
 where
 
-import "base" Control.Category (Category ((.)))
-import "base" Data.Bifunctor (Bifunctor (bimap))
-import "base" Data.Eq (Eq ((==)))
-import "base" Data.Foldable (Foldable (toList))
+import "base" Control.Category ((.))
+import "base" Data.Bifunctor (bimap)
+import "base" Data.Eq (Eq, (==))
+import "base" Data.Foldable (Foldable, toList)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (fmap))
+import "base" Data.Functor (Functor, fmap)
 import "base" Data.Functor.Classes (Eq1, Ord1, Read1, Show1)
 import "base" Data.List.NonEmpty (NonEmpty ((:|)))
-import "base" Data.Ord (Ord (compare))
+import "base" Data.Ord (Ord, compare)
 import "base" Numeric.Natural (Natural)
-import "base" Text.Read (Read (readListPrec, readPrec), readListPrecDefault)
-import "base" Text.Show (Show (showsPrec))
-import "comonad" Control.Comonad (Comonad (extract))
+import "base" Text.Read (Read, readListPrec, readListPrecDefault, readPrec)
+import "base" Text.Show (Show, showsPrec)
+import "comonad" Control.Comonad (extract)
 import "comonad" Control.Comonad.Trans.Env (EnvT (EnvT), runEnvT)
 import "free" Control.Comonad.Cofree (Cofree ((:<)), unwrap)
 import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free)
-import "strict" Data.Strict.Classes (Strict (toStrict))
+import "strict" Data.Strict.Classes (toStrict)
 import "this" Yaya.Fold
-  ( Corecursive (ana),
+  ( Corecursive,
     DistributiveLaw,
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
+    cata,
+    embed,
+    project,
     recursiveCompare,
     recursiveEq,
     recursiveShowsPrec,
     steppableReadPrec,
   )
 import "this" Yaya.Fold.Common (diagonal)
-import "this" Yaya.Fold.Native.Internal (Cofix (unCofix))
+import "this" Yaya.Fold.Native.Internal (Cofix, unCofix)
 import "this" Yaya.Pattern
   ( AndMaybe (Indeed, Only),
     Maybe,
