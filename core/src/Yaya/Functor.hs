@@ -3,16 +3,18 @@
 -- | This should probably be a separate library, but it provides a number of
 --   functor type classes between various categories.
 module Yaya.Functor
-  ( DFunctor (dmap),
-    HFunctor (hmap),
+  ( DFunctor,
+    HFunctor,
+    dmap,
     firstMap,
+    hmap,
   )
 where
 
-import "base" Control.Category (Category ((.)))
+import "base" Control.Category ((.))
 import "base" Data.Bifunctor (Bifunctor, first)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (fmap))
+import "base" Data.Functor (Functor, fmap)
 import "base" Data.Functor.Compose (Compose (Compose))
 import "base" Data.Functor.Product (Product (Pair))
 import "base" Data.Kind (Type)

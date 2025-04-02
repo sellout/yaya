@@ -18,14 +18,14 @@ module Yaya.Unsafe.Fold
   )
 where
 
-import "base" Control.Applicative (Applicative (pure))
-import "base" Control.Category (Category ((.)))
+import "base" Control.Applicative (pure)
+import "base" Control.Category ((.))
 import "base" Control.Monad (Monad, (<=<))
 import "base" Data.Function (flip, ($))
-import "base" Data.Functor (Functor (fmap))
-import "base" Data.Functor.Compose (Compose (Compose, getCompose))
-import "base" Data.Traversable (Traversable (sequenceA))
-import "comonad" Control.Comonad (Comonad (extract))
+import "base" Data.Functor (Functor, fmap)
+import "base" Data.Functor.Compose (Compose (Compose), getCompose)
+import "base" Data.Traversable (Traversable, sequenceA)
+import "comonad" Control.Comonad (Comonad, extract)
 import "lens" Control.Lens (Prism', matching, prism, review)
 import "yaya" Yaya.Fold
   ( Algebra,
@@ -33,19 +33,23 @@ import "yaya" Yaya.Fold
     Coalgebra,
     CoalgebraM,
     CoalgebraPrism,
-    Corecursive (ana),
+    Corecursive,
     DistributiveLaw,
     GAlgebra,
     GAlgebraM,
     GCoalgebra,
     GCoalgebraM,
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
+    cata,
+    embed,
     lowerAlgebra,
     lowerAlgebraM,
     lowerCoalgebra,
     lowerCoalgebraM,
+    project,
   )
 import "yaya" Yaya.Pattern (Maybe, Pair, maybe, uncurry)
 

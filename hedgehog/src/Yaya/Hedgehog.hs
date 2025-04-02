@@ -6,7 +6,7 @@ module Yaya.Hedgehog
   )
 where
 
-import safe "base" Control.Category (Category ((.)))
+import safe "base" Control.Category ((.))
 import safe "base" Control.Monad ((<=<))
 import safe "base" Control.Monad.IO.Class (MonadIO)
 import safe "base" Data.Function (const)

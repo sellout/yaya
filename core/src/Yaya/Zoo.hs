@@ -9,7 +9,7 @@ module Yaya.Zoo
     List,
     Nat,
     NonEmptyList,
-    Partial (Partial, fromPartial),
+    Partial (Partial),
     Stream,
     apo,
     cataM,
@@ -17,6 +17,7 @@ module Yaya.Zoo
     comap,
     comutu,
     contramap,
+    fromPartial,
     gapo,
     gmutu,
     histo,
@@ -31,36 +32,40 @@ module Yaya.Zoo
   )
 where
 
-import "base" Control.Applicative (Applicative (pure, (<*>)))
-import "base" Control.Category (Category (id, (.)))
-import "base" Control.Monad (Monad ((>>=)), (<=<))
-import "base" Data.Bifunctor (Bifunctor (bimap, first))
-import "base" Data.Bitraversable (Bitraversable (bitraverse), bisequence)
+import "base" Control.Applicative (Applicative, pure, (<*>))
+import "base" Control.Category (id, (.))
+import "base" Control.Monad (Monad, (<=<), (>>=))
+import "base" Data.Bifunctor (Bifunctor, bimap, first)
+import "base" Data.Bitraversable (Bitraversable, bisequence, bitraverse)
 import "base" Data.Function (flip, ($))
-import "base" Data.Functor (Functor (fmap))
-import "base" Data.Traversable (Traversable (sequenceA))
-import "comonad" Control.Comonad (Comonad (duplicate, extract))
+import "base" Data.Functor (Functor, fmap)
+import "base" Data.Traversable (Traversable, sequenceA)
+import "comonad" Control.Comonad (Comonad, duplicate, extract)
 import "comonad" Control.Comonad.Env (EnvT (EnvT))
 import "free" Control.Comonad.Cofree (Cofree)
-import "profunctors" Data.Profunctor (Profunctor (lmap))
+import "profunctors" Data.Profunctor (Profunctor, lmap)
 import "this" Yaya.Fold
   ( Algebra,
     AlgebraM,
     Coalgebra,
-    Corecursive (ana),
+    Corecursive,
     DistributiveLaw,
     GAlgebra,
     GAlgebraM,
     GCoalgebra,
     Mu,
     Nu,
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
+    cata,
     distTuple,
     elgotAna,
+    embed,
     gana,
     gcata,
+    project,
     seqEither,
   )
 import "this" Yaya.Fold.Common (diagonal, fromEither)
@@ -258,7 +263,11 @@ type Stream a = Nu (Pair a)
 -- | A more general implementation of `fmap`, because it can also work to, from,
 --   or within monomorphic structures, obviating the need for classes like
 --  `Data.MonoTraversable.MonoFunctor`.
-map :: (Recursive (->) t (f a), Steppable (->) u (f b), Bifunctor f) => (a -> b) -> t -> u
+map ::
+  (Recursive (->) t (f a), Steppable (->) u (f b), Bifunctor f) =>
+  (a -> b) ->
+  t ->
+  u
 map f = cata (embed . first f)
 
 -- | A version of `Yaya.Zoo.map` that applies to Corecursive structures.

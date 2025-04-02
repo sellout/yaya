@@ -14,7 +14,7 @@ module Yaya.Hedgehog.Expr
   )
 where
 
-import safe "base" Control.Applicative (Applicative ((<*>)))
+import safe "base" Control.Applicative ((<*>))
 import safe "base" Data.Eq (Eq)
 import safe "base" Data.Foldable (Foldable)
 import safe "base" Data.Functor (Functor, (<$>))
