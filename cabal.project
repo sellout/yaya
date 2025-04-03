@@ -1,3 +1,7 @@
+-- makes CI more reliable, as repeated builds won’t get different packages.
+-- TODO: populate this timestamp from flake.lock or something
+index-state: 2025-03-30T19:43:00Z
+
 flags:
   -noisy-deprecations
 
