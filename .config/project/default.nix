@@ -84,6 +84,7 @@
         os = "macos-14";
       }
     ];
+    licenseReportDiffOptions = ["--ignore-matching-lines='^| `yaya'"];
   };
 
   ## publishing

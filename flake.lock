@@ -87,15 +87,16 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1742795439,
-        "narHash": "sha256-JbGKqULsFtopHEC1+jEaSVRRkuVOn779WS6mZuc766M=",
+        "lastModified": 1743687586,
+        "narHash": "sha256-ml9FzLBuV2p9QCyvzvokUv36g/PfyuyB8AI7O81BD00=",
         "owner": "sellout",
         "repo": "flaky",
-        "rev": "339900bfafe11fe774a4c96bdc4fdc0dc89037b6",
+        "rev": "6a7fa13ef0013013ecd17e17b7d9ea5534a154e0",
         "type": "github"
       },
       "original": {
         "owner": "sellout",
+        "ref": "cabal-plan-diff",
         "repo": "flaky",
         "type": "github"
       }
