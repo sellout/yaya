@@ -20,26 +20,21 @@
 --   This contains instances that you might /expect/ to see, but which aren’t
 --   actually total. For example, folding a lazy list @[a]@ is /not/ guaranteed
 --   to terminate.
-module Yaya.Unsafe.Fold.Instances
-  ( seqFreeT,
-  )
-where
+module Yaya.Unsafe.Fold.Instances () where
 
-import safe "base" Control.Category ((.))
 import safe "base" Data.Eq (Eq, (==))
 import safe "base" Data.Foldable (Foldable)
 import safe "base" Data.Function (flip)
-import safe "base" Data.Functor (Functor, (<$>))
+import safe "base" Data.Functor (Functor)
 import safe "base" Data.Functor.Classes (Eq1, Ord1, Show1)
 import safe "base" Data.List.NonEmpty (NonEmpty)
 import safe "base" Data.Ord (Ord, compare)
 import safe "base" Text.Show (Show, showsPrec)
 import safe "comonad" Control.Comonad.Env (EnvT)
 import safe "free" Control.Comonad.Cofree (Cofree)
-import safe "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free)
+import safe "free" Control.Monad.Trans.Free (Free, FreeF)
 import safe "yaya" Yaya.Fold
   ( Corecursive,
-    DistributiveLaw,
     Mu,
     Nu,
     Recursive,
@@ -106,19 +101,6 @@ instance (Functor f) => Recursive (->) (Cofree f a) (EnvT a f) where
 
 instance (Functor f) => Recursive (->) (Free f a) (FreeF f a) where
   cata = Unsafe.unsafeCata
-
--- TODO: If we can generalize this to an arbitrary 'Recursive (->) t (FreeF h a)'
---       then it would no longer be unsafe.
-seqFreeT ::
-  (Functor f, Functor h) =>
-  DistributiveLaw (->) h f ->
-  DistributiveLaw (->) (Free h) f
-seqFreeT k =
-  cata
-    ( \case
-        Pure a -> free . Pure <$> a
-        Free ft -> free . Free <$> k ft
-    )
 
 -- | `fromList` in this instance is unsafe, but `fromListN` is safe, because we
 --   have a finite length to fold.

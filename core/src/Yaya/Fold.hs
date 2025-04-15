@@ -36,6 +36,7 @@ module Yaya.Fold
     constCata,
     constEmbed,
     constProject,
+    distCofreeT,
     distEnvT,
     distIdentity,
     distTuple,
@@ -63,6 +64,8 @@ module Yaya.Fold
     recursiveShowsPrec,
     recursiveShowsPrec',
     seqEither,
+    seqFreeF,
+    seqFreeT,
     seqIdentity,
     steppableIso,
     steppableReadPrec,
@@ -74,7 +77,7 @@ module Yaya.Fold
 where
 
 import "base" Control.Applicative (Applicative, pure, (*>))
-import "base" Control.Category ((.))
+import "base" Control.Category (id, (.))
 import "base" Control.Monad (Monad, join, (<=<), (=<<))
 import "base" Data.Bifunctor (bimap, first, second)
 import "base" Data.Bitraversable (bisequence)
@@ -114,12 +117,7 @@ import "base" Text.Read
 import qualified "base" Text.Read.Lex as Lex
 import "base" Text.Show (Show, ShowS, showParen, showString, showsPrec)
 import "comonad" Control.Comonad (Comonad, duplicate, extend, extract)
-import "comonad" Control.Comonad.Trans.Env
-  ( EnvT (EnvT),
-    ask,
-    lowerEnvT,
-    runEnvT,
-  )
+import "comonad" Control.Comonad.Trans.Env (EnvT (EnvT), lowerEnvT, runEnvT)
 import "free" Control.Comonad.Cofree (Cofree ((:<)))
 import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free, runFree)
 import "kan-extensions" Data.Functor.Day (Day (Day))
@@ -159,6 +157,14 @@ import "this" Yaya.Pattern
     uncurry,
   )
 import "base" Prelude (pred, succ)
+
+-- NB: Prior to base 4.19, "Data.Functor" doesn’t export `unzip`, but starting
+--     with base 4.22, the one from "Data.List.NonEmpty" is monomorphic.
+#if MIN_VERSION_base(4, 19, 0)
+import "base" Data.Functor (unzip)
+#else
+import "base" Data.List.NonEmpty (unzip)
+#endif
 
 -- $setup
 -- >>> :seti -XTypeApplications
@@ -593,11 +599,51 @@ distTuple φ = bimap (φ . fmap fst) (fmap snd) . diagonal
 
 distEnvT ::
   (Functor f) =>
-  Algebra (->) f a ->
+  -- |
+  --
+  --  __NB__: To be a true `DistributiveLaw`, this must be an @`Algebra` (->) f
+  --          a@, but this more general version is useful in certain cases (like
+  --         `distCofreeT`).
+  (f a -> b) ->
   DistributiveLaw (->) f w ->
-  DistributiveLaw (->) f (EnvT a w)
-distEnvT φ k =
-  uncurry EnvT . bimap (φ . fmap ask) (k . fmap lowerEnvT) . diagonal
+  f (EnvT a w c) ->
+  EnvT b w (f c)
+distEnvT φ k = uncurry EnvT . bimap φ k . toStrict . unzip . fmap runEnvT
+
+distCofreeT ::
+  ( Corecursive (->) (t (f a)) (EnvT (f a) h),
+    Projectable (->) (t a) (EnvT a h),
+    Functor f
+  ) =>
+  DistributiveLaw (->) f h ->
+  f (t a) ->
+  t (f a)
+distCofreeT k = ana $ distEnvT id k . fmap project
+
+seqFreeF ::
+  (Functor f) =>
+  -- |
+  --
+  --  __NB__: To be a true `DistributiveLaw`, this must be a @`Coalgebra` (->) f
+  --          a@, but this more general version is useful in certain cases (like
+  --         `seqFreeT`).
+  (a -> f b) ->
+  DistributiveLaw (->) m f ->
+  FreeF m a (f c) ->
+  f (FreeF m b c)
+seqFreeF ψ k = \case
+  Pure a -> Pure <$> ψ a
+  Free ft -> Free <$> k ft
+
+seqFreeT ::
+  ( Recursive (->) (t (f a)) (FreeF h (f a)),
+    Steppable (->) (t a) (FreeF h a),
+    Functor f
+  ) =>
+  DistributiveLaw (->) h f ->
+  t (f a) ->
+  f (t a)
+seqFreeT k = cata $ fmap embed . seqFreeF id k
 
 seqEither ::
   (Functor f) => Coalgebra (->) f a -> DistributiveLaw (->) (Either a) f
