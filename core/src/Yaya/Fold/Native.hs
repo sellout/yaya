@@ -7,12 +7,10 @@
 module Yaya.Fold.Native
   ( module Yaya.Fold.Native.Internal,
     Fix,
-    distCofreeT,
   )
 where
 
 import "base" Control.Category ((.))
-import "base" Data.Bifunctor (bimap)
 import "base" Data.Eq (Eq, (==))
 import "base" Data.Foldable (Foldable, toList)
 import "base" Data.Function (($))
@@ -23,14 +21,12 @@ import "base" Data.Ord (Ord, compare)
 import "base" Numeric.Natural (Natural)
 import "base" Text.Read (Read, readListPrec, readListPrecDefault, readPrec)
 import "base" Text.Show (Show, showsPrec)
-import "comonad" Control.Comonad (extract)
-import "comonad" Control.Comonad.Trans.Env (EnvT (EnvT), runEnvT)
-import "free" Control.Comonad.Cofree (Cofree ((:<)), unwrap)
+import "comonad" Control.Comonad.Trans.Env (EnvT, runEnvT)
+import "free" Control.Comonad.Cofree (Cofree ((:<)))
 import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free)
 import "strict" Data.Strict.Classes (toStrict)
 import "this" Yaya.Fold
   ( Corecursive,
-    DistributiveLaw,
     Projectable,
     Recursive,
     Steppable,
@@ -43,7 +39,6 @@ import "this" Yaya.Fold
     recursiveShowsPrec,
     steppableReadPrec,
   )
-import "this" Yaya.Fold.Common (diagonal)
 import "this" Yaya.Fold.Native.Internal (Cofix)
 import "this" Yaya.Pattern
   ( AndMaybe (Indeed, Only),
@@ -110,10 +105,3 @@ instance (Functor f) => Corecursive (->) (Free f a) (FreeF f a) where
 
 instance (Functor f) => Corecursive (->) (Cofree f a) (EnvT a f) where
   ana ψ = uncurry (:<) . fmap (fmap (ana ψ)) . toStrict . runEnvT . ψ
-
-distCofreeT ::
-  (Functor f, Functor h) =>
-  DistributiveLaw (->) f h ->
-  DistributiveLaw (->) f (Cofree h)
-distCofreeT k =
-  ana $ uncurry EnvT . bimap (fmap extract) (k . fmap unwrap) . diagonal
