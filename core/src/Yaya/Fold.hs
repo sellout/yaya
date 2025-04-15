@@ -1,6 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 
 module Yaya.Fold
   ( Algebra,
@@ -10,7 +13,7 @@ module Yaya.Fold
     Coalgebra,
     CoalgebraM,
     CoalgebraPrism,
-    Corecursive (ana),
+    Corecursive,
     DistributiveLaw,
     ElgotAlgebra,
     ElgotAlgebraM,
@@ -19,26 +22,30 @@ module Yaya.Fold
     GAlgebraM,
     GCoalgebra,
     GCoalgebraM,
-    Mu (Mu),
-    Nu (Nu),
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+    Mu,
+    Nu,
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
     attributeAlgebra,
     attributeCoalgebra,
     birecursiveIso,
+    cata,
     cata2,
     colambek,
     constAna,
     constCata,
     constEmbed,
     constProject,
+    distCofreeT,
     distEnvT,
     distIdentity,
     distTuple,
     elgotAna,
     elgotCata,
     elgotCataM,
+    embed,
     ezygoM,
     gana,
     gcata,
@@ -50,6 +57,7 @@ module Yaya.Fold
     lowerCoalgebra,
     lowerCoalgebraM,
     lowerDay,
+    project,
     recursiveCompare,
     recursiveCompare',
     recursiveEq,
@@ -58,6 +66,8 @@ module Yaya.Fold
     recursiveShowsPrec,
     recursiveShowsPrec',
     seqEither,
+    seqFreeF,
+    seqFreeT,
     seqIdentity,
     steppableIso,
     steppableReadPrec,
@@ -68,25 +78,28 @@ module Yaya.Fold
   )
 where
 
-import "base" Control.Applicative (Applicative (pure), (*>))
-import "base" Control.Category (Category ((.)))
+import "base" Control.Applicative (Applicative, pure, (*>))
+import "base" Control.Category (id, (.))
 import "base" Control.Monad (Monad, join, (<=<), (=<<))
-import "base" Data.Bifunctor (Bifunctor (bimap, first, second))
+import "base" Data.Bifunctor (bimap, first, second)
 import "base" Data.Bitraversable (bisequence)
-import "base" Data.Bool (Bool)
-import "base" Data.Eq (Eq ((==)))
-import "base" Data.Foldable (Foldable (toList))
+import "base" Data.Bool (Bool (False))
+import "base" Data.Eq (Eq, (==))
+import "base" Data.Foldable (Foldable, toList)
 import "base" Data.Function (const, flip, ($))
-import "base" Data.Functor (Functor (fmap), (<$>))
+import "base" Data.Functor (Functor, fmap, (<$>))
 import "base" Data.Functor.Classes
-  ( Eq1 (liftEq),
-    Ord1 (liftCompare),
-    Read1 (liftReadPrec),
+  ( Eq1,
+    Ord1,
+    Read1,
     Show1,
+    liftCompare,
+    liftEq,
+    liftReadPrec,
   )
 import "base" Data.Int (Int)
 import "base" Data.List.NonEmpty (NonEmpty ((:|)))
-import "base" Data.Ord (Ord (compare, (<=)), Ordering)
+import "base" Data.Ord (Ord, Ordering, compare, (<=))
 import "base" Data.String (String)
 import "base" Data.Traversable (sequenceA)
 import "base" Data.Void (Void, absurd)
@@ -94,38 +107,36 @@ import "base" GHC.Read (expectP, list)
 import "base" GHC.Show (appPrec1)
 import "base" Numeric.Natural (Natural)
 import "base" Text.Read
-  ( Read (readListPrec, readPrec),
+  ( Read,
     ReadPrec,
     parens,
     prec,
+    readListPrec,
     readListPrecDefault,
+    readPrec,
     step,
   )
 import qualified "base" Text.Read.Lex as Lex
-import "base" Text.Show (Show (showsPrec), ShowS, showParen, showString)
-import "comonad" Control.Comonad (Comonad (duplicate, extend, extract))
-import "comonad" Control.Comonad.Trans.Env
-  ( EnvT (EnvT),
-    ask,
-    lowerEnvT,
-    runEnvT,
-  )
+import "base" Text.Show (Show, ShowS, showParen, showString, showsPrec)
+import "comonad" Control.Comonad (Comonad, duplicate, extend, extract)
 import "free" Control.Comonad.Cofree (Cofree ((:<)))
-import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free, runFree)
+-- import "free" Control.Monad.Trans.Free (Free, free, runFree)
 import "kan-extensions" Data.Functor.Day (Day (Day))
 import "lens" Control.Lens
-  ( Const (Const, getConst),
-    Identity (Identity, runIdentity),
+  ( Const (Const),
+    Identity (Identity),
     Iso',
     Prism',
-    Traversable (traverse),
+    Traversable,
+    getConst,
     iso,
     matching,
     prism,
     review,
+    runIdentity,
+    traverse,
     view,
   )
-import "strict" Data.Strict.Classes (Strict (toStrict))
 import "this" Yaya.Fold.Common
   ( compareDay,
     diagonal,
@@ -133,19 +144,31 @@ import "this" Yaya.Fold.Common
     fromEither,
     showsPrecF,
   )
-import "this" Yaya.Functor (DFunctor (dmap))
+import "this" Yaya.Functor (DFunctor, dmap)
 import "this" Yaya.Pattern
   ( AndMaybe (Indeed, Only),
     Either (Left, Right),
+    EnvT (EnvT),
+    FreeF (Free, Pure),
     Maybe (Just, Nothing),
     Pair ((:!:)),
     XNor (Both, Neither),
     fst,
+    lowerEnvT,
     maybe,
+    runEnvT,
     snd,
     uncurry,
+    unzip,
   )
-import "base" Prelude (Enum (pred, succ))
+import "this" Yaya.Strict
+  ( IsNonStrict,
+    IsStrict,
+    PartialTypeError,
+    Strict,
+    unsatisfiable,
+  )
+import "base" Prelude (pred, succ)
 
 -- $setup
 -- >>> :seti -XTypeApplications
@@ -188,12 +211,12 @@ class (Projectable c t f) => Steppable c t f | t -> f where
 
 -- | Inductive structures that can be reasoned about in the way we usually do –
 --   with pattern matching.
-class Recursive c t f | t -> f where
+class (IsStrict t, IsStrict f) => Recursive c t f | t -> f where
   cata :: Algebra c f a -> t `c` a
 
 -- | Coinductive (potentially-infinite) structures that guarantee _productivity_
 --   rather than termination.
-class Corecursive c t f | t -> f where
+class (IsNonStrict t) => Corecursive c t f | t -> f where
   ana :: Coalgebra c f a -> a `c` t
 
 -- | Like `recursiveEq`, but allows you to provide a custom comparator for @f@.
@@ -333,36 +356,51 @@ steppableReadPrec = steppableReadPrec' liftReadPrec
 --          @-XStrictData@ can help with this a lot.
 newtype Mu f = Mu (forall a. Algebra (->) f a -> a)
 
-instance (Functor f) => Projectable (->) (Mu f) f where
+type instance Strict (Mu f) = Strict f
+
+-- |
+--
+--  __TODO__: @`IsStrict` (`Mu` f)@ should be implied by @`IsStrict` f@.
+instance (IsStrict f, IsStrict (Mu f)) => Recursive (->) (Mu f) f where
+  cata φ (Mu f) = f φ
+
+instance (Recursive (->) (Mu f) f, Functor f) => Projectable (->) (Mu f) f where
   project = lambek
 
-instance (Functor f) => Steppable (->) (Mu f) f where
+instance (Recursive (->) (Mu f) f, Functor f) => Steppable (->) (Mu f) f where
   embed m = Mu (\f -> f (fmap (cata f) m))
-
-instance Recursive (->) (Mu f) f where
-  cata φ (Mu f) = f φ
 
 instance DFunctor Mu where
   dmap f (Mu run) = Mu (\φ -> run (φ . f))
 
-instance (Functor f, Foldable f, Eq1 f) => Eq (Mu f) where
+instance
+  (Recursive (->) (Mu f) f, Functor f, Foldable f, Eq1 f) =>
+  Eq (Mu f)
+  where
   (==) = recursiveEq
 
 -- | @since 0.6.1.0
-instance (Functor f, Foldable f, Ord1 f) => Ord (Mu f) where
+instance
+  (Recursive (->) (Mu f) f, Functor f, Foldable f, Ord1 f) =>
+  Ord (Mu f)
+  where
   compare = recursiveCompare
 
 -- | @since 0.6.1.0
-instance (Functor f, Read1 f) => Read (Mu f) where
+instance (Recursive (->) (Mu f) f, Functor f, Read1 f) => Read (Mu f) where
   readPrec = steppableReadPrec
   readListPrec = readListPrecDefault
 
-instance (Show1 f) => Show (Mu f) where
+instance (Recursive (->) (Mu f) f, Show1 f) => Show (Mu f) where
   showsPrec = recursiveShowsPrec
 
 -- | A fixed-point operator for coinductive / potentially-infinite data
 --   structures.
 data Nu f where Nu :: Coalgebra (->) f a -> a -> Nu f
+
+type instance Strict Nu = 'False
+
+type instance Strict (Nu _f) = 'False
 
 instance (Functor f) => Projectable (->) (Nu f) f where
   project (Nu f a) = Nu f <$> f a
@@ -419,11 +457,11 @@ instance Projectable (->) (Cofree f a) (EnvT a f) where
 instance Steppable (->) (Cofree f a) (EnvT a f) where
   embed (EnvT a ft) = a :< ft
 
-instance Projectable (->) (Free f a) (FreeF f a) where
-  project = runFree
+-- instance Projectable (->) (Free f a) (FreeF f a) where
+--   project = runFree
 
-instance Steppable (->) (Free f a) (FreeF f a) where
-  embed = free
+-- instance Steppable (->) (Free f a) (FreeF f a) where
+--   embed = free
 
 -- | Combines two `Algebra`s with different carriers into a single tupled
 --  `Algebra`.
@@ -580,11 +618,51 @@ distTuple φ = bimap (φ . fmap fst) (fmap snd) . diagonal
 
 distEnvT ::
   (Functor f) =>
-  Algebra (->) f a ->
+  -- |
+  --
+  --  __NB__: To be a true `DistributiveLaw`, this must be an @`Algebra` (->) f
+  --          a@, but this more general version is useful in certain cases (like
+  --         `distCofreeT`).
+  (f a -> b) ->
   DistributiveLaw (->) f w ->
-  DistributiveLaw (->) f (EnvT a w)
-distEnvT φ k =
-  uncurry EnvT . bimap (φ . fmap ask) (k . fmap lowerEnvT) . diagonal
+  f (EnvT a w c) ->
+  EnvT b w (f c)
+distEnvT φ k = uncurry EnvT . bimap φ k . unzip . fmap runEnvT
+
+distCofreeT ::
+  ( Corecursive (->) (t (f a)) (EnvT (f a) h),
+    Projectable (->) (t a) (EnvT a h),
+    Functor f
+  ) =>
+  DistributiveLaw (->) f h ->
+  f (t a) ->
+  t (f a)
+distCofreeT k = ana $ distEnvT id k . fmap project
+
+seqFreeF ::
+  (Functor f) =>
+  -- |
+  --
+  --  __NB__: To be a true `DistributiveLaw`, this must be a @`Coalgebra` (->) f
+  --          a@, but this more general version is useful in certain cases (like
+  --         `seqFreeT`).
+  (a -> f b) ->
+  DistributiveLaw (->) m f ->
+  FreeF m a (f c) ->
+  f (FreeF m b c)
+seqFreeF ψ k = \case
+  Pure a -> Pure <$> ψ a
+  Free ft -> Free <$> k ft
+
+seqFreeT ::
+  ( Recursive (->) (t (f a)) (FreeF h (f a)),
+    Steppable (->) (t a) (FreeF h a),
+    Functor f
+  ) =>
+  DistributiveLaw (->) h f ->
+  t (f a) ->
+  f (t a)
+seqFreeT k = cata $ fmap embed . seqFreeF id k
 
 seqEither ::
   (Functor f) => Coalgebra (->) f a -> DistributiveLaw (->) (Either a) f
@@ -597,7 +675,7 @@ attributeAlgebra ::
   Algebra (->) f a ->
   Algebra (->) f t
 attributeAlgebra φ ft =
-  embed $ EnvT (φ (fmap (fst . toStrict . runEnvT . project) ft)) ft
+  embed $ EnvT (φ (fmap (fst . runEnvT . project) ft)) ft
 
 -- | Converts a `Coalgebra` to one that annotates the tree with the seed that
 --   generated each node.
@@ -645,8 +723,8 @@ instance Steppable (->) (Either a b) (Const (Either a b)) where
 instance Recursive (->) (Either a b) (Const (Either a b)) where
   cata = constCata
 
-instance Corecursive (->) (Either a b) (Const (Either a b)) where
-  ana = constAna
+-- instance Corecursive (->) (Either a b) (Const (Either a b)) where
+--   ana = constAna
 
 instance Projectable (->) (Maybe a) (Const (Maybe a)) where
   project = constProject
@@ -657,8 +735,8 @@ instance Steppable (->) (Maybe a) (Const (Maybe a)) where
 instance Recursive (->) (Maybe a) (Const (Maybe a)) where
   cata = constCata
 
-instance Corecursive (->) (Maybe a) (Const (Maybe a)) where
-  ana = constAna
+-- instance Corecursive (->) (Maybe a) (Const (Maybe a)) where
+--   ana = constAna
 
 -- * Optics
 
@@ -685,3 +763,9 @@ recursivePrism alg =
   prism
     (ana (review alg))
     (\t -> first (const t) $ cata (matching alg <=< sequenceA) t)
+
+instance (PartialTypeError Nu) => Eq (Nu f) where
+  (==) = unsatisfiable
+
+instance (PartialTypeError Nu) => Show (Nu f) where
+  showsPrec = unsatisfiable

@@ -1,4 +1,5 @@
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.IntSet
@@ -6,39 +7,45 @@ module Yaya.Containers.Pattern.IntSet
   )
 where
 
-import "base" Control.Applicative
-  ( Alternative ((<|>)),
-    Applicative ((<*>)),
-    (*>),
-  )
-import "base" Control.Category (Category ((.)))
+import "base" Control.Applicative ((*>), (<*>), (<|>))
+import "base" Control.Category ((.))
 import "base" Data.Bool (Bool (False, True), (&&))
-import "base" Data.Eq (Eq ((==)))
+import "base" Data.Eq (Eq, (==))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (fmap), (<$), (<$>))
+import "base" Data.Functor (Functor, fmap, (<$), (<$>))
 import "base" Data.Functor.Classes
-  ( Eq1 (liftEq),
-    Ord1 (liftCompare),
-    Read1 (liftReadPrec),
-    Show1 (liftShowsPrec),
+  ( Eq1,
+    Ord1,
+    Read1,
+    Show1,
+    liftCompare,
+    liftEq,
+    liftReadPrec,
+    liftShowsPrec,
   )
-import "base" Data.Ord (Ord (compare, (<=)), Ordering (EQ, GT, LT))
+import "base" Data.Ord (Ord, Ordering (EQ, GT, LT), compare, (<=))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
 import qualified "base" Data.Tuple as Tuple
 import "base" GHC.Generics (Generic, Generic1)
-import "base" GHC.Read (Read (readPrec), expectP, parens)
+import "base" GHC.Read (Read, expectP, parens, readPrec)
 import "base" Text.ParserCombinators.ReadPrec (prec, step)
 import qualified "base" Text.Read.Lex as Lex
-import "base" Text.Show (Show (showsPrec), showParen, showString)
+import "base" Text.Show (Show, showParen, showString, showsPrec)
 import qualified "containers" Data.IntSet.Internal as IntSet
 import "yaya" Yaya.Fold
-  ( Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+  ( Projectable,
+    Recursive,
+    Steppable,
+    cata,
+    embed,
+    project,
   )
-import "base" Prelude (Num ((+)))
+import "yaya" Yaya.Strict (Strict)
+import "base" Prelude ((+))
+
+type instance Strict IntSet.IntSet = 'True
 
 data IntSetF r
   = NilF
@@ -56,6 +63,10 @@ data IntSetF r
       Generic1,
       Traversable
     )
+
+type instance Strict IntSetF = 'True
+
+type instance Strict (IntSetF _r) = 'True
 
 instance Projectable (->) IntSet.IntSet IntSetF where
   project IntSet.Nil = NilF

@@ -3,16 +3,18 @@
 -- | This should probably be a separate library, but it provides a number of
 --   functor type classes between various categories.
 module Yaya.Functor
-  ( DFunctor (dmap),
-    HFunctor (hmap),
+  ( DFunctor,
+    HFunctor,
+    dmap,
     firstMap,
+    hmap,
   )
 where
 
-import "base" Control.Category (Category ((.)))
+import "base" Control.Category ((.))
 import "base" Data.Bifunctor (Bifunctor, first)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor (fmap))
+import "base" Data.Functor (Functor, fmap)
 import "base" Data.Functor.Compose (Compose (Compose))
 import "base" Data.Functor.Product (Product (Pair))
 import "base" Data.Kind (Type)
@@ -36,9 +38,9 @@ class DFunctor (d :: (Type -> Type) -> Type) where
 
 -- | This isn’t a Functor instance because of the position of the @a@, but you
 --   can use it like:
---   > newtype List a = List (Mu (XNor a))
---   > instance Functor List where
---   >   fmap f (List mu) = List (firstMap f mu)
+-- > newtype List a = List (Mu (XNor a))
+-- > instance Functor List where
+-- >   fmap f (List mu) = List (firstMap f mu)
 firstMap :: (DFunctor d, Bifunctor f) => (a -> b) -> d (f a) -> d (f b)
 firstMap f = dmap (first f)
 

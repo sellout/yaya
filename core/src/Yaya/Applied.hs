@@ -1,4 +1,10 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+-- Needed by `PartialTypeError` constraints in GHC 9.4.
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 -- __NB__: base-4.17 moves `IsList` to its own module, which avoids the unsafety
 --         of importing "GHC.Exts". With prior versions of base, we at least
@@ -8,10 +14,6 @@
 #else
 {-# LANGUAGE Trustworthy #-}
 #endif
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Applied
   ( Void,
@@ -53,35 +55,30 @@ module Yaya.Applied
   )
 where
 
-import safe "base" Control.Category (Category (id, (.)))
-import safe "base" Data.Foldable (Foldable (foldr))
+import safe "base" Control.Category (id, (.))
+import safe "base" Data.Foldable (Foldable, foldr)
 import safe "base" Data.Function (flip)
-import safe "base" Data.Functor (Functor (fmap))
-import safe "base" Data.Functor.Identity (Identity (runIdentity))
+import safe "base" Data.Functor (Functor, fmap)
+import safe "base" Data.Functor.Identity (Identity, runIdentity)
 import safe "base" Data.Int (Int)
-import safe "base" Data.Monoid (Monoid (mempty))
-import safe "base" Data.Ord (Ord (max))
-import safe "base" Data.Semigroup (Semigroup ((<>)))
-
--- See comment on @{-# LANGUAGE Safe #-}@ above.
-#if MIN_VERSION_base(4, 17, 0)
-import "base" GHC.IsList (IsList)
-import qualified "base" GHC.IsList as IsList
-#else
-import "base" GHC.Exts (IsList)
-import qualified "base" GHC.Exts as IsList
-#endif
+import safe "base" Data.Monoid (Monoid, mempty)
+import safe "base" Data.Ord (Ord, max)
+import safe "base" Data.Semigroup (Semigroup, (<>))
 import safe "base" Numeric.Natural (Natural)
 import safe "free" Control.Monad.Trans.Free (FreeF (Free, Pure))
 import safe "this" Yaya.Fold
   ( Algebra,
-    Corecursive (ana),
+    Corecursive,
     Mu,
     Nu,
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
+    cata,
     cata2,
+    embed,
+    project,
   )
 import safe "this" Yaya.Fold.Common
   ( diagonal,
@@ -97,7 +94,7 @@ import safe "this" Yaya.Fold.Common
     truncate',
     unarySequence,
   )
-import safe "this" Yaya.Fold.Native (Fix)
+import safe "this" Yaya.Fold.Native (Cofix, Fix)
 import safe "this" Yaya.Pattern
   ( Either (Left),
     Maybe (Just, Nothing),
@@ -105,7 +102,17 @@ import safe "this" Yaya.Pattern
     XNor (Both, Neither),
     maybe,
   )
+import safe "this" Yaya.Strict (PartialTypeError, unsatisfiable)
 import safe "base" Prelude (Integral, fromIntegral)
+
+-- See comment on @{-# LANGUAGE Safe #-}@ above.
+#if MIN_VERSION_base(4, 17, 0)
+import "base" GHC.IsList (IsList)
+import qualified "base" GHC.IsList as IsList
+#else
+import "base" GHC.Exts (IsList)
+import qualified "base" GHC.Exts as IsList
+#endif
 
 now :: (Steppable (->) t (Either a)) => a -> t
 now = embed . Left
@@ -116,7 +123,8 @@ runToEnd :: (Recursive (->) t (Either a)) => t -> a
 runToEnd = cata fromEither
 
 -- | Converts exceptional divergence to non-termination.
-fromMaybe :: (Steppable (->) t (Either a), Corecursive (->) t (Either a)) => Maybe a -> t
+fromMaybe ::
+  (Steppable (->) t (Either a), Corecursive (->) t (Either a)) => Maybe a -> t
 fromMaybe = maybe (ana (toRight . never) ()) now
 
 type Void = Mu Identity
@@ -295,7 +303,27 @@ toList :: (Projectable (->) t (XNor a)) => t -> [a]
 toList = ana project
 
 -- | This instance is safe, since both structures are lazy.
+instance IsList (Cofix (XNor a)) where
+  type Item (Cofix (XNor a)) = a
+  fromList = fromList
+  fromListN = fromListN
+  toList = toList
+
+instance (PartialTypeError Fix) => IsList (Fix (XNor a)) where
+  type Item (Fix (XNor a)) = a
+  fromList = unsatisfiable
+  fromListN = fromListN
+  toList = toList
+
+instance (PartialTypeError Mu) => IsList (Mu (XNor a)) where
+  type Item (Mu (XNor a)) = a
+  fromList = unsatisfiable
+  fromListN = fromListN
+  toList = toList
+
+-- | This instance is safe, since both structures are lazy.
 instance IsList (Nu (XNor a)) where
   type Item (Nu (XNor a)) = a
   fromList = fromList
+  fromListN = fromListN
   toList = toList

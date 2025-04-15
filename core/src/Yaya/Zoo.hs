@@ -1,3 +1,4 @@
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE Safe #-}
 
 -- | Contains all the commonly-named folds that aren’t core to the library. In
@@ -9,7 +10,7 @@ module Yaya.Zoo
     List,
     Nat,
     NonEmptyList,
-    Partial (Partial, fromPartial),
+    Partial (Partial),
     Stream,
     apo,
     cataM,
@@ -17,6 +18,8 @@ module Yaya.Zoo
     comap,
     comutu,
     contramap,
+    fromPartial,
+    futu,
     gapo,
     gmutu,
     histo,
@@ -31,43 +34,48 @@ module Yaya.Zoo
   )
 where
 
-import "base" Control.Applicative (Applicative (pure, (<*>)))
-import "base" Control.Category (Category (id, (.)))
-import "base" Control.Monad (Monad ((>>=)), (<=<))
-import "base" Data.Bifunctor (Bifunctor (bimap, first))
-import "base" Data.Bitraversable (Bitraversable (bitraverse), bisequence)
+import "base" Control.Applicative (Applicative, pure, (<*>))
+import "base" Control.Category (id, (.))
+import "base" Control.Monad (Monad, (<=<), (>>=))
+import "base" Data.Bifunctor (Bifunctor, bimap, first)
+import "base" Data.Bitraversable (Bitraversable, bisequence, bitraverse)
 import "base" Data.Function (flip, ($))
-import "base" Data.Functor (Functor (fmap))
-import "base" Data.Traversable (Traversable (sequenceA))
-import "comonad" Control.Comonad (Comonad (duplicate, extract))
-import "comonad" Control.Comonad.Env (EnvT (EnvT))
-import "free" Control.Comonad.Cofree (Cofree)
-import "profunctors" Data.Profunctor (Profunctor (lmap))
+import "base" Data.Functor (Functor, fmap)
+import "base" Data.Traversable (Traversable, sequenceA)
+import "comonad" Control.Comonad (Comonad, duplicate, extract)
+import "profunctors" Data.Profunctor (Profunctor, lmap)
 import "this" Yaya.Fold
   ( Algebra,
     AlgebraM,
     Coalgebra,
-    Corecursive (ana),
+    Corecursive,
     DistributiveLaw,
     GAlgebra,
     GAlgebraM,
     GCoalgebra,
     Mu,
     Nu,
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
+    cata,
+    distCofreeT,
     distTuple,
     elgotAna,
+    embed,
     gana,
     gcata,
+    project,
     seqEither,
+    seqFreeT,
   )
 import "this" Yaya.Fold.Common (diagonal, fromEither)
-import "this" Yaya.Fold.Native (distCofreeT)
 import "this" Yaya.Pattern
   ( AndMaybe,
     Either (Left, Right),
+    EnvT (EnvT),
+    FreeF,
     Maybe,
     Pair ((:!:)),
     XNor,
@@ -178,8 +186,28 @@ mutuM ::
   m a
 mutuM φ' φ = fmap snd . cataM (bisequence . bimap (φ' . fmap swap) φ . diagonal)
 
+futu ::
+  ( Corecursive (->) t f,
+    Functor f,
+    forall x. Recursive (->) (freef x) (FreeF f x),
+    forall x. Steppable (->) (freef x) (FreeF f x),
+    Monad freef
+  ) =>
+  GCoalgebra (->) freef f a ->
+  a ->
+  t
+futu = gana (seqFreeT id)
+
 histo ::
-  (Recursive (->) t f, Functor f) => GAlgebra (->) (Cofree f) f a -> t -> a
+  ( Recursive (->) t f,
+    forall x. Corecursive (->) (cofreef x) (EnvT x f),
+    forall x. Projectable (->) (cofreef x) (EnvT x f),
+    Comonad cofreef,
+    Functor f
+  ) =>
+  GAlgebra (->) cofreef f a ->
+  t ->
+  a
 histo = gcata $ distCofreeT id
 
 -- | A recursion scheme that gives you access to the original structure as you
@@ -258,7 +286,11 @@ type Stream a = Nu (Pair a)
 -- | A more general implementation of `fmap`, because it can also work to, from,
 --   or within monomorphic structures, obviating the need for classes like
 --  `Data.MonoTraversable.MonoFunctor`.
-map :: (Recursive (->) t (f a), Steppable (->) u (f b), Bifunctor f) => (a -> b) -> t -> u
+map ::
+  (Recursive (->) t (f a), Steppable (->) u (f b), Bifunctor f) =>
+  (a -> b) ->
+  t ->
+  u
 map f = cata (embed . first f)
 
 -- | A version of `Yaya.Zoo.map` that applies to Corecursive structures.

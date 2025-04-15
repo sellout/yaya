@@ -1,3 +1,4 @@
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE Safe #-}
 
 module Yaya.Unsafe.Zoo
@@ -8,7 +9,6 @@ module Yaya.Unsafe.Zoo
     dyna,
     elgot,
     fstream,
-    futu,
     gpostpro,
     gprepro,
     stream,
@@ -16,71 +16,108 @@ module Yaya.Unsafe.Zoo
   )
 where
 
-import "base" Control.Applicative (Applicative (pure))
-import "base" Control.Category (Category (id, (.)))
+import "base" Control.Applicative (pure)
+import "base" Control.Category (id, (.))
 import "base" Control.Monad (Monad)
-import "base" Data.Bifunctor (Bifunctor (second))
-import "base" Data.Bitraversable (Bitraversable (bitraverse))
+import "base" Data.Bifunctor (second)
+import "base" Data.Bitraversable (Bitraversable, bitraverse)
 import "base" Data.Function (const, flip)
-import "base" Data.Functor (Functor (fmap))
-import "base" Data.Functor.Compose (Compose (Compose, getCompose))
-import "base" Data.Functor.Identity (Identity (Identity, runIdentity))
+import "base" Data.Functor (Functor, fmap)
+import "base" Data.Functor.Compose (Compose (Compose), getCompose)
+import "base" Data.Functor.Identity (Identity (Identity), runIdentity)
 import "base" Data.Traversable (Traversable)
 import "comonad" Control.Comonad (Comonad)
-import "comonad" Control.Comonad.Env (EnvT)
-import "free" Control.Comonad.Cofree (Cofree)
-import "free" Control.Monad.Trans.Free (Free)
 import "yaya" Yaya.Fold
   ( Algebra,
     Coalgebra,
-    Corecursive (ana),
+    Corecursive,
     DistributiveLaw,
     ElgotAlgebra,
     ElgotCoalgebra,
     GAlgebra,
     GCoalgebra,
-    Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
+    Projectable,
+    Recursive,
+    Steppable,
+    ana,
+    cata,
+    distCofreeT,
     distEnvT,
     distIdentity,
-    gana,
+    embed,
+    project,
+    seqFreeT,
     seqIdentity,
   )
 import "yaya" Yaya.Fold.Common (diagonal, fromEither)
-import "yaya" Yaya.Fold.Native (distCofreeT)
-import "yaya" Yaya.Pattern (Either, Maybe (Nothing), Pair ((:!:)), XNor (Both, Neither))
+import "yaya" Yaya.Fold.Native ()
+import "yaya" Yaya.Pattern
+  ( Either,
+    EnvT,
+    FreeF,
+    Maybe (Nothing),
+    Pair ((:!:)),
+    XNor (Both, Neither),
+  )
 import qualified "this" Yaya.Unsafe.Fold as Unsafe
-import qualified "this" Yaya.Unsafe.Fold.Instances as Unsafe -- FIXME: extremely unsafe
 
 chrono ::
-  (Functor f) =>
-  GAlgebra (->) (Cofree f) f b ->
-  GCoalgebra (->) (Free f) f a ->
+  ( Functor f,
+    forall x. Corecursive (->) (cofreef x) (EnvT x f),
+    forall x. Projectable (->) (cofreef x) (EnvT x f),
+    forall x. Recursive (->) (freef x) (FreeF f x),
+    forall x. Steppable (->) (freef x) (FreeF f x),
+    Comonad cofreef,
+    Monad freef
+  ) =>
+  GAlgebra (->) cofreef f b ->
+  GCoalgebra (->) freef f a ->
   a ->
   b
-chrono = Unsafe.ghylo (distCofreeT id) (Unsafe.seqFreeT id)
+chrono = Unsafe.ghylo (distCofreeT id) (seqFreeT id)
 
-codyna :: (Functor f) => Algebra (->) f b -> GCoalgebra (->) (Free f) f a -> a -> b
-codyna φ = Unsafe.ghylo distIdentity (Unsafe.seqFreeT id) (φ . fmap runIdentity)
+codyna ::
+  ( Functor f,
+    forall x. Recursive (->) (freef x) (FreeF f x),
+    forall x. Steppable (->) (freef x) (FreeF f x),
+    Monad freef
+  ) =>
+  Algebra (->) f b ->
+  GCoalgebra (->) freef f a ->
+  a ->
+  b
+codyna φ = Unsafe.ghylo distIdentity (seqFreeT id) (φ . fmap runIdentity)
 
--- | [Recursion Schemes for Dynamic Programming](https://www.researchgate.net/publication/221440162_Recursion_Schemes_for_Dynamic_Programming)
-dyna :: (Functor f) => GAlgebra (->) (Cofree f) f b -> Coalgebra (->) f a -> a -> b
+-- | [Recursion Schemes for Dynamic
+--   Programming](https://www.researchgate.net/publication/221440162_Recursion_Schemes_for_Dynamic_Programming)
+dyna ::
+  ( Functor f,
+    forall x. Corecursive (->) (cofreef x) (EnvT x f),
+    forall x. Projectable (->) (cofreef x) (EnvT x f),
+    Comonad cofreef
+  ) =>
+  GAlgebra (->) cofreef f b ->
+  Coalgebra (->) f a ->
+  a ->
+  b
 dyna φ ψ = Unsafe.ghylo (distCofreeT id) seqIdentity φ (fmap Identity . ψ)
 
 -- | Unlike most `Unsafe.hylo`s, `elgot` composes an algebra and coalgebra in a
 --   way that allows information to move between them. The coalgebra can return,
 --   effectively, a pre-folded branch, short-circuiting parts of the process.
-elgot :: (Functor f) => Algebra (->) f b -> ElgotCoalgebra (->) (Either b) f a -> a -> b
+elgot ::
+  (Functor f) =>
+  Algebra (->) f b ->
+  ElgotCoalgebra (->) (Either b) f a ->
+  a ->
+  b
 elgot φ ψ = Unsafe.hylo (fromEither . second φ . getCompose) (Compose . ψ)
 
 -- | The dual of `elgot`, `coelgot` allows the /algebra/ to short-circuit in
 --   some cases – operating directly on a part of the seed.
-coelgot :: (Functor f) => ElgotAlgebra (->) (Pair a) f b -> Coalgebra (->) f a -> a -> b
+coelgot ::
+  (Functor f) => ElgotAlgebra (->) (Pair a) f b -> Coalgebra (->) f a -> a -> b
 coelgot φ ψ = Unsafe.hylo (φ . getCompose) (Compose . second ψ . diagonal)
-
-futu :: (Corecursive (->) t f, Functor f) => GCoalgebra (->) (Free f) f a -> a -> t
-futu = gana (Unsafe.seqFreeT id)
 
 gprepro ::
   (Steppable (->) t f, Recursive (->) t f, Functor f, Comonad w) =>
@@ -152,11 +189,18 @@ cotraverse ::
   m u
 cotraverse f = Unsafe.anaM (bitraverse f pure . project)
 
--- | Zygohistomorphic prepromorphism – everyone’s favorite recursion scheme joke.
+-- | Zygohistomorphic prepromorphism – everyone’s favorite recursion scheme
+--   joke.
 zygoHistoPrepro ::
-  (Steppable (->) t f, Recursive (->) t f, Functor f) =>
+  ( Steppable (->) t f,
+    Recursive (->) t f,
+    forall x. Corecursive (->) (cofreef x) (EnvT x f),
+    forall x. Projectable (->) (cofreef x) (EnvT x f),
+    Functor f,
+    Comonad cofreef
+  ) =>
   (f b -> b) ->
-  (f (EnvT b (Cofree f) a) -> a) ->
+  (f (EnvT b cofreef a) -> a) ->
   (forall c. f c -> f c) ->
   t ->
   a
