@@ -7,6 +7,10 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 
 ## [0.2.0.4] - 2025-06-18
 
+### Added
+
+- support for QuickCheck 2.16
+
 ### Changed
 
 - license report entry for `yaya`

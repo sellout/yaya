@@ -166,7 +166,7 @@ library
   hs-source-dirs:
     src
   build-depends:
-    QuickCheck ^>= {2.10, 2.13.2, 2.14.2, 2.15.0},
+    QuickCheck ^>= {2.10, 2.13.2, 2.14.2, 2.15.0, 2.16.0},
     yaya ^>= {0.5.1, 0.6.0},
   exposed-modules:
     Yaya.QuickCheck.Fold
