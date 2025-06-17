@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name: yaya-quickcheck
-version: 0.2.0.3
+version: 0.2.0.4
 synopsis: QuickCheck testing support for the Yaya recursion scheme library.
 description: If you use Yaya in your own code and have tests written using
              QuickCheck, then this library will help you with generating trees,
