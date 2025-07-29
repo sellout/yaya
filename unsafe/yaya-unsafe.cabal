@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name: yaya-unsafe
-version: 0.4.1.4
+version: 0.4.1.5
 synopsis: Non-total extensions to the Yaya recursion scheme library.
 description: Yaya is designed as a _total_ library. However, it is often
              expedient to use partial operations in some cases, and this package
@@ -172,7 +172,7 @@ library
     src
   build-depends:
     comonad ^>= 5.0.7,
-    free ^>= {5.1.5, 5.2},
+    free ^>= {5.1.6, 5.2},
     -- `Control.Lens` in lens < 5 is `Unsafe`
     lens ^>= {5, 5.1, 5.2, 5.3},
     yaya ^>= {0.5.1, 0.6.0},

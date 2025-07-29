@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name: yaya
-version: 0.6.2.3
+version: 0.6.2.4
 synopsis: Total recursion schemes.
 description: Recursion schemes allow you to separate recursion from your
              business logic – making your own operations simpler, more modular,
@@ -170,7 +170,7 @@ library
   build-depends:
     comonad ^>= 5.0.7,
     either ^>= 5,
-    free ^>= {5.1.5, 5.2},
+    free ^>= {5.1.6, 5.2},
     kan-extensions ^>= 5.2,
     -- `Control.Lens` in lens < 5 is `Unsafe`
     lens ^>= {5, 5.1, 5.2, 5.3},
