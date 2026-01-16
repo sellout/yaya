@@ -76,35 +76,14 @@ in
       ##     Nixpkgs should be pushed upstream to Flaky. This is for
       ##     dependencies that we override for reasons local to the project.
       haskellDependencies = final: prev: hfinal: hprev:
-        if final.stdenv.hostPlatform.system == "i686-linux"
-        then
-          if
-            final.lib.versionAtLeast hprev.ghc.version "9.6"
-            && final.lib.versionOlder hprev.ghc.version "9.8"
-          then {
-            retrie = final.haskell.lib.dontCheck hprev.retrie;
-          }
-          else if
-            final.lib.versionAtLeast hprev.ghc.version "9.8"
-            && final.lib.versionOlder hprev.ghc.version "9.10"
-          then {
-            bifunctors = hfinal.callHackageDirect {
-              pkg = "bifunctors";
-              ver = "5.6.1";
-              sha256 = "PE+ymT2cUsEeTqgN5ty/BGqzvWlyj+fPJjYvMsbZYoo=";
-              rev = {
-                revision = "3";
-                sha256 = "UCogGFWjMm433cfI5+yEImvWB/DrBvUCLN+iZxavx+0=";
-              };
-            } {};
-            lens = final.haskell.lib.doJailbreak (hfinal.callHackageDirect {
-              pkg = "lens";
-              ver = "5.3.1"; # needs to be jailbroken for hashable
-              sha256 = "4Yk/899ZhnZx6XKLbCS1zuURSF5YpujxWfMZmDbqwSs=";
-            } {});
-            os-string = final.haskell.lib.dontCheck hprev.os-string;
-          }
-          else {}
+        if
+          final.stdenv.hostPlatform.system
+          == "i686-linux"
+          && final.lib.versionAtLeast hprev.ghc.version "9.6"
+          && final.lib.versionOlder hprev.ghc.version "9.8"
+        then {
+          retrie = final.haskell.lib.dontCheck hprev.retrie;
+        }
         else {};
     };
 
@@ -138,28 +117,30 @@ in
       ## one via GitHub workflow. Additionally, check any revisions that have
       ## explicit conditionalization. And check whatever version `pkgs.ghc`
       ## maps to in the nixpkgs we depend on.
-      testedGhcVersions = system: [
-        self.lib.defaultGhcVersion
-        "9.4.8"
-        "9.6.7"
-        "9.8.4"
-        "9.10.2"
-        "9.12.2"
-        # "ghcHEAD" # doctest doesn’t work on current HEAD
-      ];
+      testedGhcVersions = system:
+        [
+          self.lib.defaultGhcVersion
+          "9.4.8"
+          "9.6.7"
+          "9.10.2"
+        ]
+        ++ nixpkgs.lib.optionals (system != "i686-linux") [
+          "9.8.4" # There are a number of odd dependency compilation fallures
+          "9.12.2" # GHC fails to build on i686-linux
+        ];
 
       ## The versions that are older than those supported by Nix that we
       ## prefer to test against.
       nonNixTestedGhcVersions = [
-        # `(->)` isn’t a type constructor before GHC 8.6.
-        "8.6.1"
+        ## • `(->)` isn’t a type constructor before GHC 8.6.
+        ## • the `Universal-FOSS-exception-1.0` license exception isn’t
+        ##   supported by ghc-pkg before GHC 8.8.
         "8.8.1"
         "8.10.1"
         "9.0.1"
         "9.2.1"
         "9.4.1"
         "9.6.1"
-        ## since `cabal-plan-bounds` doesn’t work under Nix
         "9.8.1"
         "9.10.1"
         "9.12.1"
