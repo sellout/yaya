@@ -61,7 +61,7 @@ custom-setup
     --       9.8.3 include an older Cabal, so a newer one may need to be
     --       manually installed.
     Cabal >= 3.10.3 && < 99,
-    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
+    base ^>= {4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
     cabal-doctest ^>= {1.0.0},
 
 flag noisy-deprecations
@@ -137,7 +137,7 @@ common GHC2024
 common defaults
   import: GHC2024
   build-depends:
-    base ^>= {4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
+    base ^>= {4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
   ghc-options:
     -Weverything
     -- This one just reports unfixable things, AFAICT.
@@ -194,7 +194,7 @@ common defaults
       -DSELLOUT_NOISY_DEPRECATIONS
   if flag(verify-no-recursion)
     build-depends:
-      no-recursion,
+      no-recursion ^>= {0.2.0, 0.3.0, 0.4.0},
     ghc-options:
       -fplugin=NoRecursion
 
@@ -207,15 +207,12 @@ library
     either ^>= 5,
     free ^>= {5.1.5, 5.2},
     kan-extensions ^>= 5.2,
-    -- `Control.Lens` in lens < 5 is `Unsafe`
     lens ^>= {5, 5.1, 5.2, 5.3},
     profunctors ^>= {5.5.2, 5.6},
-    -- strict < 0.4 doesn’t export various combinators
     strict ^>= {0.4, 0.5},
-    template-haskell ^>= {2.14.0, 2.15.0, 2.16.0, 2.17.0, 2.18.0, 2.19.0, 2.20.0, 2.21.0, 2.22.0, 2.23.0, 2.24.0},
-    -- th-abstraction < 0.3 has different field names
-    th-abstraction ^>= {0.4.1, 0.5.0, 0.6.0, 0.7.0},
-    transformers ^>= {0.5.5, 0.6.1},
+    template-haskell ^>= {2.15.0, 2.16.0, 2.17.0, 2.18.0, 2.19.0, 2.20.0, 2.21.0, 2.22.0, 2.23.0, 2.24.0},
+    th-abstraction ^>= {0.4.1, 0.6.0, 0.7.1},
+    transformers ^>= {0.5.6, 0.6.1},
   exposed-modules:
     Yaya.Applied
     Yaya.Experimental.Foldable
@@ -236,7 +233,7 @@ test-suite doctests
     tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.16.0, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
+    doctest ^>= {0.16.2, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
     yaya,
   if impl(ghc >= 8.10.1)
     ghc-options:

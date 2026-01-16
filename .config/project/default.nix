@@ -65,6 +65,7 @@
     ## `yaya ^>= 0.5.0`, but `yaya-unsafe` requires `yaya ^>= 0.5.1`, so this
     ## must specify `yaya-0.5.1.0`, not `yaya-0.5.0.0`.
     extraDependencyVersions = [
+      "QuickCheck-2.15.0.1" # Used by Nixpkgs 25.11’s haskellPackages
       "yaya-0.5.1.0"
       "yaya-0.6.0.0"
       "yaya-hedgehog-0.2.1.0"

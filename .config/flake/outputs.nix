@@ -75,7 +75,37 @@ in
       ## NB: Dependencies that are overridden because they are broken in
       ##     Nixpkgs should be pushed upstream to Flaky. This is for
       ##     dependencies that we override for reasons local to the project.
-      haskellDependencies = final: prev: hfinal: hprev: {};
+      haskellDependencies = final: prev: hfinal: hprev:
+        if final.stdenv.hostPlatform.system == "i686-linux"
+        then
+          if
+            final.lib.versionAtLeast hprev.ghc.version "9.6"
+            && final.lib.versionOlder hprev.ghc.version "9.8"
+          then {
+            retrie = final.haskell.lib.dontCheck hprev.retrie;
+          }
+          else if
+            final.lib.versionAtLeast hprev.ghc.version "9.8"
+            && final.lib.versionOlder hprev.ghc.version "9.10"
+          then {
+            bifunctors = hfinal.callHackageDirect {
+              pkg = "bifunctors";
+              ver = "5.6.1";
+              sha256 = "PE+ymT2cUsEeTqgN5ty/BGqzvWlyj+fPJjYvMsbZYoo=";
+              rev = {
+                revision = "3";
+                sha256 = "UCogGFWjMm433cfI5+yEImvWB/DrBvUCLN+iZxavx+0=";
+              };
+            } {};
+            lens = final.haskell.lib.doJailbreak (hfinal.callHackageDirect {
+              pkg = "lens";
+              ver = "5.3.1"; # needs to be jailbroken for hashable
+              sha256 = "4Yk/899ZhnZx6XKLbCS1zuURSF5YpujxWfMZmDbqwSs=";
+            } {});
+            os-string = final.haskell.lib.dontCheck hprev.os-string;
+          }
+          else {}
+        else {};
     };
 
     homeConfigurations =
