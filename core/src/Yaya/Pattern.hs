@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Safe #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -26,9 +25,20 @@ import "base" Control.Category (Category ((.)))
 import "base" Control.Monad (Monad ((>>=)))
 import "base" Data.Bifunctor (Bifunctor (bimap))
 import "base" Data.Bool (Bool (False, True), (&&))
+import "base" Data.Eq (Eq ((==)))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
 import "base" Data.Functor (Functor, (<$), (<$>))
+import "base" Data.Functor.Classes
+  ( Eq1 (liftEq),
+    Eq2 (liftEq2),
+    Ord1 (liftCompare),
+    Ord2 (liftCompare2),
+    Read1 (liftReadPrec),
+    Read2 (liftReadPrec2),
+    Show1 (liftShowsPrec),
+    Show2 (liftShowsPrec2),
+  )
 import "base" Data.Ord (Ord (compare, (<=)), Ordering (EQ, GT, LT))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
@@ -37,6 +47,7 @@ import "base" GHC.Generics (Generic, Generic1)
 import "base" GHC.Read (expectP)
 import "base" Text.Read (Read (readListPrec, readPrec), parens, prec, step)
 import qualified "base" Text.Read.Lex as Lex
+import "base" Text.Show (Show (showList, showsPrec), showParen, showString)
 import "comonad" Control.Comonad (Comonad (duplicate, extract))
 import "strict" Data.Strict.Either
   ( Either (Left, Right),
@@ -73,33 +84,6 @@ import "strict" Data.Strict.Tuple
     (:!:),
   )
 import "base" Prelude (Num ((+)))
-#if MIN_VERSION_base(4, 18, 0)
-import "base" Data.Eq (Eq)
-import "base" Data.Functor.Classes
-  ( Eq1,
-    Eq2 (liftEq2),
-    Ord1 (liftCompare),
-    Ord2 (liftCompare2),
-    Read1 (liftReadPrec),
-    Read2 (liftReadPrec2),
-    Show1,
-    Show2 (liftShowsPrec2),
-  )
-import "base" Text.Show (Show, showParen, showString)
-#else
-import "base" Data.Eq (Eq ((==)))
-import "base" Data.Functor.Classes
-  ( Eq1 (liftEq),
-    Eq2 (liftEq2),
-    Ord1 (liftCompare),
-    Ord2 (liftCompare2),
-    Read1 (liftReadPrec),
-    Read2 (liftReadPrec2),
-    Show1 (liftShowsPrec),
-    Show2 (liftShowsPrec2),
-  )
-import "base" Text.Show (Show (showList, showsPrec), showParen, showString)
-#endif
 
 -- | Isomorphic to @'Maybe` (a, b)@, it’s also the pattern functor for lists.
 data XNor a b = Neither | Both ~a b
@@ -124,12 +108,8 @@ xnor neither both = \case
   Neither -> neither
   Both x y -> both x y
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Eq a) => Eq1 (XNor a)
-#else
 instance (Eq a) => Eq1 (XNor a) where
   liftEq = liftEq2 (==)
-#endif
 
 instance Eq2 XNor where
   liftEq2 f g = Tuple.curry $ \case
@@ -137,12 +117,8 @@ instance Eq2 XNor where
     (Both x y, Both x' y') -> f x x' && g y y'
     (_, _) -> False
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Ord a) => Ord1 (XNor a)
-#else
 instance (Ord a) => Ord1 (XNor a) where
   liftCompare = liftCompare2 compare
-#endif
 
 instance Ord2 XNor where
   liftCompare2 f g = Tuple.curry $ \case
@@ -165,12 +141,8 @@ instance Read2 XNor where
             <|> expectP (Lex.Ident "Both")
               *> (Both <$> step readPrecX <*> step readPrecY)
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Show a) => Show1 (XNor a)
-#else
 instance (Show a) => Show1 (XNor a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
-#endif
 
 instance Show2 XNor where
   liftShowsPrec2 showsPrecX _ showsPrecY _ p =
@@ -213,12 +185,8 @@ andMaybe only indeed = \case
   Only a -> only a
   Indeed a b -> indeed a b
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Eq a) => Eq1 (AndMaybe a)
-#else
 instance (Eq a) => Eq1 (AndMaybe a) where
   liftEq = liftEq2 (==)
-#endif
 
 instance Eq2 AndMaybe where
   liftEq2 f g = Tuple.curry $ \case
@@ -233,12 +201,8 @@ instance Eq2 AndMaybe where
 instance (Ord a, Ord b) => Ord (AndMaybe a b) where
   compare = liftCompare compare
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Ord a) => Ord1 (AndMaybe a)
-#else
 instance (Ord a) => Ord1 (AndMaybe a) where
   liftCompare = liftCompare2 compare
-#endif
 
 instance Ord2 AndMaybe where
   liftCompare2 f g = Tuple.curry $ \case
@@ -261,12 +225,8 @@ instance Read2 AndMaybe where
             <|> expectP (Lex.Ident "Indeed")
               *> (Indeed <$> step readPrecX <*> step readPrecY)
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Show a) => Show1 (AndMaybe a)
-#else
 instance (Show a) => Show1 (AndMaybe a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
-#endif
 
 instance Show2 AndMaybe where
   liftShowsPrec2 showsPrecX _ showsPrecY _ p =

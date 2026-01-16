@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Safe #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -26,6 +25,16 @@ import "base" Data.Eq (Eq ((==)))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
 import "base" Data.Functor (Functor (fmap), (<$), (<$>))
+import "base" Data.Functor.Classes
+  ( Eq1 (liftEq),
+    Eq2 (liftEq2),
+    Ord1 (liftCompare),
+    Ord2 (liftCompare2),
+    Read1 (liftReadPrec),
+    Read2 (liftReadPrec2),
+    Show1 (liftShowsPrec),
+    Show2 (liftShowsPrec2),
+  )
 import "base" Data.Int (Int)
 import "base" Data.Ord (Ord (compare, (<=)), Ordering (EQ, GT, LT))
 import "base" Data.Semigroup ((<>))
@@ -41,6 +50,12 @@ import "base" Text.Read
     step,
   )
 import qualified "base" Text.Read.Lex as Lex
+import "base" Text.Show
+  ( Show (showList, showsPrec),
+    ShowS,
+    showParen,
+    showString,
+  )
 import qualified "containers" Data.Map.Internal as Map
 import "yaya" Yaya.Fold
   ( Projectable (project),
@@ -48,36 +63,6 @@ import "yaya" Yaya.Fold
     Steppable (embed),
   )
 import "base" Prelude (Num ((+)))
-#if MIN_VERSION_base(4, 18, 0)
-import "base" Data.Functor.Classes
-  ( Eq1,
-    Eq2 (liftEq2),
-    Ord1,
-    Ord2 (liftCompare2),
-    Read1 (liftReadPrec),
-    Read2 (liftReadPrec2),
-    Show1,
-    Show2 (liftShowsPrec2),
-  )
-import "base" Text.Show (Show (showsPrec), ShowS, showParen, showString)
-#else
-import "base" Data.Functor.Classes
-  ( Eq1 (liftEq),
-    Eq2 (liftEq2),
-    Ord1 (liftCompare),
-    Ord2 (liftCompare2),
-    Read1 (liftReadPrec),
-    Read2 (liftReadPrec2),
-    Show1 (liftShowsPrec),
-    Show2 (liftShowsPrec2),
-  )
-import "base" Text.Show
-  ( Show (showList, showsPrec),
-    ShowS,
-    showParen,
-    showString,
-  )
-#endif
 
 data MapF k v r = TipF | BinF Map.Size k ~v r r
   deriving stock
@@ -175,22 +160,14 @@ showsMapFPrec showsPrecK showsPrecV showsPrecR p =
               . showString " "
               . showsPrecR nextPrec r
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Eq k, Eq v) => Eq1 (MapF k v)
-#else
 instance (Eq k, Eq v) => Eq1 (MapF k v) where
   liftEq = liftEq2 (==)
-#endif
 
 instance (Eq k) => Eq2 (MapF k) where
   liftEq2 = eqMapF (==)
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Ord k, Ord v) => Ord1 (MapF k v)
-#else
 instance (Ord k, Ord v) => Ord1 (MapF k v) where
   liftCompare = liftCompare2 compare
-#endif
 
 instance (Ord k) => Ord2 (MapF k) where
   liftCompare2 = compareMapF compare
@@ -204,12 +181,8 @@ instance (Read k) => Read2 (MapF k) where
   liftReadPrec2 readPrecV _ readPrecR _ =
     readMapFPrec readPrec readPrecV readPrecR
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Show k, Show v) => Show1 (MapF k v)
-#else
 instance (Show k, Show v) => Show1 (MapF k v) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
-#endif
 
 instance (Show k) => Show2 (MapF k) where
   liftShowsPrec2 showsPrecV _ showsPrecR _ =
