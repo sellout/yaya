@@ -1,5 +1,6 @@
 # Yaya-Hedgehog
 
+[![Hackage Version](https://img.shields.io/hackage/v/yaya-hedgehog)](https://hackage.haskell.org/package/yaya-hedgehog)
 [![Packaging status](https://repology.org/badge/tiny-repos/haskell:yaya-hedgehog.svg)](https://repology.org/project/haskell:yaya-hedgehog/versions)
 [![latest packaged versions](https://repology.org/badge/latest-versions/haskell:yaya-hedgehog.svg)](https://repology.org/project/haskell:yaya-hedgehog/versions)
 
@@ -89,6 +90,6 @@ Yes, in development, `-Werror` is often (and should be) used. However, that just
 
 ## licensing
 
-This package is licensed under [The GNU AGPL 3.0 or later](./LICENSE). If you need a license for usage that isn’t covered under the AGPL, please contact [Greg Pfeil](mailto:greg@technomadic.org?subject=licensing%20yaya).
+This package is licensed under [The GNU AGPL 3.0 only](./LICENSE). If you need a license for usage that isn’t covered under the AGPL, please contact [Greg Pfeil](mailto:greg@technomadic.org?subject=licensing%20yaya).
 
 You should review the [license report](docs/license-report.md) for details about dependency licenses.

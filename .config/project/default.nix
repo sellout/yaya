@@ -1,41 +1,34 @@
+### All available options for this file are listed in
+### https://sellout.github.io/project-manager/options.xhtml
 {
   config,
-  flaky,
   lib,
-  pkgs,
   self,
-  supportedSystems,
   ...
 }: {
   project = {
     name = "yaya";
     summary = "Yet another … yet another recursion scheme library for Haskell";
+    ## TODO: Move something like this to Flaky.
+    file = let
+      copyLicenses = dir: {
+        "${dir}/LICENSE".source = ../../LICENSE;
+        "${dir}/LICENSE.AGPL-3.0-only".source = ../../LICENSE.AGPL-3.0-only;
+        "${dir}/LICENSE.Universal-FOSS-exception-1.0".source =
+          ../../LICENSE.Universal-FOSS-exception-1.0;
+        "${dir}/LICENSE.commercial".source = ../../LICENSE.commercial;
+      };
+    in
+      copyLicenses "containers"
+      // copyLicenses "core"
+      // copyLicenses "hedgehog"
+      // copyLicenses "quickcheck"
+      // copyLicenses "unsafe";
   };
 
   imports = [./hlint.nix];
 
-  ## dependency management
-  services.renovate.enable = true;
-
-  ## development
-  programs = {
-    direnv.enable = true;
-    # This should default by whether there is a .git file/dir (and whether it’s
-    # a file (worktree) or dir determines other things – like where hooks
-    # are installed.
-    git.enable = true;
-  };
-
-  ## formatting
-  editorconfig.enable = true;
-
-  programs = {
-    treefmt.enable = true;
-    vale.enable = true;
-  };
-
   ## CI
-  services.garnix.enable = true;
   ## FIXME: Shouldn’t need `mkForce` here (or to duplicate the base contexts).
   ##        Need to improve module merging.
   services.github.settings.branches.main.protection.required_status_checks.contexts =
@@ -51,10 +44,9 @@
           "build (--prefer-oldest, ${ghc}, ${sys})"
         ])
         self.lib.nonNixTestedGhcVersions)
-      self.lib.githubSystems);
+      config.services.haskell-ci.systems);
   services.haskell-ci = {
-    inherit (self.lib) defaultGhcVersion extraDependencyVersions;
-    systems = self.lib.githubSystems;
+    inherit (self.lib) defaultGhcVersion;
     ghcVersions = self.lib.nonNixTestedGhcVersions;
     cabalPackages = {
       yaya = "core";
@@ -63,30 +55,24 @@
       yaya-quickcheck = "quickcheck";
       yaya-unsafe = "unsafe";
     };
-    latestGhcVersion = "9.10.1";
-    exclude = [
-      ## TODO: This particular combination requires libgmp.
-      {
-        bounds = "--prefer-oldest";
-        ghc = "8.6.1";
-        os = "macos-13";
-      }
-      ## TODO: This build often hangs for some reason.
-      {
-        bounds = "--prefer-oldest";
-        ghc = "8.8.1";
-        os = "windows-2022";
-      }
-      ## TODO: For some reason, this combination fails to build
-      ## ghc-paths-0.1.0.12.
-      {
-        ghc = "9.4.1";
-        os = "macos-14";
-      }
+    ## These are versions that we don’t build against, but that we want the
+    ## Haskell packages to support anyway. Mostly, this is for local packages
+    ## where `--perfer-oldest` and `--allow-newer` have no effect, so reasonable
+    ## bounds need to be managed manually.
+    ##
+    ## These also currently need to be restricted so that they work for all
+    ## packages that have them as dependencies. E.g., most packages require
+    ## `yaya ^>= 0.5.0`, but `yaya-unsafe` requires `yaya ^>= 0.5.1`, so this
+    ## must specify `yaya-0.5.1.0`, not `yaya-0.5.0.0`.
+    extraDependencyVersions = [
+      "yaya-0.5.1.0"
+      "yaya-0.6.0.0"
+      "yaya-hedgehog-0.2.1.0"
+      "yaya-hedgehog-0.3.0.0"
     ];
+    latestGhcVersion = "9.10.1";
   };
 
   ## publishing
-  services.github.enable = true;
   services.github.settings.repository.topics = ["recursion-schemes"];
 }

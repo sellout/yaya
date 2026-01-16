@@ -60,12 +60,9 @@ in
           flaky.overlays.default
           (flaky-haskell.lib.overlayHaskellPackages
             (map self.lib.nixifyGhcVersion
-              (self.lib.supportedGhcVersions final.system))
+              (self.lib.supportedGhcVersions final.stdenv.hostPlatform.system))
             (final: prev:
               nixpkgs.lib.composeManyExtensions [
-                ## TODO: I think this overlay is only needed by formatters,
-                ##       devShells, etc., so it shouldn’t be included in the
-                ##       standard overlay.
                 (flaky.overlays.haskellDependencies final prev)
                 (self.overlays.haskell final prev)
                 (self.overlays.haskellDependencies final prev)
@@ -103,30 +100,23 @@ in
       nixifyGhcVersion = version:
         "ghc" + nixpkgs.lib.replaceStrings ["."] [""] version;
 
-      ## For testing, we build against the _oldest_ version of each minor GHC
-      ## release. However, for general development, we want to use Nixpkgs
-      ## default GHC to maximize the cache benefit, etc.
-      ##
-      ## FIXME: This should be the assert below, but currently we have dependencies on this that don’t allow us to make it system-dependent.
-      defaultGhcVersion = "9.6.6";
+      ## TODO: Extract this automatically from `pkgs.haskellPackages`.
+      defaultGhcVersion = "9.10.3";
 
       ## Test the oldest revision possible for each minor release. If it’s not
       ## available in nixpkgs, test the oldest available, then try an older
       ## one via GitHub workflow. Additionally, check any revisions that have
       ## explicit conditionalization. And check whatever version `pkgs.ghc`
       ## maps to in the nixpkgs we depend on.
-      testedGhcVersions = system:
-        assert self.lib.defaultGhcVersion == nixpkgs.legacyPackages.${system}.haskellPackages.ghc.version; [
-          self.lib.defaultGhcVersion
-          "8.10.7"
-          "9.0.2"
-          "9.2.5"
-          "9.4.5"
-          "9.6.3"
-          "9.8.1"
-          "9.10.1"
-          # "ghcHEAD" # doctest doesn’t work on current HEAD
-        ];
+      testedGhcVersions = system: [
+        self.lib.defaultGhcVersion
+        "9.4.8"
+        "9.6.7"
+        "9.8.4"
+        "9.10.2"
+        "9.12.2"
+        # "ghcHEAD" # doctest doesn’t work on current HEAD
+      ];
 
       ## The versions that are older than those supported by Nix that we
       ## prefer to test against.
@@ -142,58 +132,18 @@ in
         ## since `cabal-plan-bounds` doesn’t work under Nix
         "9.8.1"
         "9.10.1"
+        "9.12.1"
+        "9.14.1"
       ];
 
       ## However, provide packages in the default overlay for _every_
       ## supported version.
-      supportedGhcVersions = system:
-        self.lib.testedGhcVersions system
-        ++ [
-          "9.2.6"
-          "9.2.7"
-          "9.2.8"
-          "9.4.6"
-          "9.4.7"
-          "9.4.8"
-          "9.6.4"
-          "9.6.5"
-          "9.8.2"
-        ];
-
-      ## These are versions that we don’t build against, but that we want the
-      ## Haskell packages to support anyway. Mostly, this is for local
-      ## packages where `--perfer-oldest` and `--allow-newer` have no effect,
-      ## so reasonable bounds need to be managed manually.
-      ##
-      ## These also currently need to be restricted so that they work for all
-      ## packages that have them as dependencies. E.g., most packages require
-      ## `yaya ^>= 0.5.0`, but `yaya-unsafe` requires `yaya ^>= 0.5.1`, so
-      ## this must specify `yaya-0.5.1.0`, not `yaya-0.5.0.0`.
-      extraDependencyVersions = [
-        "yaya-0.5.1.0"
-        "yaya-0.6.0.0"
-        "yaya-hedgehog-0.2.1.0"
-        "yaya-hedgehog-0.3.0.0"
-        ## This is the version used by Nix, so we can’t have
-        ## `cabal-plan-bounds` throw it out.
-        "th-abstraction-0.5.0.0"
-        ## This only solves at 0.7.1, but the Haskell didn’t change, so keep
-        ## the previous bound.
-        "th-abstraction-0.7.0.0"
-      ];
-
-      githubSystems = [
-        "macos-13" # x86_64-darwin
-        "macos-14" # aarch64-darwin
-        "ubuntu-24.04" # x86_64-linux
-        "windows-2022"
-      ];
+      supportedGhcVersions = self.lib.testedGhcVersions;
     };
   }
   // flake-utils.lib.eachSystem supportedSystems
   (system: let
     pkgs = nixpkgs.legacyPackages.${system}.appendOverlays [
-      flaky.overlays.default
       ## NB: This uses `self.overlays.default` because packages need to be
       ##     able to find other packages in this flake as dependencies.
       self.overlays.default
@@ -214,26 +164,21 @@ in
         default =
           self.devShells.${system}.${self.lib.nixifyGhcVersion self.lib.defaultGhcVersion};
       }
+      // self.projectConfigurations.${system}.devShells
       // flaky-haskell.lib.mkDevShells
       pkgs
       (map self.lib.nixifyGhcVersion (self.lib.supportedGhcVersions system))
       cabalPackages
       (hpkgs:
         [self.projectConfigurations.${system}.packages.path]
-        ## NB: Haskell Language Server no longer supports GHC <9.2, and 9.4
-        ##     has an issue with it on i686-linux.
-        ## TODO: Remove the restriction on GHC 9.10 once
-        ##       https://github.com/NixOS/nixpkgs/commit/e87381d634cb1ddd2bd7e121c44fbc926a8c026a
-        ##       finds its way into 24.05.
+        ## NB: Haskell Language Server no longer supports GHC <9.6.
         ++ nixpkgs.lib.optional
-        (
-          (
-            if system == "i686-linux"
-            then nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.4"
-            else nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.2"
-          )
-          && nixpkgs.lib.versionOlder hpkgs.ghc.version "9.10"
-        )
+        (nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.6"
+          ## TODO: With Nixpkgs 25.11, HLS complains about conflicting package
+          ##       versions in these combinations, so skip it.
+          && !(pkgs.stdenv.hostPlatform.isLinux
+            && nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.8"
+            && nixpkgs.lib.versionOlder hpkgs.ghc.version "9.10"))
         hpkgs.haskell-language-server);
 
     projectConfigurations =

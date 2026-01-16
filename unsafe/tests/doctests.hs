@@ -2,9 +2,9 @@
 
 module Main (main) where
 
-import "base" Data.Function (($))
-import "base" Data.Semigroup (Semigroup ((<>)))
-import "base" System.IO (IO)
+import safe "base" Data.Function (($))
+import safe "base" Data.Semigroup ((<>))
+import safe "base" System.IO (IO)
 import "doctest" Test.DocTest (doctest)
 import "this" Build_doctests (flags, module_sources, pkgs)
 

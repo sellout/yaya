@@ -7,7 +7,7 @@
   programs.treefmt.programs.hlint.enable = true;
   ## TODO: Wrap this to find our generated hlint config in the store.
   project.devPackages = [pkgs.hlint];
-  project.file.".hlint.yaml".text = lib.generators.toYAML {} [
+  project.file.".hlint.yaml".text = lib.pm.generators.toYAML {} [
     {
       group = {
         name = "dollar";

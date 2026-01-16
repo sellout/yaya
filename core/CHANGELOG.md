@@ -23,6 +23,8 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 
 ## [0.6.0.0] -
 
+## [0.5.2.1] -
+
 ## [0.5.0.0] -
 
 ## [0.4.2.3] – 2024–01–11
@@ -140,3 +142,10 @@ Unknown changes.
 ### Added
 
 - everything (this is the initial release)
+
+[0.6.2.3]: https://github.com/sellout/no-recursion/compare/v3.2.1...v3.2.3
+[0.6.2.2]: https://github.com/sellout/no-recursion/compare/v3.2.0...v3.2.1
+[0.6.2.0]: https://github.com/sellout/no-recursion/compare/v3.1.0...v3.2.0
+[0.6.1.0]: https://github.com/sellout/no-recursion/compare/v3.0.0...v3.1.0
+[0.6.0.0]: https://github.com/sellout/no-recursion/compare/v1.0.0...v3.0.0
+[0.5.2.1]: https://github.com/sellout/yaya/releases/tag/v1.0.0
