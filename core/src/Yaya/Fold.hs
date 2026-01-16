@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Safe #-}
+{-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-decls:steppableReadPrec' #-}
 
 module Yaya.Fold
   ( Algebra,
