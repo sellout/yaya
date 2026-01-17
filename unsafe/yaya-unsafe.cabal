@@ -3,7 +3,7 @@ cabal-version: 3.0
 --   exception.
 
 name: yaya-unsafe
-version: 0.4.1.4
+version: 0.5.0.0
 synopsis: Non-total extensions to the Yaya recursion scheme library.
 description: Yaya is designed as a _total_ library. However, it is often
              expedient to use partial operations in some cases, and this package
@@ -44,10 +44,18 @@ tested-with:
 
 homepage: https://github.com/sellout/yaya#readme
 bug-reports: https://github.com/sellout/yaya/issues
+
 source-repository head
   type: git
   location: https://github.com/sellout/yaya.git
   subdir: unsafe
+
+source-repository this
+  type: git
+  location: https://github.com/sellout/yaya.git
+  subdir: unsafe
+  -- NB: This is the repo version, which is distinct from the package version.
+  tag: v4.0.0
 
 custom-setup
   setup-depends:
@@ -207,7 +215,7 @@ library
     comonad ^>= 5.0.7,
     free ^>= {5.1.5, 5.2},
     lens ^>= {5, 5.1, 5.2, 5.3},
-    yaya ^>= {0.5.1, 0.6.0},
+    yaya ^>= {0.5.1, 0.6.0, 0.7.0},
   exposed-modules:
     Yaya.Unsafe.Applied
     Yaya.Unsafe.Fold
@@ -255,8 +263,8 @@ test-suite yaya-unsafe
     Test.Fold
   build-depends:
     hedgehog ^>= {1.0.1, 1.1, 1.2, 1.4, 1.5, 1.7},
-    yaya ^>= {0.5.1, 0.6.0},
-    yaya-hedgehog ^>= {0.2.1, 0.3.0},
+    yaya ^>= {0.5.1, 0.6.0, 0.7.0},
+    yaya-hedgehog ^>= {0.2.1, 0.3.0, 0.4.0},
     yaya-unsafe,
   ghc-options:
     -- NB: Need `-fno-omit-yields` so that `timeout` can interrupt native

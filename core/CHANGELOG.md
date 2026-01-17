@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog 1.1](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.7.0.0] - 2026-01-18
+
+### Added
+
+- support for GHC 9.12 and 9.14
+- `verify-no-recursion` Cabal flag for auditing recursion usage by the library
+- safer `stimes` implementations for `Semigroup` instances
+
+### Changed
+
+- license from “AGPL-3.0-or-later” to “AGPL-3.0-only WITH
+  Universal-FOSS-exception-1.0 OR LicenseRef-commercial”
+
+### Removed
+
+- support for GHC 8.6
+
 ## [0.6.2.2] - 2024-10-23
 
 ### Changed
@@ -143,6 +160,7 @@ Unknown changes.
 
 - everything (this is the initial release)
 
+[0.7.0.0]: https://github.com/sellout/no-recursion/compare/v3.2.3...v4.0.0
 [0.6.2.3]: https://github.com/sellout/no-recursion/compare/v3.2.1...v3.2.3
 [0.6.2.2]: https://github.com/sellout/no-recursion/compare/v3.2.0...v3.2.1
 [0.6.2.0]: https://github.com/sellout/no-recursion/compare/v3.1.0...v3.2.0

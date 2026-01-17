@@ -3,7 +3,7 @@ cabal-version: 3.0
 --   exception.
 
 name: yaya-quickcheck
-version: 0.2.0.3
+version: 0.3.0.0
 synopsis: QuickCheck testing support for the Yaya recursion scheme library.
 description: If you use Yaya in your own code and have tests written using
              QuickCheck, then this library will help you with generating trees,
@@ -39,10 +39,18 @@ tested-with:
 
 homepage: https://github.com/sellout/yaya#readme
 bug-reports: https://github.com/sellout/yaya/issues
+
 source-repository head
   type: git
   location: https://github.com/sellout/yaya.git
   subdir: quickcheck
+
+source-repository this
+  type: git
+  location: https://github.com/sellout/yaya.git
+  subdir: quickcheck
+  -- NB: This is the repo version, which is distinct from the package version.
+  tag: v4.0.0
 
 custom-setup
   setup-depends:
@@ -201,7 +209,7 @@ library
     src
   build-depends:
     QuickCheck ^>= {2.13.2, 2.14.2, 2.15.0, 2.16.0, 2.17.1},
-    yaya ^>= {0.5.1, 0.6.0},
+    yaya ^>= {0.5.1, 0.6.0, 0.7.0},
   exposed-modules:
     Yaya.QuickCheck.Fold
 

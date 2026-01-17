@@ -3,7 +3,7 @@ cabal-version: 3.0
 --   exception.
 
 name: yaya-containers
-version: 0.1.2.2
+version: 0.2.0.0
 synopsis: Pattern functors and instances for types in the containers package.
 maintainer: Greg Pfeil <greg@technomadic.org>
 author: Greg Pfeil <greg@technomadic.org>
@@ -36,10 +36,18 @@ tested-with:
 
 homepage: https://github.com/sellout/yaya#readme
 bug-reports: https://github.com/sellout/yaya/issues
+
 source-repository head
   type: git
   location: https://github.com/sellout/yaya.git
   subdir: containers
+
+source-repository this
+  type: git
+  location: https://github.com/sellout/yaya.git
+  subdir: containers
+  -- NB: This is the repo version, which is distinct from the package version.
+  tag: v4.0.0
 
 custom-setup
   setup-depends:
@@ -198,7 +206,7 @@ library
     src
   build-depends:
     containers ^>= {0.6.2, 0.7, 0.8},
-    yaya ^>= {0.5.1, 0.6.0},
+    yaya ^>= {0.5.1, 0.6.0, 0.7.0},
   exposed-modules:
     Yaya.Containers.Pattern.IntMap
     Yaya.Containers.Pattern.IntSet
