@@ -1,6 +1,9 @@
 # Yaya
 
 [![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2Fyaya)](https://garnix.io/repo/sellout/yaya)
+[![GitHub CI](https://github.com/sellout/yaya/actions/workflows/build.yml/badge.svg)](https://github.com/sellout/yaya/actions/workflows/build.yml)
+[![Nix CI](https://nix-ci.com/badge/gh:sellout:yaya)](https://nix-ci.com/gh:sellout:yaya)
+[![Project Manager](https://img.shields.io/badge/%20-Project%20Manager-%235277C3?logo=nixos&labelColor=%23cccccc)](https://sellout.github.io/project-manager/)
 
 Yet another … yet another recursion scheme library for Haskell
 
@@ -22,7 +25,7 @@ How's this possible? You can’t have totality _and_ Turing-completeness, can yo
 
 ## usage
 
-See [the package README](./yaya/README.md) for usage information.
+See [the package README](./core/README.md) for usage information.
 
 ## building
 

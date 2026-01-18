@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Safe #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -18,34 +17,6 @@ import "base" Data.Eq (Eq ((==)))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
 import "base" Data.Functor (Functor (fmap), (<$), (<$>))
-import "base" Data.Ord (Ord (compare, (<=)), Ordering (EQ, GT, LT))
-import "base" Data.Semigroup ((<>))
-import "base" Data.Traversable (Traversable)
-import qualified "base" Data.Tuple as Tuple
-import "base" GHC.Generics (Generic, Generic1)
-import "base" GHC.Read (Read (readListPrec, readPrec), expectP, parens)
-import "base" Text.ParserCombinators.ReadPrec (prec, step)
-import qualified "base" Text.Read.Lex as Lex
-import qualified "containers" Data.Set.Internal as Set
-import "yaya" Yaya.Fold
-  ( Projectable (project),
-    Recursive (cata),
-    Steppable (embed),
-  )
-import "base" Prelude (Num ((+)))
-#if MIN_VERSION_base(4, 18, 0)
-import "base" Data.Functor.Classes
-  ( Eq1,
-    Eq2 (liftEq2),
-    Ord1,
-    Ord2 (liftCompare2),
-    Read1 (liftReadPrec),
-    Read2 (liftReadPrec2),
-    Show1,
-    Show2 (liftShowsPrec2),
-  )
-import "base" Text.Show (Show (showsPrec), showParen, showString)
-#else
 import "base" Data.Functor.Classes
   ( Eq1 (liftEq),
     Eq2 (liftEq2),
@@ -56,8 +27,22 @@ import "base" Data.Functor.Classes
     Show1 (liftShowsPrec),
     Show2 (liftShowsPrec2),
   )
+import "base" Data.Ord (Ord (compare, (<=)), Ordering (EQ, GT, LT))
+import "base" Data.Semigroup ((<>))
+import "base" Data.Traversable (Traversable)
+import qualified "base" Data.Tuple as Tuple
+import "base" GHC.Generics (Generic, Generic1)
+import "base" GHC.Read (Read (readListPrec, readPrec), expectP, parens)
+import "base" Text.ParserCombinators.ReadPrec (prec, step)
+import qualified "base" Text.Read.Lex as Lex
 import "base" Text.Show (Show (showList, showsPrec), showParen, showString)
-#endif
+import qualified "containers" Data.Set.Internal as Set
+import "yaya" Yaya.Fold
+  ( Projectable (project),
+    Recursive (cata),
+    Steppable (embed),
+  )
+import "base" Prelude (Num ((+)))
 
 data SetF a r = TipF | BinF Set.Size a r r
   deriving stock
@@ -84,12 +69,8 @@ instance Steppable (->) (Set.Set a) (SetF a) where
   embed TipF = Set.Tip
   embed (BinF size a l r) = Set.Bin size a l r
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Eq a) => Eq1 (SetF a)
-#else
 instance (Eq a) => Eq1 (SetF a) where
   liftEq = liftEq2 (==)
-#endif
 
 instance Eq2 SetF where
   liftEq2 f g = Tuple.curry $ \case
@@ -98,12 +79,8 @@ instance Eq2 SetF where
       size == size' && f a a' && g l l' && g r r'
     (_, _) -> False
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Ord a) => Ord1 (SetF a)
-#else
 instance (Ord a) => Ord1 (SetF a) where
   liftCompare = liftCompare2 compare
-#endif
 
 instance Ord2 SetF where
   liftCompare2 f g = Tuple.curry $ \case
@@ -132,12 +109,8 @@ instance Read2 SetF where
                      <*> step readPrecR
                  )
 
-#if MIN_VERSION_base(4, 18, 0)
-instance (Show a) => Show1 (SetF a)
-#else
 instance (Show a) => Show1 (SetF a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
-#endif
 
 instance Show2 SetF where
   liftShowsPrec2 showsPrecA _ showsPrecR _ p =

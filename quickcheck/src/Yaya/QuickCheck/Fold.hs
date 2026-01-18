@@ -1,5 +1,6 @@
 {-# LANGUAGE Safe #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-decls:arbitrarySteppable,shrinkSteppable #-}
 
 module Yaya.QuickCheck.Fold
   ( arbitrarySteppable,

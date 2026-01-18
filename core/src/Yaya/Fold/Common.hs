@@ -62,7 +62,7 @@ import "this" Yaya.Pattern
     maybe,
     xnor,
   )
-import Prelude (Integer, Num ((*), (+), (-)))
+import "base" Prelude (Integer, Num ((*), (+), (-)))
 
 -- | Converts the free monoid (a list) into some other `Monoid`.
 lowerMonoid :: (Monoid m) => (a -> m) -> XNor a m -> m

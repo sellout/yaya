@@ -1,11 +1,42 @@
+-- Tune the solver to improve the odds of finding a solution. This is useful for
+-- initializing and updating dependency bounds, but shouldn’t have an impact on
+-- regular usage, because the explicit bounds reduce the search space.
+max-backjumps: -1
+minimize-conflict-set: true
+reorder-goals: true
+
 flags:
-  -noisy-deprecations
+  -- Ensure development of this project always uses @NoRecursion@, even if it
+  -- causes the solver to fail.
+  +verify-no-recursion
 
 program-options
   ghc-options:
     -Werror
 
 tests: True
+
+constraints:
+  -- 5 is the first version that’s @Safe@
+  lens >= 5,
+  -- 0.2.0 is the first version that lets us ignore violations
+  no-recursion >= 0.2.0,
+  -- 0.4 is the first version with many of the operations we use
+  strict >= 0.4,
+
+allow-newer:
+  -- The latest versions of these don’t have bounds that support GHC 9.14.
+  -- • latest is array-0.5.8.0-r2
+  array:base,
+  -- • latest is boring-0.2.2-r1
+  boring:base,
+  -- • latest is indexed-traversable-0.1.4-r1
+  indexed-traversable:base,
+  indexed-traversable:containers,
+  -- • latest is indexed-traversable-instances-0.1.2-r1
+  indexed-traversable-instances:base,
+  -- • latest is these-1.2.1-r2
+  these:base,
 
 packages:
   ./containers/yaya-containers.cabal

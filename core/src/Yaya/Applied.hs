@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-methods:sconcat #-}
 
 -- __NB__: base-4.17 moves `IsList` to its own module, which avoids the unsafety
 --         of importing "GHC.Exts". With prior versions of base, we at least
@@ -61,7 +62,7 @@ import safe "base" Data.Functor.Identity (Identity (runIdentity))
 import safe "base" Data.Int (Int)
 import safe "base" Data.Monoid (Monoid (mempty))
 import safe "base" Data.Ord (Ord (max))
-import safe "base" Data.Semigroup (Semigroup ((<>)))
+import safe "base" Data.Semigroup (Semigroup, stimes, stimesMonoid, (<>))
 
 -- See comment on @{-# LANGUAGE Safe #-}@ above.
 #if MIN_VERSION_base(4, 17, 0)
@@ -147,12 +148,14 @@ append front back = cata (embed . replaceNeither (project back)) front
 
 instance Semigroup (Fix (XNor a)) where
   (<>) = append
+  stimes = stimesMonoid
 
 instance Monoid (Fix (XNor a)) where
   mempty = embed Neither
 
 instance Semigroup (Mu (XNor a)) where
   (<>) = append
+  stimes = stimesMonoid
 
 instance Monoid (Mu (XNor a)) where
   mempty = embed Neither
