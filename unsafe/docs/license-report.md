@@ -13,7 +13,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | `free` | [`5.2`](http://hackage.haskell.org/package/free-5.2) | [`BSD-3-Clause`](http://hackage.haskell.org/package/free-5.2/src/LICENSE) | Monads for free | `adjunctions`, `kan-extensions`, `lens`, `yaya` |
 | `lens` | [`5.3.6`](http://hackage.haskell.org/package/lens-5.3.6) | [`BSD-2-Clause`](http://hackage.haskell.org/package/lens-5.3.6/src/LICENSE) | Lenses, Folds and Traversals | `yaya` |
 | `no-recursion` | [`0.4.0.0`](http://hackage.haskell.org/package/no-recursion-0.4.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/no-recursion-0.4.0.0/src/LICENSE) | A GHC plugin to remove support for recursion | `yaya` |
-| `yaya` | [`0.7.0.0`](http://hackage.haskell.org/package/yaya-0.7.0.0) |  *MISSING* | *MISSING* |  |
+| `yaya` | [`0.7.0.0`](http://hackage.haskell.org/package/yaya-0.7.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/yaya-0.7.0.0/src/LICENSE) | Total recursion schemes. |  |
 
 ## Indirect transitive dependencies
 
