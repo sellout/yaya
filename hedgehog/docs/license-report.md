@@ -12,7 +12,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | `deriving-compat` | [`0.6.8`](http://hackage.haskell.org/package/deriving-compat-0.6.8) | [`BSD-3-Clause`](http://hackage.haskell.org/package/deriving-compat-0.6.8/src/LICENSE) | Backports of GHC deriving extensions |  |
 | `hedgehog` | [`1.7`](http://hackage.haskell.org/package/hedgehog-1.7) | [`BSD-3-Clause`](http://hackage.haskell.org/package/hedgehog-1.7/src/LICENSE) | Release with confidence. |  |
 | `no-recursion` | [`0.4.0.0`](http://hackage.haskell.org/package/no-recursion-0.4.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/no-recursion-0.4.0.0/src/LICENSE) | A GHC plugin to remove support for recursion | `yaya` |
-| `yaya` | [`0.7.0.0`](http://hackage.haskell.org/package/yaya-0.7.0.0) |  *MISSING* | *MISSING* |  |
+| `yaya` | [`0.7.0.0`](http://hackage.haskell.org/package/yaya-0.7.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/yaya-0.7.0.0/src/LICENSE) | Total recursion schemes. |  |
 
 ## Indirect transitive dependencies
 
