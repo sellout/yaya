@@ -17,38 +17,49 @@ module Yaya.Pattern
 where
 
 import "base" Control.Applicative
-  ( Alternative ((<|>)),
-    Applicative (liftA2, pure, (<*>)),
+  ( Applicative,
+    liftA2,
+    pure,
     (*>),
+    (<*>),
+    (<|>),
   )
-import "base" Control.Category (Category ((.)))
-import "base" Control.Monad (Monad ((>>=)))
-import "base" Data.Bifunctor (Bifunctor (bimap))
+import "base" Control.Category ((.))
+import "base" Control.Monad (Monad, (>>=))
+import "base" Data.Bifunctor (Bifunctor, bimap)
 import "base" Data.Bool (Bool (False, True), (&&))
-import "base" Data.Eq (Eq ((==)))
+import "base" Data.Eq (Eq, (==))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
 import "base" Data.Functor (Functor, (<$), (<$>))
 import "base" Data.Functor.Classes
-  ( Eq1 (liftEq),
-    Eq2 (liftEq2),
-    Ord1 (liftCompare),
-    Ord2 (liftCompare2),
-    Read1 (liftReadPrec),
-    Read2 (liftReadPrec2),
-    Show1 (liftShowsPrec),
-    Show2 (liftShowsPrec2),
+  ( Eq1,
+    Eq2,
+    Ord1,
+    Ord2,
+    Read1,
+    Read2,
+    Show1,
+    Show2,
+    liftCompare,
+    liftCompare2,
+    liftEq,
+    liftEq2,
+    liftReadPrec,
+    liftReadPrec2,
+    liftShowsPrec,
+    liftShowsPrec2,
   )
-import "base" Data.Ord (Ord (compare, (<=)), Ordering (EQ, GT, LT))
+import "base" Data.Ord (Ord, Ordering (EQ, GT, LT), compare, (<=))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
 import qualified "base" Data.Tuple as Tuple
 import "base" GHC.Generics (Generic, Generic1)
 import "base" GHC.Read (expectP)
-import "base" Text.Read (Read (readListPrec, readPrec), parens, prec, step)
+import "base" Text.Read (Read, parens, prec, readListPrec, readPrec, step)
 import qualified "base" Text.Read.Lex as Lex
-import "base" Text.Show (Show (showList, showsPrec), showParen, showString)
-import "comonad" Control.Comonad (Comonad (duplicate, extract))
+import "base" Text.Show (Show, showList, showParen, showString, showsPrec)
+import "comonad" Control.Comonad (Comonad, duplicate, extract)
 import "strict" Data.Strict.Either
   ( Either (Left, Right),
     either,
@@ -83,7 +94,7 @@ import "strict" Data.Strict.Tuple
     zip,
     (:!:),
   )
-import "base" Prelude (Num ((+)))
+import "base" Prelude ((+))
 
 -- | Isomorphic to @'Maybe` (a, b)@, it’s also the pattern functor for lists.
 data XNor a b = Neither | Both ~a b
@@ -136,8 +147,7 @@ instance Read2 XNor where
   liftReadPrec2 readPrecX _ readPrecY _ =
     let appPrec = 10
      in parens . prec appPrec $
-          Neither
-            <$ expectP (Lex.Ident "Neither")
+          Neither <$ expectP (Lex.Ident "Neither")
             <|> expectP (Lex.Ident "Both")
               *> (Both <$> step readPrecX <*> step readPrecY)
 
@@ -220,8 +230,7 @@ instance Read2 AndMaybe where
   liftReadPrec2 readPrecX _ readPrecY _ =
     let appPrec = 10
      in parens . prec appPrec $
-          expectP (Lex.Ident "Only")
-            *> (Only <$> step readPrecX)
+          expectP (Lex.Ident "Only") *> (Only <$> step readPrecX)
             <|> expectP (Lex.Ident "Indeed")
               *> (Indeed <$> step readPrecX <*> step readPrecY)
 

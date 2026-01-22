@@ -7,18 +7,19 @@
 --   As these few operations have the usual signatures, the rest of the type
 --   class can be implemented in the as in @base@.
 module Yaya.Experimental.Foldable
-  ( Listable (naturalList),
+  ( Listable,
     foldMap,
     foldl,
     foldr,
+    naturalList,
   )
 where
 
-import "base" Control.Category (Category (id, (.)))
+import "base" Control.Category (id, (.))
 import "base" Data.Function (flip)
 import "base" Data.Monoid (Monoid)
 import "free" Control.Monad.Trans.Free (Free, iter)
-import "this" Yaya.Fold (Recursive (cata))
+import "this" Yaya.Fold (Recursive, cata)
 import "this" Yaya.Fold.Common (lowerMonoid)
 import "this" Yaya.Pattern (XNor (Both, Neither))
 

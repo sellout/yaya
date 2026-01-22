@@ -31,21 +31,21 @@ module Yaya.Fold.Common
   )
 where
 
-import "base" Control.Applicative (Applicative (pure))
-import "base" Control.Category (Category (id, (.)))
+import "base" Control.Applicative (pure)
+import "base" Control.Category (id, (.))
 import "base" Control.Monad (Monad, join)
 import "base" Data.Bool (Bool (False, True), (&&))
-import "base" Data.Eq (Eq ((==)))
-import "base" Data.Foldable (Foldable (foldr, toList), and, fold)
+import "base" Data.Eq ((==))
+import "base" Data.Foldable (Foldable, and, fold, foldr, toList)
 import "base" Data.Function (($), (&))
-import "base" Data.Functor (Functor (fmap), void)
-import "base" Data.Functor.Classes (Eq1 (liftEq), Show1 (liftShowsPrec))
-import "base" Data.Functor.Identity (Identity (Identity, runIdentity))
+import "base" Data.Functor (Functor, fmap, void)
+import "base" Data.Functor.Classes (Eq1, Show1, liftEq, liftShowsPrec)
+import "base" Data.Functor.Identity (Identity (Identity), runIdentity)
 import "base" Data.Int (Int)
 import "base" Data.List (zipWith)
-import "base" Data.Monoid (Monoid (mempty))
+import "base" Data.Monoid (Monoid, mempty)
 import "base" Data.Ord (Ord (max), Ordering)
-import "base" Data.Semigroup (Semigroup ((<>)))
+import "base" Data.Semigroup (Semigroup, (<>))
 import "base" GHC.Show (showList__)
 import "base" Numeric.Natural (Natural)
 import "base" Text.Show (ShowS)
@@ -62,7 +62,7 @@ import "this" Yaya.Pattern
     maybe,
     xnor,
   )
-import "base" Prelude (Integer, Num ((*), (+), (-)))
+import "base" Prelude (Integer, Num, (*), (+), (-))
 
 -- | Converts the free monoid (a list) into some other `Monoid`.
 lowerMonoid :: (Monoid m) => (a -> m) -> XNor a m -> m
@@ -191,7 +191,7 @@ diagonal x = x :!: x
 
 -- * sequence generators
 
---
+-- $sequence-generators
 --   These functions are defined with different type parameters in order to
 --   constrain the implementation, but to be used as coalgebras, all of the
 --   parameters need to be specialized to the same type.
