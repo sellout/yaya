@@ -27,11 +27,19 @@
       };
     }
 
-    {ignore = {name = "Eta reduce";};}
-    {ignore = {name = "Evaluate";};}
-    {ignore = {name = "Reduce duplication";};}
-    {ignore = {name = "Use list comprehension";};}
-    {ignore = {name = "Use section";};}
+    {
+      ignore.name = [
+        ## This can be removed once we no longer support ≤ base 4.18, which
+        ## doesn’t yet export `Data.Functor.unzip`.
+        "Avoid NonEmpty.unzip"
+        ## This complains when we use a common import and then import from the
+        ## same module under a CPP conditional. Since Ormolu handles combinig
+        ## imports when possible anyway, this warning isn’t helpful.
+        "Use fewer imports"
+        ## I just don’t like them (even the monadic variant).
+        "Use list comprehension"
+      ];
+    }
 
     {
       package = {
