@@ -1,3 +1,4 @@
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE Safe #-}
 
 module Yaya.Unsafe.Zoo
@@ -8,7 +9,6 @@ module Yaya.Unsafe.Zoo
     dyna,
     elgot,
     fstream,
-    futu,
     gpostpro,
     gprepro,
     stream,
@@ -28,8 +28,7 @@ import "base" Data.Functor.Identity (Identity (Identity), runIdentity)
 import "base" Data.Traversable (Traversable)
 import "comonad" Control.Comonad (Comonad)
 import "comonad" Control.Comonad.Env (EnvT)
-import "free" Control.Comonad.Cofree (Cofree)
-import "free" Control.Monad.Trans.Free (Free)
+import "free" Control.Monad.Trans.Free (FreeF)
 import "yaya" Yaya.Fold
   ( Algebra,
     Coalgebra,
@@ -39,19 +38,21 @@ import "yaya" Yaya.Fold
     ElgotCoalgebra,
     GAlgebra,
     GCoalgebra,
+    Projectable,
     Recursive,
     Steppable,
     ana,
     cata,
+    distCofreeT,
     distEnvT,
     distIdentity,
     embed,
-    gana,
     project,
+    seqFreeT,
     seqIdentity,
   )
 import "yaya" Yaya.Fold.Common (diagonal, fromEither)
-import "yaya" Yaya.Fold.Native (distCofreeT)
+import "yaya" Yaya.Fold.Native ()
 import "yaya" Yaya.Pattern
   ( Either,
     Maybe (Nothing),
@@ -59,23 +60,46 @@ import "yaya" Yaya.Pattern
     XNor (Both, Neither),
   )
 import qualified "this" Yaya.Unsafe.Fold as Unsafe
--- __FIXME__: extremely unsafe
-import qualified "this" Yaya.Unsafe.Fold.Instances as Unsafe
 
 chrono ::
-  (Functor f) =>
-  GAlgebra (->) (Cofree f) f b ->
-  GCoalgebra (->) (Free f) f a ->
+  ( Functor f,
+    forall x. Corecursive (->) (cofreef x) (EnvT x f),
+    forall x. Projectable (->) (cofreef x) (EnvT x f),
+    forall x. Recursive (->) (freef x) (FreeF f x),
+    forall x. Steppable (->) (freef x) (FreeF f x),
+    Comonad cofreef,
+    Monad freef
+  ) =>
+  GAlgebra (->) cofreef f b ->
+  GCoalgebra (->) freef f a ->
   a ->
   b
-chrono = Unsafe.ghylo (distCofreeT id) (Unsafe.seqFreeT id)
+chrono = Unsafe.ghylo (distCofreeT id) (seqFreeT id)
 
-codyna :: (Functor f) => Algebra (->) f b -> GCoalgebra (->) (Free f) f a -> a -> b
-codyna φ = Unsafe.ghylo distIdentity (Unsafe.seqFreeT id) (φ . fmap runIdentity)
+codyna ::
+  ( Functor f,
+    forall x. Recursive (->) (freef x) (FreeF f x),
+    forall x. Steppable (->) (freef x) (FreeF f x),
+    Monad freef
+  ) =>
+  Algebra (->) f b ->
+  GCoalgebra (->) freef f a ->
+  a ->
+  b
+codyna φ = Unsafe.ghylo distIdentity (seqFreeT id) (φ . fmap runIdentity)
 
 -- | [Recursion Schemes for Dynamic
 --   Programming](https://www.researchgate.net/publication/221440162_Recursion_Schemes_for_Dynamic_Programming)
-dyna :: (Functor f) => GAlgebra (->) (Cofree f) f b -> Coalgebra (->) f a -> a -> b
+dyna ::
+  ( Functor f,
+    forall x. Corecursive (->) (cofreef x) (EnvT x f),
+    forall x. Projectable (->) (cofreef x) (EnvT x f),
+    Comonad cofreef
+  ) =>
+  GAlgebra (->) cofreef f b ->
+  Coalgebra (->) f a ->
+  a ->
+  b
 dyna φ ψ = Unsafe.ghylo (distCofreeT id) seqIdentity φ (fmap Identity . ψ)
 
 -- | Unlike most `Unsafe.hylo`s, `elgot` composes an algebra and coalgebra in a
@@ -94,10 +118,6 @@ elgot φ ψ = Unsafe.hylo (fromEither . second φ . getCompose) (Compose . ψ)
 coelgot ::
   (Functor f) => ElgotAlgebra (->) (Pair a) f b -> Coalgebra (->) f a -> a -> b
 coelgot φ ψ = Unsafe.hylo (φ . getCompose) (Compose . second ψ . diagonal)
-
-futu ::
-  (Corecursive (->) t f, Functor f) => GCoalgebra (->) (Free f) f a -> a -> t
-futu = gana (Unsafe.seqFreeT id)
 
 gprepro ::
   (Steppable (->) t f, Recursive (->) t f, Functor f, Comonad w) =>
@@ -172,9 +192,15 @@ cotraverse f = Unsafe.anaM (bitraverse f pure . project)
 -- | Zygohistomorphic prepromorphism – everyone’s favorite recursion scheme
 --   joke.
 zygoHistoPrepro ::
-  (Steppable (->) t f, Recursive (->) t f, Functor f) =>
+  ( Steppable (->) t f,
+    Recursive (->) t f,
+    forall x. Corecursive (->) (cofreef x) (EnvT x f),
+    forall x. Projectable (->) (cofreef x) (EnvT x f),
+    Functor f,
+    Comonad cofreef
+  ) =>
   (f b -> b) ->
-  (f (EnvT b (Cofree f) a) -> a) ->
+  (f (EnvT b cofreef a) -> a) ->
   (forall c. f c -> f c) ->
   t ->
   a
