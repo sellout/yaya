@@ -217,8 +217,6 @@ class Projectable c t f | t -> f where
 pattern Embed :: (Projectable (->) t f) => f t -> t
 pattern Embed ft <- (project -> ft)
 
-{-# COMPLETE Embed #-}
-
 -- | This pattern is useful when you need to match the projection of a structure
 --   that has nicer embedded syntax, or if you’re only going to call `embed` on
 --   the extracted values anyway. It won’t break exhaustiveness checking.
@@ -231,7 +229,16 @@ pattern Embed ft <- (project -> ft)
 pattern Project :: (Steppable (->) t f) => t -> f t
 pattern Project t <- (embed -> t)
 
+-- @COMPLETE@ on polymorphic pattern synonyms _requires_ a type constructor for
+-- disambiguation before GHC 9.2. In that case, we define it on the few
+-- constructors we have in scope here.
+#if MIN_VERSION_GLASGOW_HASKELL(9, 2, 0, 0)
+{-# COMPLETE Embed #-}
 {-# COMPLETE Project #-}
+#else
+{-# COMPLETE Embed :: Mu #-}
+{-# COMPLETE Embed :: Nu #-}
+#endif
 
 -- | Structures you can walk through step-by-step.
 class (Projectable c t f) => Steppable c t f | t -> f where
