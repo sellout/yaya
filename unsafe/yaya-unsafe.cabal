@@ -176,6 +176,12 @@ common defaults
       -Wno-missing-poly-kind-signatures
       -- Inference good.
       -Wno-missing-role-annotations
+  -- remove if the oldest supported version is GHC 9.14.1+
+  if impl(ghc >= 9.14.1)
+    ghc-options:
+      -- See
+      -- https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0581-namespace-specified-imports.rst#deprecate-use-of-pattern-in-import-export-lists
+      -Wno-pattern-namespace-specifier
   default-extensions:
     BlockArguments
     DefaultSignatures
