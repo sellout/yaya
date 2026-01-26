@@ -13,7 +13,7 @@ import "base" Data.Bool (Bool (False, True), (&&))
 import "base" Data.Eq (Eq, (==))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor, fmap, (<$), (<$>))
+import "base" Data.Functor (Functor, (<$), (<$>))
 import "base" Data.Functor.Classes
   ( Eq1,
     Ord1,
@@ -43,6 +43,7 @@ import "yaya" Yaya.Fold
     embed,
     project,
   )
+import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude ((+))
 #if MIN_VERSION_containers(0, 8, 0)
 import qualified "containers" Data.IntSet.Internal.IntTreeCommons as IntSet
@@ -77,24 +78,26 @@ data IntSetF r
 #endif
 
 instance Projectable (->) IntSet.IntSet IntSetF where
-  project IntSet.Nil = NilF
-  project (IntSet.Tip prefix bm) = TipF prefix bm
+  project = \case
+    IntSet.Nil -> NilF
+    IntSet.Tip prefix bm -> TipF prefix bm
 #if MIN_VERSION_containers(0, 8, 0)
-  project (IntSet.Bin prefix l r) = BinF prefix l r
+    IntSet.Bin prefix l r -> BinF prefix l r
 #else
-  project (IntSet.Bin prefix mask l r) = BinF prefix mask l r
+    IntSet.Bin prefix mask l r -> BinF prefix mask l r
 #endif
 
 instance Recursive (->) IntSet.IntSet IntSetF where
-  cata φ = φ . fmap (cata φ) . project
+  cata = Unsafe.unsafeCata
 
 instance Steppable (->) IntSet.IntSet IntSetF where
-  embed NilF = IntSet.Nil
-  embed (TipF prefix bm) = IntSet.Tip prefix bm
+  embed = \case
+    NilF -> IntSet.Nil
+    TipF prefix bm -> IntSet.Tip prefix bm
 #if MIN_VERSION_containers(0, 8, 0)
-  embed (BinF prefix l r) = IntSet.Bin prefix l r
+    BinF prefix l r -> IntSet.Bin prefix l r
 #else
-  embed (BinF prefix mask l r) = IntSet.Bin prefix mask l r
+    BinF prefix mask l r -> IntSet.Bin prefix mask l r
 #endif
 
 instance Eq1 IntSetF where
