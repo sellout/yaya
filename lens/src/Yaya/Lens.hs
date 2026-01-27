@@ -7,7 +7,9 @@ module Yaya.Lens
     BialgebraIso',
     CoalgebraPrism,
     CoalgebraPrism',
+    anaIso,
     birecursiveIso,
+    cataIso,
     folded,
     steppableIso,
     unfolded,
@@ -22,8 +24,10 @@ import "base" Data.Functor ((<$>))
 import "base" Data.Traversable (Traversable, sequenceA)
 import "lens" Control.Lens
   ( Iso,
+    Iso',
     Lens,
     Prism,
+    from,
     iso,
     lens,
     matching,
@@ -96,3 +100,28 @@ unfolded ψ =
   prism
     (ana $ review ψ)
     (\s -> first (const $ ana project s) $ cata (matching ψ <=< sequenceA) s)
+
+-- | Lift an isomorphism on natural transformations into an isomorphism on
+--  `Recursive` structures.
+--
+--   source: Zanzi in [Monoidal Cafe #beginner-questions](https://discordapp.com/channels/1005220974523846678/1224686592187433082/1225431802068340796)
+cataIso ::
+  ( Recursive (->) t f,
+    Steppable (->) t f,
+    Recursive (->) u g,
+    Steppable (->) u g
+  ) =>
+  (forall a. Iso' (f a) (g a)) ->
+  Iso' t u
+cataIso nt = iso (cata $ embed . view nt) (cata $ embed . view (from nt))
+
+-- | The dual of `cataIso`.
+anaIso ::
+  ( Corecursive (->) t f,
+    Projectable (->) t f,
+    Corecursive (->) u g,
+    Projectable (->) u g
+  ) =>
+  (forall a. Iso' (f a) (g a)) ->
+  Iso' t u
+anaIso nt = iso (ana $ view nt . project) (ana $ view (from nt) . project)
