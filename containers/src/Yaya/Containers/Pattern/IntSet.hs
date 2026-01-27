@@ -44,8 +44,8 @@ import "yaya" Yaya.Fold
     embed,
     project,
   )
-import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "yaya" Yaya.Strict (Strict)
+import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude ((+))
 #if MIN_VERSION_containers(0, 8, 0)
 import qualified "containers" Data.IntSet.Internal.IntTreeCommons as IntSet

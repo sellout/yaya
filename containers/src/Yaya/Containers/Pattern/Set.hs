@@ -50,8 +50,8 @@ import "yaya" Yaya.Fold
     embed,
     project,
   )
-import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "yaya" Yaya.Strict (Strict)
+import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude ((+))
 
 type instance Strict Set.Set = 'True
