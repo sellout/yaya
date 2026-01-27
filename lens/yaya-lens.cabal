@@ -2,17 +2,15 @@ cabal-version: 3.0
 -- ^ Cabal 3.0 is the first with the `Universal-FOSS-exception-1.0` SPDX license
 --   exception.
 
-name: yaya-unsafe
-version: 0.5.0.0
-synopsis: Non-total extensions to the Yaya recursion scheme library.
-description: Yaya is designed as a _total_ library. However, it is often
-             expedient to use partial operations in some cases, and this package
-             extends Yaya to provide those operations. It’s in a separate
-             package (and modules) in order to make sure its use is very
-             intentional and also relatively obvious to those reading your code.
-             It’s recommended that you import these modules qualified and, in
-             particular, all the type class instances here have been pulled into
-             a separate module to avoid accidentally bringing them into scope.
+name: yaya-lens
+version: 0.0.1.0
+synopsis: Total recursion schemes.
+description: Recursion schemes allow you to separate recursion from your
+             business logic – making your own operations simpler, more modular,
+             and less error-prone. This library also provides tools for
+             combining your operations in ways that reduce the number of passes
+             over your data and is designed to encourage total (i.e.,
+             successfully terminating) functions.
 maintainer: Greg Pfeil <greg@technomadic.org>
 author: Greg Pfeil <greg@technomadic.org>
 copyright: 2017 Greg Pfeil
@@ -48,12 +46,12 @@ bug-reports: https://github.com/sellout/yaya/issues
 source-repository head
   type: git
   location: https://github.com/sellout/yaya.git
-  subdir: unsafe
+  subdir: lens
 
 source-repository this
   type: git
   location: https://github.com/sellout/yaya.git
-  subdir: unsafe
+  subdir: lens
   -- NB: This is the repo version, which is distinct from the package version.
   tag: v4.0.0
 
@@ -218,14 +216,10 @@ library
   hs-source-dirs:
     src
   build-depends:
-    comonad ^>= 5.0.7,
-    free ^>= {5.1.5, 5.2},
+    lens ^>= {5, 5.1, 5.2, 5.3},
     yaya ^>= {0.5.1, 0.6.0, 0.7.0},
   exposed-modules:
-    Yaya.Unsafe.Applied
-    Yaya.Unsafe.Fold
-    Yaya.Unsafe.Fold.Instances
-    Yaya.Unsafe.Zoo
+    Yaya.Lens
 
 test-suite doctests
   import: defaults
@@ -235,7 +229,7 @@ test-suite doctests
   main-is: doctests.hs
   build-depends:
     doctest ^>= {0.16.2, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
-    yaya-unsafe,
+    yaya-lens,
   if impl(ghc >= 8.10.1)
     ghc-options:
       -- `doctest` requires the package containing the doctests as a dependency
@@ -257,24 +251,3 @@ test-suite doctests
     -- “Build_doctests.hs”, we set it here, and that means it has to match
     -- doctests.hs, which is `Unsafe`.
     Unsafe
-
-test-suite yaya-unsafe
-  import: defaults
-  type: exitcode-stdio-1.0
-  hs-source-dirs:
-    tests
-  main-is: test.hs
-  other-modules:
-    Test.Fold
-  build-depends:
-    hedgehog ^>= {1.0.1, 1.1, 1.2, 1.4, 1.5, 1.7},
-    yaya ^>= {0.5.1, 0.6.0, 0.7.0},
-    yaya-hedgehog ^>= {0.2.1, 0.3.0, 0.4.0},
-    yaya-unsafe,
-  ghc-options:
-    -- NB: Need `-fno-omit-yields` so that `timeout` can interrupt native
-    --     recursion in non-termination tests.
-    -fno-omit-yields
-    -rtsopts
-    -threaded
-    -with-rtsopts=-N

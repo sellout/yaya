@@ -8,11 +8,8 @@
 module Yaya.Fold
   ( Algebra,
     AlgebraM,
-    AlgebraPrism,
-    BialgebraIso,
     Coalgebra,
     CoalgebraM,
-    CoalgebraPrism,
     Corecursive,
     DistributiveLaw,
     ElgotAlgebra,
@@ -32,7 +29,6 @@ module Yaya.Fold
     ana,
     attributeAlgebra,
     attributeCoalgebra,
-    birecursiveIso,
     cata,
     cata2,
     colambek,
@@ -64,14 +60,12 @@ module Yaya.Fold
     recursiveCompare',
     recursiveEq,
     recursiveEq',
-    recursivePrism,
     recursiveShowsPrec,
     recursiveShowsPrec',
     seqEither,
     seqFreeF,
     seqFreeT,
     seqIdentity,
-    steppableIso,
     steppableReadPrec,
     steppableReadPrec',
     unFree,
@@ -83,12 +77,12 @@ where
 import "base" Control.Applicative (Applicative, pure, (*>))
 import "base" Control.Category (id, (.))
 import "base" Control.Monad (Monad, join, (<=<), (=<<))
-import "base" Data.Bifunctor (bimap, first, second)
+import "base" Data.Bifunctor (bimap, second)
 import "base" Data.Bitraversable (bisequence)
 import "base" Data.Bool (Bool)
 import "base" Data.Eq (Eq, (==))
 import "base" Data.Foldable (Foldable, toList)
-import "base" Data.Function (const, flip, ($))
+import "base" Data.Function (flip, ($))
 import "base" Data.Functor (Functor, fmap, (<$>))
 import "base" Data.Functor.Classes
   ( Eq1,
@@ -99,11 +93,13 @@ import "base" Data.Functor.Classes
     liftEq,
     liftReadPrec,
   )
+import "base" Data.Functor.Const (Const (Const), getConst)
+import "base" Data.Functor.Identity (Identity (Identity), runIdentity)
 import "base" Data.Int (Int)
 import "base" Data.List.NonEmpty (NonEmpty ((:|)))
 import "base" Data.Ord (Ord, Ordering, compare, (<=))
 import "base" Data.String (String)
-import "base" Data.Traversable (sequenceA)
+import "base" Data.Traversable (Traversable, sequenceA, traverse)
 import "base" Data.Void (Void, absurd)
 import "base" GHC.Read (expectP, list)
 import "base" GHC.Show (appPrec1)
@@ -125,21 +121,6 @@ import "comonad" Control.Comonad.Trans.Env (EnvT (EnvT), lowerEnvT, runEnvT)
 import "free" Control.Comonad.Cofree (Cofree ((:<)))
 import "free" Control.Monad.Trans.Free (Free, FreeF (Free, Pure), free, runFree)
 import "kan-extensions" Data.Functor.Day (Day (Day))
-import "lens" Control.Lens
-  ( Const (Const),
-    Identity (Identity),
-    Iso',
-    Prism',
-    Traversable,
-    getConst,
-    iso,
-    matching,
-    prism,
-    review,
-    runIdentity,
-    traverse,
-    view,
-  )
 import "strict" Data.Strict.Classes (toStrict)
 import "this" Yaya.Fold.Common
   ( compareDay,
@@ -757,29 +738,3 @@ instance Recursive (->) (Maybe a) (Const (Maybe a)) where
 
 instance Corecursive (->) (Maybe a) (Const (Maybe a)) where
   ana = constAna
-
--- * Optics
-
-type BialgebraIso f a = Iso' (f a) a
-
-type AlgebraPrism f a = Prism' (f a) a
-
-type CoalgebraPrism f a = Prism' a (f a)
-
-steppableIso :: (Steppable (->) t f) => BialgebraIso f t
-steppableIso = iso embed project
-
-birecursiveIso ::
-  (Recursive (->) t f, Corecursive (->) t f) =>
-  BialgebraIso f a ->
-  Iso' t a
-birecursiveIso alg = iso (cata (view alg)) (ana (review alg))
-
-recursivePrism ::
-  (Recursive (->) t f, Corecursive (->) t f, Traversable f) =>
-  AlgebraPrism f a ->
-  Prism' t a
-recursivePrism alg =
-  prism
-    (ana (review alg))
-    (\t -> first (const t) $ cata (matching alg <=< sequenceA) t)
