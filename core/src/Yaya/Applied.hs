@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-methods:sconcat #-}
 
@@ -78,6 +78,7 @@ import safe "this" Yaya.Fold
     cata2,
     embed,
     project,
+    pattern Embed,
   )
 import safe "this" Yaya.Fold.Common
   ( diagonal,
@@ -165,8 +166,13 @@ instance Semigroup (Mu (XNor a)) where
 instance Monoid (Mu (XNor a)) where
   mempty = embed Neither
 
+-- |
+--
+--  __NB__: This can’t be implemented using `Day`, because we need to know that
+--          the `XNor` contains the fixed-point. And even if we could, it would
+--          require `Steppable` rather than just `Projectable`.
 drop' :: (Projectable (->) t (XNor a)) => Maybe (t -> t) -> t -> t
-drop' (Just fn) (project -> Both _ t) = fn t
+drop' (Just fn) (Embed (Both _ t)) = fn t
 drop' _ t = t
 
 drop :: (Recursive (->) n Maybe, Projectable (->) t (XNor a)) => n -> t -> t
