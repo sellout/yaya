@@ -1,0 +1,257 @@
+cabal-version: 3.0
+-- ^ Cabal 3.0 is the first with the `Universal-FOSS-exception-1.0` SPDX license
+--   exception.
+
+name: yaya-examples
+version: 0.0.1.0
+synopsis: Example uses for Yaya
+description: Find one of these examples that aligns with your use case, and get
+             some insight into how you can take advantage of Yaya.
+maintainer: Greg Pfeil <greg@technomadic.org>
+author: Greg Pfeil <greg@technomadic.org>
+copyright: 2025 Greg Pfeil
+license: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial
+license-files:
+  LICENSE
+  LICENSE.AGPL-3.0-only
+  LICENSE.Universal-FOSS-exception-1.0
+  LICENSE.commercial
+category: Recursion
+build-type: Custom
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+  docs/*.md
+tested-with:
+  GHC == {
+    8.8.1,
+    8.10.1,
+    9.0.1,
+    9.2.1,
+    9.4.1, 9.4.8,
+    9.6.1, 9.6.7,
+    9.8.1, 9.8.4,
+    9.10.1, 9.10.2, 9.10.3,
+    9.12.1, 9.12.2,
+    9.14.1
+  }
+
+homepage: https://github.com/sellout/yaya#readme
+bug-reports: https://github.com/sellout/yaya/issues
+
+source-repository head
+  type: git
+  location: https://github.com/sellout/yaya.git
+  subdir: examples
+
+source-repository this
+  type: git
+  location: https://github.com/sellout/yaya.git
+  subdir: examples
+  -- NB: This is the repo version, which is distinct from the package version.
+  tag: v4.0.0
+
+custom-setup
+  setup-depends:
+    -- TODO: Due to haskell/cabal#3751, `Cabal` has to be specified even though
+    --       there’s no direct dependency. Its lower bound needs to be at least
+    --       as high as `cabal-version` at the top of this file, and Hackage
+    --       requires it to have _some_ upper bound. (Since there’s no direct
+    --       dependency, it doesn’t use PVP bounds.)
+    --
+    -- TODO: Due to haskell/cabal#9375, 3.10.3 is required in order to load
+    --       plugins from a `ghc-options` field. Unfortunately, GHCs prior to
+    --       9.8.3 include an older Cabal, so a newer one may need to be
+    --       manually installed.
+    Cabal >= 3.10.3 && < 99,
+    base ^>= {4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
+    cabal-doctest ^>= {1.0.0},
+
+flag noisy-deprecations
+  description:
+    Prior to GHC 9.10, the @DEPRECATED@ pragma can’t distinguish between terms
+    and types. Consenquently, you can get spurious warnings when there’s a name
+    collision and the name in the other namespace is deprecated. Or you can
+    choose to not get those warnings, at the risk of not being warned when
+    there’s a name collision and the namespace you’re referencing is the one
+    that’s deprecated.
+  default: True
+  -- Because disabling this flag won’t help the solver.
+  manual: True
+
+flag verify-no-recursion
+  description:
+    Compile with "NoRecursion" enabled. This is intended for developers of this
+    package.
+  default: False
+  -- Because disabling this flag won’t help the solver.
+  manual: True
+
+-- This mimics the GHC2024 extension
+-- (https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/control.html?highlight=doandifthenelse#extension-GHC2024),
+-- but supporting compilers back to GHC 7.10. If the oldest supported compiler
+-- is GHC 9.10, then this stanza can be removed and `import: GHC2024` can be
+-- replaced by `default-language: GHC2024`. If the oldest supported compiler is
+-- GHC 9.2, then this can be simplified by setting `default-language: GHC2021`
+-- and only including the extensions added by GHC2024.
+common GHC2024
+  default-language: Haskell2010
+  default-extensions:
+    BangPatterns
+    BinaryLiterals
+    ConstraintKinds
+    DataKinds
+    DeriveDataTypeable
+    DeriveGeneric
+    -- DeriveLift -- uncomment if the oldest supported version is GHC 8.10.1+
+    DeriveTraversable
+    DerivingStrategies
+    DisambiguateRecordFields
+    DoAndIfThenElse
+    EmptyCase
+    ExistentialQuantification
+    FlexibleContexts
+    FlexibleInstances
+    GADTs
+    GeneralizedNewtypeDeriving
+    HexFloatLiterals
+    -- ImportQualifiedPost -- uncomment if the oldest supported version is GHC 8.10.1+
+    InstanceSigs
+    LambdaCase
+    MagicHash
+    MonadComprehensions
+    MonomorphismRestriction
+    MultiParamTypeClasses
+    NamedFieldPuns
+    NamedWildCards
+    NumericUnderscores
+    PolyKinds
+    PostfixOperators
+    RankNTypes
+    RoleAnnotations
+    ScopedTypeVariables
+    StandaloneDeriving
+    -- StandaloneKindSignatures -- uncomment if the oldest supported version is GHC 8.10.1+
+    TupleSections
+    TypeApplications
+    TypeOperators
+    UnicodeSyntax
+
+common defaults
+  import: GHC2024
+  build-depends:
+    base ^>= {4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
+  ghc-options:
+    -Weverything
+    -- This one just reports unfixable things, AFAICT.
+    -Wno-all-missed-specialisations
+    -- Type inference good.
+    -Wno-missing-local-signatures
+    -- Warns even when `Unsafe` is explicit, not inferred. See
+    -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
+    -Wno-unsafe
+  if impl(ghc < 8.8.1)
+    ghc-options:
+      -- This used to warn even when `Safe` was explicit.
+      -Wno-safe
+  if impl(ghc >= 8.10.1)
+    ghc-options:
+      -- If we didn’t allow inferred-safe imports, nothing would be `Safe`.
+      -Wno-inferred-safe-imports
+      -- remove if the oldest supported version is GHC 8.10.1+
+      -Wno-prepositive-qualified-module
+  -- remove if the oldest supported version is GHC 9.2.1+
+  if impl(ghc >= 9.2.1)
+    ghc-options:
+      -Wno-missing-kind-signatures
+  if impl(ghc >= 9.8.1)
+    ghc-options:
+      -- remove if the oldest supported version is GHC 9.2.1+
+      -Wno-missing-poly-kind-signatures
+      -- Inference good.
+      -Wno-missing-role-annotations
+  -- remove if the oldest supported version is GHC 9.14.1+
+  if impl(ghc >= 9.14.1)
+    ghc-options:
+      -- See
+      -- https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0581-namespace-specified-imports.rst#deprecate-use-of-pattern-in-import-export-lists
+      -Wno-pattern-namespace-specifier
+  default-extensions:
+    BlockArguments
+    DefaultSignatures
+    ExplicitNamespaces
+    FunctionalDependencies
+    LiberalTypeSynonyms
+    -- replace with `LexicalNegation` if the oldest supported version is GHC 9.0.1+
+    NegativeLiterals
+    PackageImports
+    ParallelListComp
+    -- QualifiedDo - uncomment if the oldest supported version is GHC 9.0.1+
+    RecursiveDo
+    -- RequiredTypeArguments - uncomment if the oldest supported version is GHC 9.10.1+
+    StrictData
+    TemplateHaskellQuotes
+    TransformListComp
+    NoGeneralizedNewtypeDeriving
+    NoImplicitPrelude
+    NoMonomorphismRestriction
+    NoPatternGuards
+    NoStarIsType
+    NoTypeApplications
+  if flag(noisy-deprecations)
+    cpp-options:
+      -DSELLOUT_NOISY_DEPRECATIONS
+  if flag(verify-no-recursion)
+    build-depends:
+      no-recursion ^>= {0.2.0, 0.3.0, 0.4.0},
+    ghc-options:
+      -fplugin=NoRecursion
+
+library
+  import: defaults
+  hs-source-dirs:
+    src
+  build-depends:
+    bytestring,
+    containers ^>= {0.6.2, 0.7, 0.8},
+    deriving-compat ^>= {0.5.9, 0.6},
+    megaparsec,
+    text,
+    yaya ^>= {0.5.1, 0.6.0, 0.7.0},
+    yaya-native ^>= {0.0.1},
+  exposed-modules:
+    Yaya.Example.Json
+    Yaya.Example.Json.Schemes
+    Yaya.Example.Json.Schemes.JsonParser
+
+test-suite doctests
+  import: defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs:
+    tests
+  main-is: doctests.hs
+  build-depends:
+    doctest ^>= {0.16.2, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
+    yaya-examples,
+    yaya-hedgehog ^>= {0.2.1, 0.3.0, 0.4.0},
+  if impl(ghc >= 8.10.1)
+    ghc-options:
+      -- `doctest` requires the package containing the doctests as a dependency
+      -- to ensure it gets built before this test-suite, even though the package
+      -- appears to be unused.
+      -Wno-unused-packages
+  -- TODO: The sections below here are necessary because we don’t have control
+  --       over the generated `Build_doctests.hs` file. So we have to silence
+  --       all of its warnings one way or another.
+  ghc-options:
+    -Wno-missing-export-lists
+    -Wno-missing-import-lists
+    -Wno-safe
+  if impl(ghc >= 8.8.1)
+    ghc-options:
+      -Wno-missing-deriving-strategies
+  default-extensions:
+    -- Since we can’t add `{-# LANGUAGE Safe -#}` to the generated
+    -- “Build_doctests.hs”, we set it here, and that means it has to match
+    -- doctests.hs, which is `Unsafe`.
+    Unsafe

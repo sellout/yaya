@@ -38,6 +38,7 @@
     in
       copyLicenses "containers"
       // copyLicenses "core"
+      // copyLicenses "examples"
       // copyLicenses "hedgehog"
       // copyLicenses "native"
       // copyLicenses "quickcheck"
@@ -89,6 +90,7 @@
     cabalPackages = {
       yaya = "core";
       yaya-containers = "containers";
+      yaya-examples = "examples";
       yaya-hedgehog = "hedgehog";
       yaya-native = "native";
       yaya-quickcheck = "quickcheck";

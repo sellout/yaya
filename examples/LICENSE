@@ -1,0 +1,8 @@
+LicenseListVersion: 3.27.0
+SPDX-License-Identifier: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial
+
+The individual licenses are included in files named “LICENSE.” with a suffix
+that matches each license’s identifier.
+
+Also make sure you comply with the licenses listed in the docs/license-report.md
+file included with the packages you depend on.
