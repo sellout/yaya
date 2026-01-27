@@ -20,7 +20,7 @@ import "base" Data.Bool (Bool (False, True), (&&))
 import "base" Data.Eq (Eq, (==))
 import "base" Data.Foldable (Foldable)
 import "base" Data.Function (($))
-import "base" Data.Functor (Functor, fmap, (<$), (<$>))
+import "base" Data.Functor (Functor, (<$), (<$>))
 import "base" Data.Functor.Classes
   ( Eq1,
     Eq2,
@@ -73,6 +73,7 @@ import "yaya" Yaya.Fold
     embed,
     project,
   )
+import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude ((+))
 
 data MapF k v r = TipF | BinF Map.Size k ~v r r
@@ -94,7 +95,7 @@ instance Projectable (->) (Map.Map k v) (MapF k v) where
   project (Map.Bin size k v l r) = BinF size k v l r
 
 instance Recursive (->) (Map.Map k v) (MapF k v) where
-  cata φ = φ . fmap (cata φ) . project
+  cata = Unsafe.unsafeCata
 
 instance Steppable (->) (Map.Map k v) (MapF k v) where
   embed TipF = Map.Tip
