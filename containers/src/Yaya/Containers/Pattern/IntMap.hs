@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.IntMap
@@ -50,16 +51,26 @@ import "yaya" Yaya.Fold
     embed,
     project,
   )
+import "yaya" Yaya.Strict (Strict)
 import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude ((+))
 #if MIN_VERSION_containers(0, 8, 0)
 import qualified "containers" Data.IntSet.Internal.IntTreeCommons as IntMap
   ( Prefix (Prefix),
   )
+#endif
+
+type instance Strict IntMap.IntMap = 'False
+
+-- |
+--
+--  __FIXME__: This is strict only if `a` is not non-strict.
+type instance Strict (IntMap.IntMap _a) = 'True
 
 data IntMapF a r
   = NilF
-  | TipF IntMap.Key a
+  | TipF IntMap.Key ~a
+#if MIN_VERSION_containers(0, 8, 0)
   | BinF IntMap.Prefix r r
   deriving stock
     ( Eq,
@@ -70,9 +81,6 @@ data IntMapF a r
       Traversable
     )
 #else
-data IntMapF a r
-  = NilF
-  | TipF IntMap.Key a
   | BinF IntMap.Prefix IntMap.Mask r r
   deriving stock
     ( Eq,
@@ -83,6 +91,18 @@ data IntMapF a r
       Traversable
     )
 #endif
+
+type instance Strict IntMapF = 'False
+
+-- |
+--
+--  __FIXME__: This is strict only if `a` is not non-strict.
+type instance Strict (IntMapF _a) = 'True
+
+-- |
+--
+--  __FIXME__: This is strict only if `a` is not non-strict.
+type instance Strict (IntMapF _a _r) = 'True
 
 instance Projectable (->) (IntMap.IntMap a) (IntMapF a) where
   project = \case

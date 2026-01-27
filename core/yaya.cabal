@@ -235,6 +235,7 @@ library
     Yaya.Functor
     Yaya.Pattern
     Yaya.Retrofit
+    Yaya.Strict
     Yaya.Zoo
   other-modules:
     Yaya.Fold.Native.Internal

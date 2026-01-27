@@ -225,7 +225,6 @@ library
   exposed-modules:
     Yaya.Unsafe.Applied
     Yaya.Unsafe.Fold
-    Yaya.Unsafe.Fold.Instances
     Yaya.Unsafe.Zoo
 
 test-suite doctests

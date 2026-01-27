@@ -1,4 +1,5 @@
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.Set
@@ -49,8 +50,13 @@ import "yaya" Yaya.Fold
     embed,
     project,
   )
+import "yaya" Yaya.Strict (Strict)
 import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude ((+))
+
+type instance Strict Set.Set = 'True
+
+type instance Strict (Set.Set _a) = 'True
 
 data SetF a r = TipF | BinF Set.Size a r r
   deriving stock
@@ -65,6 +71,12 @@ data SetF a r = TipF | BinF Set.Size a r r
       Generic1,
       Traversable
     )
+
+type instance Strict SetF = 'True
+
+type instance Strict (SetF _a) = 'True
+
+type instance Strict (SetF _a _r) = 'True
 
 instance Projectable (->) (Set.Set a) (SetF a) where
   project Set.Tip = TipF

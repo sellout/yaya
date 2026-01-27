@@ -1,4 +1,5 @@
 {-# LANGUAGE Safe #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-decls:arbitrarySteppable,shrinkSteppable #-}
 
@@ -42,7 +43,7 @@ instance (Foldable f, Functor f, QC.Arbitrary1 f) => QC.Arbitrary (Fix f) where
   arbitrary = arbitrarySteppable QC.liftArbitrary
   shrink = shrinkSteppable QC.liftShrink
 
-instance (Foldable f, Functor f, QC.Arbitrary1 f) => QC.Arbitrary (Mu f) where
+instance (Steppable (->) (Mu f) f, Foldable f, Functor f, QC.Arbitrary1 f) => QC.Arbitrary (Mu f) where
   arbitrary = arbitrarySteppable QC.liftArbitrary
   shrink = shrinkSteppable QC.liftShrink
 

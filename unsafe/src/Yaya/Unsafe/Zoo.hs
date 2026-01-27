@@ -27,8 +27,6 @@ import "base" Data.Functor.Compose (Compose (Compose), getCompose)
 import "base" Data.Functor.Identity (Identity (Identity), runIdentity)
 import "base" Data.Traversable (Traversable)
 import "comonad" Control.Comonad (Comonad)
-import "comonad" Control.Comonad.Env (EnvT)
-import "free" Control.Monad.Trans.Free (FreeF)
 import "yaya" Yaya.Fold
   ( Algebra,
     Coalgebra,
@@ -55,6 +53,8 @@ import "yaya" Yaya.Fold.Common (diagonal, fromEither)
 import "yaya" Yaya.Fold.Native ()
 import "yaya" Yaya.Pattern
   ( Either,
+    EnvT,
+    FreeF,
     Maybe (Nothing),
     Pair ((:!:)),
     XNor (Both, Neither),
