@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.Set
-  ( SetF (BinF, TipF),
+  ( Set (Bin, Tip),
   )
 where
 
@@ -52,7 +52,7 @@ import "yaya" Yaya.Fold
 import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude ((+))
 
-data SetF a r = TipF | BinF Set.Size a r r
+data Set a r = Tip | Bin Set.Size a r r
   deriving stock
     ( Eq,
       Ord,
@@ -66,69 +66,69 @@ data SetF a r = TipF | BinF Set.Size a r r
       Traversable
     )
 
-instance Projectable (->) (Set.Set a) (SetF a) where
-  project Set.Tip = TipF
-  project (Set.Bin size a l r) = BinF size a l r
+instance Projectable (->) (Set.Set a) (Set a) where
+  project Set.Tip = Tip
+  project (Set.Bin size a l r) = Bin size a l r
 
-instance Recursive (->) (Set.Set a) (SetF a) where
+instance Recursive (->) (Set.Set a) (Set a) where
   cata = Unsafe.unsafeCata
 
-instance Steppable (->) (Set.Set a) (SetF a) where
-  embed TipF = Set.Tip
-  embed (BinF size a l r) = Set.Bin size a l r
+instance Steppable (->) (Set.Set a) (Set a) where
+  embed Tip = Set.Tip
+  embed (Bin size a l r) = Set.Bin size a l r
 
-instance (Eq a) => Eq1 (SetF a) where
+instance (Eq a) => Eq1 (Set a) where
   liftEq = liftEq2 (==)
 
-instance Eq2 SetF where
+instance Eq2 Set where
   liftEq2 f g = Tuple.curry $ \case
-    (TipF, TipF) -> True
-    (BinF size a l r, BinF size' a' l' r') ->
+    (Tip, Tip) -> True
+    (Bin size a l r, Bin size' a' l' r') ->
       size == size' && f a a' && g l l' && g r r'
     (_, _) -> False
 
-instance (Ord a) => Ord1 (SetF a) where
+instance (Ord a) => Ord1 (Set a) where
   liftCompare = liftCompare2 compare
 
-instance Ord2 SetF where
+instance Ord2 Set where
   liftCompare2 f g = Tuple.curry $ \case
-    (TipF, TipF) -> EQ
-    (TipF, BinF {}) -> LT
-    (BinF {}, TipF) -> GT
-    (BinF size a l r, BinF size' a' l' r') ->
+    (Tip, Tip) -> EQ
+    (Tip, Bin {}) -> LT
+    (Bin {}, Tip) -> GT
+    (Bin size a l r, Bin size' a' l' r') ->
       compare size size' <> f a a' <> g l l' <> g r r'
 
 -- | @since 0.1.2.0
-instance (Read a) => Read1 (SetF a) where
+instance (Read a) => Read1 (Set a) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
 -- | @since 0.1.2.0
-instance Read2 SetF where
+instance Read2 Set where
   liftReadPrec2 readPrecA _ readPrecR _ =
     let appPrec = 10
      in parens . prec appPrec $
-          TipF
-            <$ expectP (Lex.Ident "TipF")
-            <|> expectP (Lex.Ident "BinF")
-              *> ( BinF
+          Tip
+            <$ expectP (Lex.Ident "Tip")
+            <|> expectP (Lex.Ident "Bin")
+              *> ( Bin
                      <$> step readPrec
                      <*> step readPrecA
                      <*> step readPrecR
                      <*> step readPrecR
                  )
 
-instance (Show a) => Show1 (SetF a) where
+instance (Show a) => Show1 (Set a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
-instance Show2 SetF where
+instance Show2 Set where
   liftShowsPrec2 showsPrecA _ showsPrecR _ p =
     let appPrec = 10
         nextPrec = appPrec + 1
      in \case
-          TipF -> showString "TipF"
-          BinF size a l r ->
+          Tip -> showString "Tip"
+          Bin size a l r ->
             showParen (nextPrec <= p) $
-              showString "BinF "
+              showString "Bin "
                 . showsPrec nextPrec size
                 . showString " "
                 . showsPrecA nextPrec a

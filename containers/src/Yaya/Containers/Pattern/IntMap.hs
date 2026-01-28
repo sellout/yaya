@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.IntMap
-  ( IntMapF (BinF, NilF, TipF),
+  ( IntMap (Bin, Nil, Tip),
   )
 where
 
@@ -56,126 +56,125 @@ import "base" Prelude ((+))
 import qualified "containers" Data.IntSet.Internal.IntTreeCommons as IntMap
   ( Prefix (Prefix),
   )
-
-data IntMapF a r
-  = NilF
-  | TipF IntMap.Key a
-  | BinF IntMap.Prefix r r
-  deriving stock
-    ( Eq,
-      Generic,
-      Foldable,
-      Functor,
-      Generic1,
-      Traversable
-    )
-#else
-data IntMapF a r
-  = NilF
-  | TipF IntMap.Key a
-  | BinF IntMap.Prefix IntMap.Mask r r
-  deriving stock
-    ( Eq,
-      Generic,
-      Foldable,
-      Functor,
-      Generic1,
-      Traversable
-    )
 #endif
 
-instance Projectable (->) (IntMap.IntMap a) (IntMapF a) where
-  project = \case
-    IntMap.Nil -> NilF
-    IntMap.Tip key a -> TipF key a
+data IntMap a r
+  = Nil
+  | Tip IntMap.Key a
 #if MIN_VERSION_containers(0, 8, 0)
-    IntMap.Bin prefix l r -> BinF prefix l r
+  | Bin IntMap.Prefix r r
+  deriving stock
+    ( Eq,
+      Generic,
+      Foldable,
+      Functor,
+      Generic1,
+      Traversable
+    )
 #else
-    IntMap.Bin prefix mask l r -> BinF prefix mask l r
+  | Bin IntMap.Prefix IntMap.Mask r r
+  deriving stock
+    ( Eq,
+      Generic,
+      Foldable,
+      Functor,
+      Generic1,
+      Traversable
+    )
 #endif
 
-instance Recursive (->) (IntMap.IntMap a) (IntMapF a) where
+instance Projectable (->) (IntMap.IntMap a) (IntMap a) where
+  project = \case
+    IntMap.Nil -> Nil
+    IntMap.Tip key a -> Tip key a
+#if MIN_VERSION_containers(0, 8, 0)
+    IntMap.Bin prefix l r -> Bin prefix l r
+#else
+    IntMap.Bin prefix mask l r -> Bin prefix mask l r
+#endif
+
+instance Recursive (->) (IntMap.IntMap a) (IntMap a) where
   cata = Unsafe.unsafeCata
 
-instance Steppable (->) (IntMap.IntMap a) (IntMapF a) where
+instance Steppable (->) (IntMap.IntMap a) (IntMap a) where
   embed = \case
-    NilF -> IntMap.Nil
-    TipF key a -> IntMap.Tip key a
+    Nil -> IntMap.Nil
+    Tip key a -> IntMap.Tip key a
 #if MIN_VERSION_containers(0, 8, 0)
-    BinF prefix l r -> IntMap.Bin prefix l r
+    Bin prefix l r -> IntMap.Bin prefix l r
 #else
-    BinF prefix mask l r -> IntMap.Bin prefix mask l r
+    Bin prefix mask l r -> IntMap.Bin prefix mask l r
 #endif
 
-instance (Eq a) => Eq1 (IntMapF a) where
+instance (Eq a) => Eq1 (IntMap a) where
   liftEq = liftEq2 (==)
 
-instance Eq2 IntMapF where
+instance Eq2 IntMap where
   liftEq2 f g = Tuple.curry $ \case
-    (NilF, NilF) -> True
-    (NilF, _) -> False
-    (_, NilF) -> False
-    (TipF key a, TipF key' a') -> key == key' && f a a'
-    (TipF {}, _) -> False
-    (_, TipF {}) -> False
+    (Nil, Nil) -> True
+    (Nil, _) -> False
+    (_, Nil) -> False
+    (Tip key a, Tip key' a') -> key == key' && f a a'
+    (Tip {}, _) -> False
+    (_, Tip {}) -> False
 #if MIN_VERSION_containers(0, 8, 0)
-    (BinF prefix l r, BinF prefix' l' r') ->
+    (Bin prefix l r, Bin prefix' l' r') ->
       prefix == prefix' && g l l' && g r r'
 #else
-    (BinF prefix mask l r, BinF prefix' mask' l' r') ->
+    (Bin prefix mask l r, Bin prefix' mask' l' r') ->
       prefix == prefix' && mask == mask' && g l l' && g r r'
 #endif
 
-instance (Ord a, Ord r) => Ord (IntMapF a r) where
+instance (Ord a, Ord r) => Ord (IntMap a r) where
   compare = liftCompare compare
 
-instance (Ord a) => Ord1 (IntMapF a) where
+instance (Ord a) => Ord1 (IntMap a) where
   liftCompare = liftCompare2 compare
 
-instance Ord2 IntMapF where
+instance Ord2 IntMap where
   liftCompare2 f g = Tuple.curry $ \case
-    (NilF, NilF) -> EQ
-    (NilF, _) -> LT
-    (TipF {}, NilF) -> GT
-    (TipF key a, TipF key' a') -> compare key key' <> f a a'
-    (TipF {}, BinF {}) -> LT
-    (BinF {}, NilF) -> GT
-    (BinF {}, TipF {}) -> GT
+    (Nil, Nil) -> EQ
+    (Nil, _) -> LT
+    (Tip {}, Nil) -> GT
+    (Tip key a, Tip key' a') -> compare key key' <> f a a'
+    (Tip {}, Bin {}) -> LT
+    (Bin {}, Nil) -> GT
+    (Bin {}, Tip {}) -> GT
 #if MIN_VERSION_containers(0, 8, 0)
-    (BinF (IntMap.Prefix prefix) l r, BinF (IntMap.Prefix prefix') l' r') ->
+    (Bin (IntMap.Prefix prefix) l r, Bin (IntMap.Prefix prefix') l' r') ->
       compare prefix prefix' <> g l l' <> g r r'
 #else
-    (BinF prefix mask l r, BinF prefix' mask' l' r') ->
+    (Bin prefix mask l r, Bin prefix' mask' l' r') ->
       compare prefix prefix' <> compare mask mask' <> g l l' <> g r r'
 #endif
 
 -- | @since 0.1.2.0
-instance (Read a, Read r) => Read (IntMapF a r) where
+instance (Read a, Read r) => Read (IntMap a r) where
   readPrec = liftReadPrec readPrec readListPrec
 
 -- | @since 0.1.2.0
-instance (Read a) => Read1 (IntMapF a) where
+instance (Read a) => Read1 (IntMap a) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
 -- | @since 0.1.2.0
-instance Read2 IntMapF where
+instance Read2 IntMap where
   liftReadPrec2 readPrecA _ readPrecR _ =
     let appPrec = 10
      in parens . prec appPrec $
-          NilF
-            <$ expectP (Lex.Ident "NilF")
+          Nil
+            <$ expectP (Lex.Ident "Nil")
             <|> expectP (Lex.Ident "TipF")
-              *> (TipF <$> step readPrec <*> step readPrecA)
+              *> (Tip <$> step readPrec <*> step readPrecA)
 #if MIN_VERSION_containers(0, 8, 0)
-            <|> expectP (Lex.Ident "BinF")
-              *> ( BinF . IntMap.Prefix
+            <|> expectP (Lex.Ident "Bin")
+              *> ( Bin . IntMap.Prefix
                      <$> step readPrec
                      <*> step readPrecR
                      <*> step readPrecR
                  )
 #else
-            <|> expectP (Lex.Ident "BinF")
-              *> ( BinF
+            <|> expectP (Lex.Ident "Bin")
+              *> ( Bin
                      <$> step readPrec
                      <*> step readPrec
                      <*> step readPrecR
@@ -183,37 +182,37 @@ instance Read2 IntMapF where
                  )
 #endif
 
-instance (Show a, Show r) => Show (IntMapF a r) where
+instance (Show a, Show r) => Show (IntMap a r) where
   showsPrec = liftShowsPrec showsPrec showList
 
-instance (Show a) => Show1 (IntMapF a) where
+instance (Show a) => Show1 (IntMap a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
-instance Show2 IntMapF where
+instance Show2 IntMap where
   liftShowsPrec2 showsPrecA _ showsPrecR _ p =
     let appPrec = 10
         nextPrec = appPrec + 1
      in \case
-          NilF -> showString "NilF"
-          TipF key a ->
+          Nil -> showString "Nil"
+          Tip key a ->
             showParen (nextPrec <= p) $
-              showString "TipF "
+              showString "Tip "
                 . showsPrec nextPrec key
                 . showString " "
                 . showsPrecA nextPrec a
 #if MIN_VERSION_containers(0, 8, 0)
-          BinF (IntMap.Prefix prefix) l r ->
+          Bin (IntMap.Prefix prefix) l r ->
             showParen (nextPrec <= p) $
-              showString "BinF "
+              showString "Bin "
                 . showsPrec nextPrec prefix
                 . showString " "
                 . showsPrecR nextPrec l
                 . showString " "
                 . showsPrecR nextPrec r
 #else
-          BinF prefix mask l r ->
+          Bin prefix mask l r ->
             showParen (nextPrec <= p) $
-              showString "BinF "
+              showString "Bin "
                 . showsPrec nextPrec prefix
                 . showString " "
                 . showsPrec nextPrec mask

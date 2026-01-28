@@ -2,15 +2,15 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.Map
-  ( MapF (BinF, TipF),
+  ( Map (Bin, Tip),
     -- | @since 0.1.2.0
-    eqMapF,
+    eqMap,
     -- | @since 0.1.2.0
-    compareMapF,
+    compareMap,
     -- | @since 0.1.2.0
-    readMapFPrec,
+    readMapPrec,
     -- | @since 0.1.2.0
-    showsMapFPrec,
+    showsMapPrec,
   )
 where
 
@@ -76,7 +76,7 @@ import "yaya" Yaya.Fold
 import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude ((+))
 
-data MapF k v r = TipF | BinF Map.Size k ~v r r
+data Map k v r = Tip | Bin Map.Size k ~v r r
   deriving stock
     ( Eq,
       Ord,
@@ -90,56 +90,56 @@ data MapF k v r = TipF | BinF Map.Size k ~v r r
       Traversable
     )
 
-instance Projectable (->) (Map.Map k v) (MapF k v) where
-  project Map.Tip = TipF
-  project (Map.Bin size k v l r) = BinF size k v l r
+instance Projectable (->) (Map.Map k v) (Map k v) where
+  project Map.Tip = Tip
+  project (Map.Bin size k v l r) = Bin size k v l r
 
-instance Recursive (->) (Map.Map k v) (MapF k v) where
+instance Recursive (->) (Map.Map k v) (Map k v) where
   cata = Unsafe.unsafeCata
 
-instance Steppable (->) (Map.Map k v) (MapF k v) where
-  embed TipF = Map.Tip
-  embed (BinF size k v l r) = Map.Bin size k v l r
+instance Steppable (->) (Map.Map k v) (Map k v) where
+  embed Tip = Map.Tip
+  embed (Bin size k v l r) = Map.Bin size k v l r
 
-eqMapF ::
+eqMap ::
   (k -> k' -> Bool) ->
   (v -> v' -> Bool) ->
   (r -> r' -> Bool) ->
-  MapF k v r ->
-  MapF k' v' r' ->
+  Map k v r ->
+  Map k' v' r' ->
   Bool
-eqMapF eqK eqV eqR = Tuple.curry $ \case
-  (TipF, TipF) -> True
-  (BinF size k v l r, BinF size' k' v' l' r') ->
+eqMap eqK eqV eqR = Tuple.curry $ \case
+  (Tip, Tip) -> True
+  (Bin size k v l r, Bin size' k' v' l' r') ->
     size == size' && eqK k k' && eqV v v' && eqR l l' && eqR r r'
   (_, _) -> False
 
-compareMapF ::
+compareMap ::
   (k -> k' -> Ordering) ->
   (v -> v' -> Ordering) ->
   (r -> r' -> Ordering) ->
-  MapF k v r ->
-  MapF k' v' r' ->
+  Map k v r ->
+  Map k' v' r' ->
   Ordering
-compareMapF compareK compareV compareR = Tuple.curry $ \case
-  (TipF, TipF) -> EQ
-  (TipF, BinF {}) -> LT
-  (BinF {}, TipF) -> GT
-  (BinF size k v l r, BinF size' k' v' l' r') ->
+compareMap compareK compareV compareR = Tuple.curry $ \case
+  (Tip, Tip) -> EQ
+  (Tip, Bin {}) -> LT
+  (Bin {}, Tip) -> GT
+  (Bin size k v l r, Bin size' k' v' l' r') ->
     compare size size'
       <> compareK k k'
       <> compareV v v'
       <> compareR l l'
       <> compareR r r'
 
-readMapFPrec :: ReadPrec k -> ReadPrec v -> ReadPrec r -> ReadPrec (MapF k v r)
-readMapFPrec readPrecK readPrecV readPrecR =
+readMapPrec :: ReadPrec k -> ReadPrec v -> ReadPrec r -> ReadPrec (Map k v r)
+readMapPrec readPrecK readPrecV readPrecR =
   let appPrec = 10
    in parens . prec appPrec $
-        TipF
-          <$ expectP (Lex.Ident "TipF")
-          <|> expectP (Lex.Ident "BinF")
-            *> ( BinF
+        Tip
+          <$ expectP (Lex.Ident "Tip")
+          <|> expectP (Lex.Ident "Bin")
+            *> ( Bin
                    <$> step readPrec
                    <*> step readPrecK
                    <*> step readPrecV
@@ -147,21 +147,21 @@ readMapFPrec readPrecK readPrecV readPrecR =
                    <*> step readPrecR
                )
 
-showsMapFPrec ::
+showsMapPrec ::
   (Int -> k -> ShowS) ->
   (Int -> v -> ShowS) ->
   (Int -> r -> ShowS) ->
   Int ->
-  MapF k v r ->
+  Map k v r ->
   ShowS
-showsMapFPrec showsPrecK showsPrecV showsPrecR p =
+showsMapPrec showsPrecK showsPrecV showsPrecR p =
   let appPrec = 10
       nextPrec = appPrec + 1
    in \case
-        TipF -> showString "TipF"
-        BinF size k v l r ->
+        Tip -> showString "Tip"
+        Bin size k v l r ->
           showParen (nextPrec <= p) $
-            showString "BinF "
+            showString "Bin "
               . showsPrec nextPrec size
               . showString " "
               . showsPrecK nextPrec k
@@ -172,30 +172,30 @@ showsMapFPrec showsPrecK showsPrecV showsPrecR p =
               . showString " "
               . showsPrecR nextPrec r
 
-instance (Eq k, Eq v) => Eq1 (MapF k v) where
+instance (Eq k, Eq v) => Eq1 (Map k v) where
   liftEq = liftEq2 (==)
 
-instance (Eq k) => Eq2 (MapF k) where
-  liftEq2 = eqMapF (==)
+instance (Eq k) => Eq2 (Map k) where
+  liftEq2 = eqMap (==)
 
-instance (Ord k, Ord v) => Ord1 (MapF k v) where
+instance (Ord k, Ord v) => Ord1 (Map k v) where
   liftCompare = liftCompare2 compare
 
-instance (Ord k) => Ord2 (MapF k) where
-  liftCompare2 = compareMapF compare
+instance (Ord k) => Ord2 (Map k) where
+  liftCompare2 = compareMap compare
 
 -- | @since 0.1.2.0
-instance (Read k, Read v) => Read1 (MapF k v) where
+instance (Read k, Read v) => Read1 (Map k v) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
 -- | @since 0.1.2.0
-instance (Read k) => Read2 (MapF k) where
+instance (Read k) => Read2 (Map k) where
   liftReadPrec2 readPrecV _ readPrecR _ =
-    readMapFPrec readPrec readPrecV readPrecR
+    readMapPrec readPrec readPrecV readPrecR
 
-instance (Show k, Show v) => Show1 (MapF k v) where
+instance (Show k, Show v) => Show1 (Map k v) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
-instance (Show k) => Show2 (MapF k) where
+instance (Show k) => Show2 (Map k) where
   liftShowsPrec2 showsPrecV _ showsPrecR _ =
-    showsMapFPrec showsPrec showsPrecV showsPrecR
+    showsMapPrec showsPrec showsPrecV showsPrecR
