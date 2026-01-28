@@ -42,5 +42,6 @@ packages:
   ./containers/yaya-containers.cabal
   ./core/yaya.cabal
   ./hedgehog/yaya-hedgehog.cabal
+  ./lens/yaya-lens.cabal
   ./quickcheck/yaya-quickcheck.cabal
   ./unsafe/yaya-unsafe.cabal

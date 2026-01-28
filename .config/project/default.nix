@@ -22,6 +22,7 @@
       copyLicenses "containers"
       // copyLicenses "core"
       // copyLicenses "hedgehog"
+      // copyLicenses "lens"
       // copyLicenses "quickcheck"
       // copyLicenses "unsafe";
   };
@@ -72,6 +73,7 @@
       yaya = "core";
       yaya-containers = "containers";
       yaya-hedgehog = "hedgehog";
+      yaya-lens = "lens";
       yaya-quickcheck = "quickcheck";
       yaya-unsafe = "unsafe";
     };

@@ -4,7 +4,6 @@
 --   laziness) can lead to non-termination.
 module Yaya.Unsafe.Fold
   ( anaM,
-    corecursivePrism,
     ganaM,
     ghylo,
     ghyloM,
@@ -26,13 +25,11 @@ import "base" Data.Functor (Functor, fmap)
 import "base" Data.Functor.Compose (Compose (Compose), getCompose)
 import "base" Data.Traversable (Traversable, sequenceA)
 import "comonad" Control.Comonad (Comonad, extract)
-import "lens" Control.Lens (Prism', matching, prism, review)
 import "yaya" Yaya.Fold
   ( Algebra,
     AlgebraM,
     Coalgebra,
     CoalgebraM,
-    CoalgebraPrism,
     Corecursive,
     DistributiveLaw,
     GAlgebra,
@@ -40,10 +37,8 @@ import "yaya" Yaya.Fold
     GCoalgebra,
     GCoalgebraM,
     Projectable,
-    Recursive,
     Steppable,
     ana,
-    cata,
     embed,
     lowerAlgebra,
     lowerAlgebraM,
@@ -55,14 +50,14 @@ import "yaya" Yaya.Pattern (Maybe, Pair, maybe, uncurry)
 
 -- | Instances leak transitively, so while "Yaya.Unsafe.Fold.Instances" exists,
 --   it should only be used when it is unavoidable. If you are explicitly
---   folding a structure unsafely, use this function instead of importing that
+--   unfolding a structure unsafely, use this function instead of importing that
 --   module.
 unsafeAna :: (Steppable (->) t f, Functor f) => Coalgebra (->) f a -> a -> t
 unsafeAna = hylo embed
 
 -- | Instances leak transitively, so while "Yaya.Unsafe.Fold.Instances" exists,
 --   it should only be used when it is unavoidable. If you are explicitly
---   unfolding a structure unsafely, use this function instead of importing that
+--   folding a structure unsafely, use this function instead of importing that
 --   module.
 --
 --   Should one prefer `unsafeAna` or `unsafeCata` in cases where both are
@@ -266,9 +261,3 @@ streamGApo ::
 streamGApo flush process accum =
   stream' process $
     \state cont -> maybe (ana flush state) (uncurry cont) . accum
-
-corecursivePrism ::
-  (Steppable (->) t f, Recursive (->) t f, Traversable f) =>
-  CoalgebraPrism f a ->
-  Prism' a t
-corecursivePrism alg = prism (cata $ review alg) (anaM $ matching alg)

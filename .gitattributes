@@ -28,6 +28,10 @@
 /hedgehog/LICENSE.AGPL-3.0-only linguist-generated
 /hedgehog/LICENSE.Universal-FOSS-exception-1.0 linguist-generated
 /hedgehog/LICENSE.commercial linguist-generated
+/lens/LICENSE linguist-generated
+/lens/LICENSE.AGPL-3.0-only linguist-generated
+/lens/LICENSE.Universal-FOSS-exception-1.0 linguist-generated
+/lens/LICENSE.commercial linguist-generated
 /nix-ci.nix linguist-generated
 /quickcheck/LICENSE linguist-generated
 /quickcheck/LICENSE.AGPL-3.0-only linguist-generated
