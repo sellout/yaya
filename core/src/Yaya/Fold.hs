@@ -298,6 +298,7 @@ recursiveShowsPrec' showsFPrec = flip . cata $
   \f p ->
     showParen (appPrec1 <= p) $
       showString embedOperation . showString " " . showsFPrec f appPrec1
+{-# INLINEABLE recursiveShowsPrec' #-}
 
 -- | An implementation of `showsPrec` for any `Recursive` instance.
 #if MIN_VERSION_GLASGOW_HASKELL(8, 8, 0, 0) \
@@ -335,6 +336,7 @@ recursiveShowsPrec' showsFPrec = flip . cata $
 --         `steppableReadPrec`, which requires `Steppable` instead.
 recursiveShowsPrec :: (Recursive (->) t f, Show1 f) => Int -> t -> ShowS
 recursiveShowsPrec = recursiveShowsPrec' $ flip showsPrecF
+{-# INLINEABLE recursiveShowsPrec #-}
 
 -- | Like `steppableReadPrec`, but allows you to provide a custom display
 --   function for @f@.
@@ -374,6 +376,7 @@ newtype Mu f = Mu (forall a. Algebra (->) f a -> a)
 
 instance (Functor f) => Projectable (->) (Mu f) f where
   project = lambek
+  {-# INLINEABLE project #-}
 
 instance (Functor f) => Steppable (->) (Mu f) f where
   embed m = Mu (\f -> f (fmap (cata f) m))
@@ -386,6 +389,7 @@ instance DFunctor Mu where
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Mu f) where
   (==) = recursiveEq
+  {-# INLINEABLE (==) #-}
 
 -- | @since 0.6.1.0
 instance (Functor f, Foldable f, Ord1 f) => Ord (Mu f) where
@@ -405,9 +409,11 @@ data Nu f where Nu :: Coalgebra (->) f a -> a -> Nu f
 
 instance (Functor f) => Projectable (->) (Nu f) f where
   project (Nu f a) = Nu f <$> f a
+  {-# INLINEABLE project #-}
 
 instance (Functor f) => Steppable (->) (Nu f) f where
   embed = colambek
+  {-# INLINEABLE embed #-}
 
 instance Corecursive (->) (Nu f) f where
   ana = Nu
