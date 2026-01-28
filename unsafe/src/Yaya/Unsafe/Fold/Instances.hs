@@ -66,6 +66,7 @@ instance (Functor f) => Recursive (->) (Cofix f) f where
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Cofix f) where
   (==) = recursiveEq
+  {-# INLINEABLE (==) #-}
 
 -- | @since 0.4.1.0
 instance (Functor f, Foldable f, Ord1 f) => Ord (Cofix f) where
@@ -76,12 +77,14 @@ instance (Functor f, Show1 f) => Show (Cofix f) where
 
 instance (Functor f) => Corecursive (->) (Mu f) f where
   ana = Unsafe.unsafeAna
+  {-# INLINEABLE ana #-}
 
 instance (Functor f) => Recursive (->) (Nu f) f where
   cata = Unsafe.unsafeCata
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
   (==) = recursiveEq
+  {-# INLINEABLE (==) #-}
 
 -- | @since 0.4.1.0
 instance (Functor f, Foldable f, Ord1 f) => Ord (Nu f) where

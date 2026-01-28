@@ -40,6 +40,7 @@ instance Steppable (->) (Cofix f) f where
 
 instance (Functor f) => Corecursive (->) (Cofix f) f where
   ana φ = embed . fmap (ana φ) . φ
+  {-# INLINEABLE ana #-}
 
 -- | @since 0.6.1.0
 instance (Read1 f) => Read (Cofix f) where

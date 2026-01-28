@@ -59,6 +59,7 @@ instance Steppable (->) (Fix f) f where
 
 instance (Functor f) => Recursive (->) (Fix f) f where
   cata ɸ = ɸ . fmap (cata ɸ) . project
+  {-# INLINEABLE cata #-}
 
 instance (Functor f, Foldable f, Eq1 f) => Eq (Fix f) where
   (==) = recursiveEq

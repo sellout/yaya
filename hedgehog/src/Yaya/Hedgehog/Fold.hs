@@ -110,6 +110,7 @@ law_cataCompose Proxy φ ε =
   uncurry (===)
     . bimap (cata φ . cata (embed . ε :: f u -> u)) (cata (φ . ε))
     . diagonal
+{-# INLINEABLE law_cataCompose #-}
 
 -- | Creates a generator for any `Steppable` type whose pattern functor has
 --   terminal cases (e.g., not `Data.Functor.Identity` or `((,) a)`). @leaf@ can
@@ -153,6 +154,7 @@ genAlgebra ::
   Algebra (->) Maybe (Gen t)
 genAlgebra leaf branch =
   maybe (fmap (embed . fmap absurd) leaf) (fmap embed . branch)
+{-# INLINEABLE genAlgebra #-}
 
 -- | Creates a generator for potentially-infinite values.
 genCorecursive :: (Corecursive (->) t f) => (a -> f a) -> Gen a -> Gen t
@@ -178,6 +180,7 @@ corecursiveIsUnsafe Proxy x =
     evalNonterminating . fst . project @_ @(t (Pair a)) $ ana (\y -> y :!: y) x
     -- but using a lazy functor loses this property
     Tuple.fst (project @_ @(t ((,) a)) $ ana (\y -> (y, y)) x) === x
+{-# INLINEABLE corecursiveIsUnsafe #-}
 
 -- | Show that using a `Corecursive` structure recursively can lead to
 --   non-termination.
@@ -203,3 +206,4 @@ recursiveIsUnsafe Proxy x =
     -- But again, if you use a lazy functor, you lose that property, and you can
     -- short-circuit.
     cata Tuple.fst (ana @_ @(t ((,) a)) (\y -> (y, y)) x) === x
+{-# INLINEABLE recursiveIsUnsafe #-}

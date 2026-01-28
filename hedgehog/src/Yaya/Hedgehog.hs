@@ -25,6 +25,7 @@ evalNonterminating ::
 evalNonterminating =
   maybe HH.success (const HH.failure <=< HH.annotateShow)
     <=< HH.evalIO . timeout 1_000_000 . evaluate
+{-# INLINEABLE evalNonterminating #-}
 
 -- | Returns success if the expression doesn’t terminate, failure otherwise.
 --   The value passed here should termina

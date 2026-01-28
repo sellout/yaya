@@ -86,6 +86,7 @@ equalDay ::
 equalDay eqF (Day f1 f2 fn) =
   eqF (void f1) (void f2)
     && and (zipWith fn (toList f1) (toList f2))
+{-# INLINEABLE equalDay #-}
 
 -- | Provides equality over arbitrary pattern functors.
 equal :: (Functor f, Foldable f, Eq1 f) => Day f f Bool -> Bool
@@ -102,6 +103,7 @@ compareDay ::
 compareDay compareF (Day f1 f2 fn) =
   compareF (void f1) (void f2)
     <> fold (zipWith fn (toList f1) (toList f2))
+{-# INLINEABLE compareDay #-}
 
 -- | Provides show over arbitrary pattern functors.
 --
