@@ -11,6 +11,7 @@ module Yaya.Pattern
     module Data.Strict.Tuple,
     AndMaybe (Indeed, Only),
     XNor (Both, Neither),
+    isNeither,
     andMaybe,
     xnor,
   )
@@ -118,6 +119,10 @@ xnor :: c -> (a -> b -> c) -> XNor a b -> c
 xnor neither both = \case
   Neither -> neither
   Both x y -> both x y
+
+-- | Eliminator for `XNor`, akin to `Data.Either.isLeft` or `Data.Maybe.isNothing`.
+isNeither :: XNor a b -> Bool
+isNeither = xnor True (\_ _ -> False)
 
 instance (Eq a) => Eq1 (XNor a) where
   liftEq = liftEq2 (==)
