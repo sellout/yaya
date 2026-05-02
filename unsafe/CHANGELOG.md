@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog 1.1](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## [1.0.0.0] - 2026-04-22
+## [1.0.0.1] - 2026-05-02
+
+### Removed
+
+- support for yaya < 1.0.0 (this package depends on some definitions that were moved there)
+
+## [1.0.0.0] - 2026-04-22 [YANKED]
 
 ### Added
 
@@ -128,6 +134,7 @@ Unknown changes.
 
 - everything (this is the initial release)
 
+[1.0.0.1]: https://github.com/sellout/yaya/compare/v5.0.0...v5.0.1
 [1.0.0.0]: https://github.com/sellout/yaya/compare/v4.0.0...v5.0.0
 [0.5.0.0]: https://github.com/sellout/yaya/compare/v3.2.3...v4.0.0
 [0.4.1.4]: https://github.com/sellout/yaya/compare/v3.2.2...v3.2.3
