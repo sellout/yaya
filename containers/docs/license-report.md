@@ -11,8 +11,8 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | **`base`** | [`4.20.0.0`](http://hackage.haskell.org/package/base-4.20.0.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/base-4.20.0.0/src/LICENSE) | Core data structures and operations | *(core library)* |
 | **`containers`** | [`0.7`](http://hackage.haskell.org/package/containers-0.7) | [`BSD-3-Clause`](http://hackage.haskell.org/package/containers-0.7/src/LICENSE) | Assorted concrete container types | `adjunctions`, `bifunctors`, `binary`, `comonad`, `free`, `ghc`, `ghc-boot`, `ghc-heap`, `ghci`, `hashable`, `hpc`, `indexed-traversable`, `invariant`, `semigroupoids`, `th-abstraction` |
 | `no-recursion` | [`0.4.0.0`](http://hackage.haskell.org/package/no-recursion-0.4.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/no-recursion-0.4.0.0/src/LICENSE) | A GHC plugin to remove support for recursion | `yaya`, `yaya-unsafe` |
-| `yaya` | [`1.0.0.0`](http://hackage.haskell.org/package/yaya-1.0.0.0) |  *MISSING* | *MISSING* | `yaya-unsafe` |
-| `yaya-unsafe` | [`1.0.0.0`](http://hackage.haskell.org/package/yaya-unsafe-1.0.0.0) |  *MISSING* | *MISSING* |  |
+| `yaya` | [`1.0.0.0`](http://hackage.haskell.org/package/yaya-1.0.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/yaya-1.0.0.0/src/LICENSE) | Total recursion schemes. | `yaya-unsafe` |
+| `yaya-unsafe` | [`1.0.0.0`](http://hackage.haskell.org/package/yaya-unsafe-1.0.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/yaya-unsafe-1.0.0.0/src/LICENSE) | Non-total extensions to the Yaya recursion scheme library. |  |
 
 ## Indirect transitive dependencies
 

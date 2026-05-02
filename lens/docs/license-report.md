@@ -11,7 +11,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | **`base`** | [`4.20.0.0`](http://hackage.haskell.org/package/base-4.20.0.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/base-4.20.0.0/src/LICENSE) | Core data structures and operations | *(core library)* |
 | `lens` | [`5.3.6`](http://hackage.haskell.org/package/lens-5.3.6) | [`BSD-2-Clause`](http://hackage.haskell.org/package/lens-5.3.6/src/LICENSE) | Lenses, Folds and Traversals |  |
 | `no-recursion` | [`0.4.0.0`](http://hackage.haskell.org/package/no-recursion-0.4.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/no-recursion-0.4.0.0/src/LICENSE) | A GHC plugin to remove support for recursion | `yaya` |
-| `yaya` | [`1.0.0.0`](http://hackage.haskell.org/package/yaya-1.0.0.0) |  *MISSING* | *MISSING* |  |
+| `yaya` | [`1.0.0.0`](http://hackage.haskell.org/package/yaya-1.0.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/yaya-1.0.0.0/src/LICENSE) | Total recursion schemes. |  |
 
 ## Indirect transitive dependencies
 
