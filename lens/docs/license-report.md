@@ -17,7 +17,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 
 | Name | Version | [SPDX](https://spdx.org/licenses/) License Id | Description | Depended upon by |
 | --- | --- | --- | --- | --- |
-| `OneTuple` | [`0.4.2.1`](http://hackage.haskell.org/package/OneTuple-0.4.2.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/OneTuple-0.4.2.1/src/LICENSE) | Singleton Tuple | `indexed-traversable-instances` |
+| `OneTuple` | [`0.4.3`](http://hackage.haskell.org/package/OneTuple-0.4.3) | [`BSD-3-Clause`](http://hackage.haskell.org/package/OneTuple-0.4.3/src/LICENSE) | Singleton Tuple | `indexed-traversable-instances` |
 | `StateVar` | [`1.2.2`](http://hackage.haskell.org/package/StateVar-1.2.2) | [`BSD-3-Clause`](http://hackage.haskell.org/package/StateVar-1.2.2/src/LICENSE) | State variables | `contravariant`, `invariant` |
 | `adjunctions` | [`4.4.4`](http://hackage.haskell.org/package/adjunctions-4.4.4) | [`BSD-2-Clause`](http://hackage.haskell.org/package/adjunctions-4.4.4/src/LICENSE) | Adjunctions and representable functors | `kan-extensions` |
 | **`array`** | [`0.5.7.0`](http://hackage.haskell.org/package/array-0.5.7.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/array-0.5.7.0/src/LICENSE) | Mutable and immutable arrays | `binary`, `containers`, `deepseq`, `ghc`, `ghci`, `indexed-traversable`, `invariant`, `lens`, `parallel`, `stm`, `text` |
@@ -48,7 +48,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | **`ghci`** | [`9.10.1`](http://hackage.haskell.org/package/ghci-9.10.1) |  *MISSING* | *MISSING* | `ghc` |
 | `hashable` | [`1.5.1.0`](http://hackage.haskell.org/package/hashable-1.5.1.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/hashable-1.5.1.0/src/LICENSE) | A class for types that can be converted to a hash value | `lens`, `semigroupoids`, `strict`, `these`, `unordered-containers` |
 | **`hpc`** | [`0.7.0.1`](http://hackage.haskell.org/package/hpc-0.7.0.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/hpc-0.7.0.1/src/LICENSE) | Code Coverage Library for Haskell | `ghc` |
-| `indexed-traversable` | [`0.1.4`](http://hackage.haskell.org/package/indexed-traversable-0.1.4) | [`BSD-2-Clause`](http://hackage.haskell.org/package/indexed-traversable-0.1.4/src/LICENSE) | FunctorWithIndex, FoldableWithIndex, TraversableWithIndex | `comonad`, `free`, `indexed-traversable-instances`, `lens` |
+| `indexed-traversable` | [`0.1.5`](http://hackage.haskell.org/package/indexed-traversable-0.1.5) | [`BSD-2-Clause`](http://hackage.haskell.org/package/indexed-traversable-0.1.5/src/LICENSE) | FunctorWithIndex, FoldableWithIndex, TraversableWithIndex | `comonad`, `free`, `indexed-traversable-instances`, `lens` |
 | `indexed-traversable-instances` | [`0.1.2.1`](http://hackage.haskell.org/package/indexed-traversable-instances-0.1.2.1) | [`BSD-2-Clause`](http://hackage.haskell.org/package/indexed-traversable-instances-0.1.2.1/src/LICENSE) | More instances of FunctorWithIndex, FoldableWithIndex, TraversableWithIndex | `lens` |
 | `invariant` | [`0.6.5`](http://hackage.haskell.org/package/invariant-0.6.5) | [`BSD-2-Clause`](http://hackage.haskell.org/package/invariant-0.6.5/src/LICENSE) | Haskell98 invariant functors | `kan-extensions` |
 | `kan-extensions` | [`5.2.8`](http://hackage.haskell.org/package/kan-extensions-5.2.8) | [`BSD-3-Clause`](http://hackage.haskell.org/package/kan-extensions-5.2.8/src/LICENSE) | Kan extensions, Kan lifts, the Yoneda lemma, and (co)density (co)monads | `lens`, `yaya` |
