@@ -12,7 +12,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | **`containers`** | [`0.7`](http://hackage.haskell.org/package/containers-0.7) | [`BSD-3-Clause`](http://hackage.haskell.org/package/containers-0.7/src/LICENSE) | Assorted concrete container types | `adjunctions`, `bifunctors`, `binary`, `comonad`, `free`, `ghc`, `ghc-boot`, `ghc-heap`, `ghci`, `hashable`, `hpc`, `indexed-traversable`, `invariant`, `semigroupoids`, `th-abstraction` |
 | `no-recursion` | [`0.4.0.0`](http://hackage.haskell.org/package/no-recursion-0.4.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/no-recursion-0.4.0.0/src/LICENSE) | A GHC plugin to remove support for recursion | `yaya`, `yaya-unsafe` |
 | `yaya` | [`1.0.0.0`](http://hackage.haskell.org/package/yaya-1.0.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/yaya-1.0.0.0/src/LICENSE) | Total recursion schemes. | `yaya-unsafe` |
-| `yaya-unsafe` | [`1.0.0.1`](http://hackage.haskell.org/package/yaya-unsafe-1.0.0.1) |  *MISSING* | *MISSING* |  |
+| `yaya-unsafe` | [`1.0.0.1`](http://hackage.haskell.org/package/yaya-unsafe-1.0.0.1) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/yaya-unsafe-1.0.0.1/src/LICENSE) | Non-total extensions to the Yaya recursion scheme library. |  |
 
 ## Indirect transitive dependencies
 
@@ -46,7 +46,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | **`ghci`** | [`9.10.1`](http://hackage.haskell.org/package/ghci-9.10.1) |  *MISSING* | *MISSING* | `ghc` |
 | `hashable` | [`1.5.1.0`](http://hackage.haskell.org/package/hashable-1.5.1.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/hashable-1.5.1.0/src/LICENSE) | A class for types that can be converted to a hash value | `semigroupoids`, `strict`, `these`, `unordered-containers` |
 | **`hpc`** | [`0.7.0.1`](http://hackage.haskell.org/package/hpc-0.7.0.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/hpc-0.7.0.1/src/LICENSE) | Code Coverage Library for Haskell | `ghc` |
-| `indexed-traversable` | [`0.1.4`](http://hackage.haskell.org/package/indexed-traversable-0.1.4) | [`BSD-2-Clause`](http://hackage.haskell.org/package/indexed-traversable-0.1.4/src/LICENSE) | FunctorWithIndex, FoldableWithIndex, TraversableWithIndex | `comonad`, `free` |
+| `indexed-traversable` | [`0.1.5`](http://hackage.haskell.org/package/indexed-traversable-0.1.5) | [`BSD-2-Clause`](http://hackage.haskell.org/package/indexed-traversable-0.1.5/src/LICENSE) | FunctorWithIndex, FoldableWithIndex, TraversableWithIndex | `comonad`, `free` |
 | `invariant` | [`0.6.5`](http://hackage.haskell.org/package/invariant-0.6.5) | [`BSD-2-Clause`](http://hackage.haskell.org/package/invariant-0.6.5/src/LICENSE) | Haskell98 invariant functors | `kan-extensions` |
 | `kan-extensions` | [`5.2.8`](http://hackage.haskell.org/package/kan-extensions-5.2.8) | [`BSD-3-Clause`](http://hackage.haskell.org/package/kan-extensions-5.2.8/src/LICENSE) | Kan extensions, Kan lifts, the Yoneda lemma, and (co)density (co)monads | `yaya` |
 | **`mtl`** | [`2.3.1`](http://hackage.haskell.org/package/mtl-2.3.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/mtl-2.3.1/src/LICENSE) | Monad classes for transformers, using functional dependencies | `adjunctions`, `either`, `exceptions`, `free`, `kan-extensions` |
