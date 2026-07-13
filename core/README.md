@@ -8,7 +8,9 @@ Yet another … yet another recursion scheme library for Haskell
 
 Total recursion scheme library for Haskell.
 
-## overview
+## usage
+
+- [comparisons to similar projects](#comparisons)
 
 Recursion schemes allow you to separate _any_ recursion from your business logic, writing step-wise operations that can be applied in a way that guarantees termination (or, dually, progress).
 
@@ -16,7 +18,7 @@ How's this possible? You can’t have totality _and_ Turing-completeness, can yo
 
 **NB**: The tests for this package are unfortunately included in `yaya-hedgehog` instead, to avoid a dependency cycle.
 
-## organization
+### organization
 
 This organization is intended to make this a lightly-opinionated library. You should only need to import one module (per package) into any module of yours.
 
@@ -26,7 +28,7 @@ This organization is intended to make this a lightly-opinionated library. You sh
 - `Applied` – A number of commonly-useful utilities defined as folds. Intended both as examples and code that you can actually use in your projects.
 - `Zoo` – Names that you may have seen in the recursion scheme literature, but that we generally avoid using here. In general, prefer the right-hand side of these definitions, which shouldn’t require importing this module.
 
-## Some (hopefully) helpful guidelines
+### Some (hopefully) helpful guidelines
 
 Greek characters (and names) for things can often add confusion, however, there are some that we’ve kept here because I think (with the right mnemonic) they're actually clarifying.
 
@@ -37,13 +39,13 @@ These are the symbols used in “the literature”, but I think they also provid
 
 There are two other names, `Mu` and `Nu` (for the inductive and coinductive fixed-point operators), that I _don’t_ think have earned their place, but I just haven’t come up with something more helpful yet.
 
-### Naming Conventions
+#### Naming Conventions
 
 There's a set of conventions around the naming of the operations. There are many variants of each operation (and they're all ultimately variants of `cata` and `ana`), so understanding this convention should help make it easier to understand the myriad possibilities rather than learning them by rote. The general pattern is
 
 > [`e`][`g`]`operation`[`T`][`M`]
 
-#### `g`
+##### `g`
 
 “Generalized” variant – This parameterizes the fold over some `DistributiveLaw` that generalizes the (co)algebra over some `Monad` or `Comonad`. This is normally only applied to the fundamental operations – `cata`, `ana`, and `hylo`, but there is also a `gapo` (dual to `zygo`) that really only coincidentally follows this naming pattern.
 
@@ -54,105 +56,33 @@ Many of the other “well-known” named folds are specializations of this:
 - when `Free f`, `futu`;
 - etc.
 
-#### `e`
+##### `e`
 
 “Elgot” variant – Named after the form of coalgebra used in an “Elgot algebra”. If there is an operation that takes some `f (x a) -> a`, the Elgot variant takes `x (f a) -> a`, which often has similar but distinct properties from the original.
 
 As a mnemonic, you can read the `e` as “exterior” as with a regular generalized fold, the `x` is on the _inside_ of the `f`, while with the Elgot variant, it's on the _outside_ of the `f`.
 
-#### `T`
+##### `T`
 
 “Transformer” variant – For some fold that takes an algebra like `f (x a) -> a`, and where `t` is the (monad or comonad) transformer of `x`, the transformer variant takes an algebra like `f (t m a) -> a`.
 
-#### `M`
+##### `M`
 
 Kleisli (“monadic”) variant – This convention is much more widespread than simply recursion schemes. A fold that returns its result in a `Monad`, by applying a Kleisli algebra (that is, `f a -> m a` rather than `f a -> a`. The dual of this might be something like `anaW` (taking a seed value in a `Comonad`), but those are uninteresting. Having Kleisli variants of unfolds is unsafe, as it can force traversal of an infinite structure. If you’re looking for an operation like that, you are better off with an effectful streaming library.
 
-## versioning
+### licensing
 
-This project largely follows the [Haskell Package Versioning Policy](https://pvp.haskell.org/) (PVP), but is more strict in some ways.
-
-The version always has four components, `A.B.C.D`. The first three correspond to those required by PVP, while the fourth matches the “patch” component from [Semantic Versioning](https://semver.org/).
-
-Here is a breakdown of some of the constraints:
-
-### sensitivity to additions to the API
-
-PVP recommends that clients follow [these import guidelines](https://wiki.haskell.org/Import_modules_properly) in order that they may be considered insensitive to additions to the API. However, this isn’t sufficient. We expect clients to follow these additional recommendations for API insensitivity
-
-If you don’t follow these recommendations (in addition to the ones made by PVP), you should ensure your dependencies don’t allow a range of `C` values. That is, your dependencies should look like
-
-```cabal
-yaya >=1.2.3 && <1.2.4
-```
-
-rather than
-
-```cabal
-yaya >=1.2.3 && <1.3
-```
-
-#### use package-qualified imports everywhere
-
-If your imports are [package-qualified](https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/package_qualified_imports.html?highlight=packageimports#extension-PackageImports), then a dependency adding new modules can’t cause a conflict with modules you already import.
-
-#### avoid orphans
-
-Because of the transitivity of instances, orphans make you sensitive to your dependencies’ instances. If you have an orphan instance, you are sensitive to the APIs of the packages that define the class and the types of the instance.
-
-One way to minimize this sensitivity is to have a separate package (or packages) dedicated to any orphans you have. Those packages can be sensitive to their dependencies’ APIs, while the primary package remains insensitive, relying on the tighter ranges of the orphan packages to constrain the solver.
-
-### transitively breaking changes (increments `A`)
-
-#### removing a type class instance
-
-Type class instances are imported transitively, and thus changing them can impact packages that only have your package as a transitive dependency.
-
-#### widening a dependency range with new major versions
-
-This is a consequence of instances being transitively imported. A new major version of a dependency can remove instances, and that can break downstream clients that unwittingly depended on those instances.
-
-A library _may_ declare that it always bumps the `A` component when it removes an instance (as this policy dictates). In that case, only `A` widenings need to induce `A` bumps. `B` widenings can be `D` bumps like other widenings, Alternatively, one may compare the APIs when widening a dependency range, and if no instances have been removed, make it a `D` bump.
-
-### breaking changes (increments `B`)
-
-#### restricting an existing dependency’s version range in any way
-
-Consumers have to contend not only with our version bounds, but also with those of other libraries. It’s possible that some dependency overlapped in a very narrow way, and even just restricting a particular patch version of a dependency could make it impossible to find a dependency solution.
-
-#### restricting the license in any way
-
-Making a license more restrictive may prevent clients from being able to continue using the package.
-
-#### adding a dependency
-
-A new dependency may make it impossible to find a solution in the face of other packages dependency ranges.
-
-### non-breaking changes (increments `C`)
-
-#### adding a module
-
-This is also what PVP recommends. However, unlike in PVP, this is because we recommend that package-qualified imports be used on all imports.
-
-### other changes (increments `D`)
-
-#### widening a dependency range for non-major versions
-
-This is fairly uncommon, in the face of `^>=`-style ranges, but it can happen in a few situations.
-
-#### deprecation
-
-**NB**: This case is _weaker_ than PVP, which indicates that packages should bump their major version when adding `deprecation` pragmas.
-
-We disagree with this because packages shouldn’t be _publishing_ with `-Werror`. The intent of deprecation is to indicate that some API _will_ change. To make that signal a major change itself defeats the purpose. You want people to start seeing that warning as soon as possible. The major change occurs when you actually remove the old API.
-
-Yes, in development, `-Werror` is often (and should be) used. However, that just helps developers be aware of deprecations more immediately. They can always add `-Wwarn=deprecation` in some scope if they need to avoid updating it for the time being.
-
-## licensing
-
-This package is licensed under [The GNU AGPL 3.0 only](./LICENSE). If you need a license for usage that isn’t covered under the AGPL, please contact [Greg Pfeil](mailto:greg@technomadic.org?subject=licensing%20yaya).
+This package is licensed under [The GNU AGPL 3.0 only, with some alternatives](./LICENSE). If you need a license for usage that isn’t covered under the AGPL, please contact [Greg Pfeil](mailto:greg@technomadic.org?subject=licensing%20yaya).
 
 You should review the [license report](docs/license-report.md) for details about dependency licenses.
+
+### versioning
+
+This project largely follows a strict variation of the [Haskell Package Versioning Policy](https://pvp.haskell.org/) (PVP). See [the specifics](https://sellout.github.io/flaky/haskell/strict-PVP.html).
+
+## contributing
+
+- [contributor guide](https://sellout.github.io/flaky/CONTRIBUTING/haskell.html)
 
 ## comparisons
 

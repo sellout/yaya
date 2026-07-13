@@ -2,17 +2,40 @@
 -- initializing and updating dependency bounds, but shouldn’t have an impact on
 -- regular usage, because the explicit bounds reduce the search space.
 max-backjumps: -1
-minimize-conflict-set: true
-reorder-goals: true
+minimize-conflict-set: True
+reorder-goals: True
+
+-- Maximize parallelism
+jobs: $ncpus
+if impl(ghc >= 9.8)
+  semaphore: True
 
 flags:
-  -- Ensure development of this project always uses @NoRecursion@, even if it
-  -- causes the solver to fail.
-  +verify-no-recursion
+  -- Ensure development of this project always uses linters, even if it causes
+  -- the solver to fail.
+  +lint
 
 program-options
   ghc-options:
     -Werror
+
+if impl(ghc >= 8.0.1)
+  program-options
+    ghc-options:
+      -- We should address the warnings these emit when we can, but they flag a
+      -- lot of things that are outside our control. Even though these don’t
+      -- throw under @-Werror@ it can be confusing to contributors to see them
+      -- labeled as errors alongside actual errors.
+      -Wall-missed-specialisations
+      -Wmissed-specialisations
+      -Wwarn=all-missed-specialisations
+      -Wwarn=missed-specialisations
+
+if impl(ghc == 9.4.1)
+  constraints:
+    -- GHC 9.4.1’s specialiser panics when compiling newer `Cabal-syntax`
+    -- versions, so use the `Cabal` that ships with it.
+    any.Cabal installed,
 
 tests: True
 

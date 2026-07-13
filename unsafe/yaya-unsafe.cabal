@@ -5,23 +5,23 @@ cabal-version: 3.0
 name: yaya-unsafe
 version: 1.0.0.1
 synopsis: Non-total extensions to the Yaya recursion scheme library.
-description: Yaya is designed as a _total_ library. However, it is often
-             expedient to use partial operations in some cases, and this package
-             extends Yaya to provide those operations. It’s in a separate
-             package (and modules) in order to make sure its use is very
-             intentional and also relatively obvious to those reading your code.
-             It’s recommended that you import these modules qualified and, in
-             particular, all the type class instances here have been pulled into
-             a separate module to avoid accidentally bringing them into scope.
+description:
+  Yaya is designed as a _total_ library. However, it is often expedient to use
+  partial operations in some cases, and this package extends Yaya to provide
+  those operations. It’s in a separate package (and modules) in order to make
+  sure its use is very intentional and also relatively obvious to those reading
+  your code. It’s recommended that you import these modules qualified and, in
+  particular, all the type class instances here have been pulled into a separate
+  module to avoid accidentally bringing them into scope.
 maintainer: Greg Pfeil <greg@technomadic.org>
 author: Greg Pfeil <greg@technomadic.org>
 copyright: 2017 Greg Pfeil
-license: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial
+license: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
 license-files:
   LICENSE
   LICENSE.AGPL-3.0-only
   LICENSE.Universal-FOSS-exception-1.0
-  LICENSE.commercial
+  LICENSE.proprietary
 category: Recursion
 build-type: Custom
 extra-doc-files:
@@ -85,9 +85,9 @@ flag noisy-deprecations
   -- Because disabling this flag won’t help the solver.
   manual: True
 
-flag verify-no-recursion
+flag lint
   description:
-    Compile with "NoRecursion" enabled. This is intended for developers of this
+    Build with linting plugins enabled. This is intended for developers of this
     package.
   default: False
   -- Because disabling this flag won’t help the solver.
@@ -147,39 +147,21 @@ common defaults
   import: GHC2024
   build-depends:
     base ^>= {4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
+    ghc-compat-plugin ^>= {0.1.0},
   ghc-options:
+    -fplugin GhcCompat
+    -fplugin-opt GhcCompat:minVersion=8.8.1
+    -fplugin-opt GhcCompat:reportIncompatibleExtensions=error
     -Weverything
     -- Type inference good.
     -Wno-missing-local-signatures
     -- Warns even when `Unsafe` is explicit, not inferred. See
     -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
     -Wno-unsafe
-  if impl(ghc < 8.8.1)
-    ghc-options:
-      -- This used to warn even when `Safe` was explicit.
-      -Wno-safe
-  if impl(ghc >= 8.10.1)
-    ghc-options:
-      -- If we didn’t allow inferred-safe imports, nothing would be `Safe`.
-      -Wno-inferred-safe-imports
-      -- remove if the oldest supported version is GHC 8.10.1+
-      -Wno-prepositive-qualified-module
-  -- remove if the oldest supported version is GHC 9.2.1+
-  if impl(ghc >= 9.2.1)
-    ghc-options:
-      -Wno-missing-kind-signatures
-  if impl(ghc >= 9.8.1)
-    ghc-options:
-      -- remove if the oldest supported version is GHC 9.2.1+
-      -Wno-missing-poly-kind-signatures
-      -- Inference good.
-      -Wno-missing-role-annotations
-  -- remove if the oldest supported version is GHC 9.14.1+
-  if impl(ghc >= 9.14.1)
-    ghc-options:
-      -- See
-      -- https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0581-namespace-specified-imports.rst#deprecate-use-of-pattern-in-import-export-lists
-      -Wno-pattern-namespace-specifier
+    -- These are re-enabled in cabal.project so we can address them (as much
+    -- as possible) without the remainder worrying users.
+    -Wno-all-missed-specialisations
+    -Wno-missed-specialisations
   default-extensions:
     BlockArguments
     DefaultSignatures
@@ -205,11 +187,16 @@ common defaults
   if flag(noisy-deprecations)
     cpp-options:
       -DSELLOUT_NOISY_DEPRECATIONS
-  if flag(verify-no-recursion)
+  if flag(lint)
     build-depends:
       no-recursion ^>= {0.2.0, 0.3.0, 0.4.0},
     ghc-options:
-      -fplugin=NoRecursion
+      -fplugin NoRecursion
+    if impl(ghc >= 9.4.5)
+      build-depends:
+        henforcer ^>= {1.0.0},
+      ghc-options:
+        -fplugin Henforcer
 
 library
   import: defaults
@@ -232,7 +219,7 @@ test-suite doctests
     tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.16.2, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.0},
+    doctest ^>= {0.16.3, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.2, 0.25.0},
     yaya-unsafe,
   if impl(ghc >= 8.10.1)
     ghc-options:
@@ -240,16 +227,18 @@ test-suite doctests
       -- to ensure it gets built before this test-suite, even though the package
       -- appears to be unused.
       -Wno-unused-packages
+  -- NB: Adjust this to contain any components that may have doctests (including
+  --     executables).
+  x-doctest-components:
+    lib
   -- TODO: The sections below here are necessary because we don’t have control
   --       over the generated `Build_doctests.hs` file. So we have to silence
   --       all of its warnings one way or another.
   ghc-options:
+    -Wno-missing-deriving-strategies
     -Wno-missing-export-lists
     -Wno-missing-import-lists
     -Wno-safe
-  if impl(ghc >= 8.8.1)
-    ghc-options:
-      -Wno-missing-deriving-strategies
   default-extensions:
     -- Since we can’t add `{-# LANGUAGE Safe -#}` to the generated
     -- “Build_doctests.hs”, we set it here, and that means it has to match

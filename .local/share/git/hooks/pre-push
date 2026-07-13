@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+source strict-mode.bash
+
+### This ensures that any refs that are being pushed pass
+### `nix flake check`.
+
+if command -v nix >/dev/null; then
+  while read -r _local_ref local_oid _remote_ref _remote_oid; do
+    if [[ ! $local_oid =~ ^0+$ ]]; then # not a deletion
+      nix flake check \
+        "git+file://$(git rev-parse --show-toplevel)?rev=$local_oid" \
+        </dev/null # don’t let Nix read remaining refs
+    fi
+  done
+else
+  echo "warning: Skipping pre-push hook, because Nix isn’t installed." >&2
+fi
