@@ -12,7 +12,7 @@ on:
                 required: true
 jobs:
     publish-flake:
-        runs-on: ubuntu-26.04
+        runs-on: ubuntu-24.04
         permissions:
             id-token: "write"
             contents: "read"
