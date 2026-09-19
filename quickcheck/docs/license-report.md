@@ -8,9 +8,9 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 
 | Name | Version | [SPDX](https://spdx.org/licenses/) License Id | Description | Also depended upon by |
 | --- | --- | --- | --- | --- |
-| `QuickCheck` | [`2.18.0.0`](http://hackage.haskell.org/package/QuickCheck-2.18.0.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/QuickCheck-2.18.0.0/src/LICENSE) | Automatic testing of Haskell programs |  |
+| `QuickCheck` | [`2.19.0.0`](http://hackage.haskell.org/package/QuickCheck-2.19.0.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/QuickCheck-2.19.0.0/src/LICENSE) | Automatic testing of Haskell programs |  |
 | **`base`** | [`4.20.0.0`](http://hackage.haskell.org/package/base-4.20.0.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/base-4.20.0.0/src/LICENSE) | Core data structures and operations | *(core library)* |
-| `no-recursion` | [`0.4.0.0`](http://hackage.haskell.org/package/no-recursion-0.4.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/no-recursion-0.4.0.0/src/LICENSE) | A GHC plugin to remove support for recursion | `yaya` |
+| `no-recursion` | [`0.4.0.1`](http://hackage.haskell.org/package/no-recursion-0.4.0.1) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary)`](http://hackage.haskell.org/package/no-recursion-0.4.0.1/src/LICENSE) | A GHC plugin to remove support for recursion | `yaya` |
 | `yaya` | [`1.0.0.0`](http://hackage.haskell.org/package/yaya-1.0.0.0) | [`(AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-commercial)`](http://hackage.haskell.org/package/yaya-1.0.0.0/src/LICENSE) | Total recursion schemes. |  |
 
 ## Indirect transitive dependencies
@@ -35,10 +35,11 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | **`exceptions`** | [`0.10.7`](http://hackage.haskell.org/package/exceptions-0.10.7) | [`BSD-3-Clause`](http://hackage.haskell.org/package/exceptions-0.10.7/src/LICENSE) | Extensible optionally-pure exceptions | `filepath`, `free`, `ghc`, `kan-extensions`, `os-string`, `semaphore-compat` |
 | **`filepath`** | [`1.5.2.0`](http://hackage.haskell.org/package/filepath-1.5.2.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/filepath-1.5.2.0/src/LICENSE) | Library for manipulating FilePaths in a cross platform way. | `directory`, `ghc`, `ghc-boot`, `ghci`, `hashable`, `hpc`, `process`, `unix` |
 | `free` | [`5.2`](http://hackage.haskell.org/package/free-5.2) | [`BSD-3-Clause`](http://hackage.haskell.org/package/free-5.2/src/LICENSE) | Monads for free | `adjunctions`, `kan-extensions`, `yaya` |
-| **`ghc`** | [`9.10.1`](http://hackage.haskell.org/package/ghc-9.10.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/ghc-9.10.1/src/LICENSE) | The GHC API | `no-recursion` |
+| **`ghc`** | [`9.10.1`](http://hackage.haskell.org/package/ghc-9.10.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/ghc-9.10.1/src/LICENSE) | The GHC API | `ghc-compat-plugin`, `no-recursion` |
 | **`ghc-bignum`** | [`1.3`](http://hackage.haskell.org/package/ghc-bignum-1.3) | [`BSD-3-Clause`](http://hackage.haskell.org/package/ghc-bignum-1.3/src/LICENSE) | GHC BigNum library | `ghc-internal` |
 | **`ghc-boot`** | [`9.10.1`](http://hackage.haskell.org/package/ghc-boot-9.10.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/ghc-boot-9.10.1/src/LICENSE) | Shared functionality between GHC and its boot libraries | `ghc`, `ghci` |
-| **`ghc-boot-th`** | [`9.10.1`](http://hackage.haskell.org/package/ghc-boot-th-9.10.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/ghc-boot-th-9.10.1/src/LICENSE) | Shared functionality between GHC and the @template-haskell@ library | `ghc-boot`, `template-haskell` |
+| **`ghc-boot-th`** | [`9.10.1`](http://hackage.haskell.org/package/ghc-boot-th-9.10.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/ghc-boot-th-9.10.1/src/LICENSE) | Shared functionality between GHC and the @template-haskell@ library | `ghc-boot`, `ghc-compat-plugin`, `template-haskell` |
+| `ghc-compat-plugin` | [`0.1.0.1`](http://hackage.haskell.org/package/ghc-compat-plugin-0.1.0.1) | [`AGPL-3.0-only`](http://hackage.haskell.org/package/ghc-compat-plugin-0.1.0.1/src/LICENSE.AGPL-3.0-only) | Eases support for multiple GHC versions | `no-recursion` |
 | **`ghc-heap`** | [`9.10.1`](http://hackage.haskell.org/package/ghc-heap-9.10.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/ghc-heap-9.10.1/src/LICENSE) | Functions for walking GHC's heap | `ghc`, `ghci` |
 | **`ghc-internal`** | [`9.1001.0`](http://hackage.haskell.org/package/ghc-internal-9.1001.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/ghc-internal-9.1001.0/src/LICENSE) | Basic libraries | `base`, `ghc-heap` |
 | **`ghc-platform`** | [`0.1.0.0`](http://hackage.haskell.org/package/ghc-platform-0.1.0.0) |  *MISSING* | *MISSING* | `ghc-boot` |
@@ -46,7 +47,7 @@ Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.
 | **`ghci`** | [`9.10.1`](http://hackage.haskell.org/package/ghci-9.10.1) |  *MISSING* | *MISSING* | `ghc` |
 | `hashable` | [`1.5.1.0`](http://hackage.haskell.org/package/hashable-1.5.1.0) | [`BSD-3-Clause`](http://hackage.haskell.org/package/hashable-1.5.1.0/src/LICENSE) | A class for types that can be converted to a hash value | `semigroupoids`, `strict`, `these`, `unordered-containers` |
 | **`hpc`** | [`0.7.0.1`](http://hackage.haskell.org/package/hpc-0.7.0.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/hpc-0.7.0.1/src/LICENSE) | Code Coverage Library for Haskell | `ghc` |
-| `indexed-traversable` | [`0.1.4`](http://hackage.haskell.org/package/indexed-traversable-0.1.4) | [`BSD-2-Clause`](http://hackage.haskell.org/package/indexed-traversable-0.1.4/src/LICENSE) | FunctorWithIndex, FoldableWithIndex, TraversableWithIndex | `comonad`, `free` |
+| `indexed-traversable` | [`0.1.5`](http://hackage.haskell.org/package/indexed-traversable-0.1.5) | [`BSD-2-Clause`](http://hackage.haskell.org/package/indexed-traversable-0.1.5/src/LICENSE) | FunctorWithIndex, FoldableWithIndex, TraversableWithIndex | `comonad`, `free` |
 | `invariant` | [`0.6.5`](http://hackage.haskell.org/package/invariant-0.6.5) | [`BSD-2-Clause`](http://hackage.haskell.org/package/invariant-0.6.5/src/LICENSE) | Haskell98 invariant functors | `kan-extensions` |
 | `kan-extensions` | [`5.2.8`](http://hackage.haskell.org/package/kan-extensions-5.2.8) | [`BSD-3-Clause`](http://hackage.haskell.org/package/kan-extensions-5.2.8/src/LICENSE) | Kan extensions, Kan lifts, the Yoneda lemma, and (co)density (co)monads | `yaya` |
 | **`mtl`** | [`2.3.1`](http://hackage.haskell.org/package/mtl-2.3.1) | [`BSD-3-Clause`](http://hackage.haskell.org/package/mtl-2.3.1/src/LICENSE) | Monad classes for transformers, using functional dependencies | `adjunctions`, `either`, `exceptions`, `free`, `kan-extensions`, `random` |
