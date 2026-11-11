@@ -38,6 +38,8 @@ data DExpr
 
 extractPatternFunctor defaultRules ''DExpr
 
+type role DExprF representational
+
 deriving stock instance (Eq a) => Eq (DExprF a)
 
 deriving stock instance (Ord a) => Ord (DExprF a)

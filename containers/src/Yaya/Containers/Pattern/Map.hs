@@ -90,6 +90,8 @@ data Map k v r = Tip | Bin Map.Size k ~v r r
       Traversable
     )
 
+type role Map representational representational representational
+
 instance Projectable (->) (Map.Map k v) (Map k v) where
   project Map.Tip = Tip
   project (Map.Bin size k v l r) = Bin size k v l r

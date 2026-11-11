@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 #if MIN_VERSION_GLASGOW_HASKELL(9, 0, 0, 0)
 {-# LANGUAGE Safe #-}
+-- "Data.Either.Validation" is only inferred `Safe`.
+{-# OPTIONS_GHC -Wno-inferred-safe-imports #-}
 #else
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE Trustworthy #-}

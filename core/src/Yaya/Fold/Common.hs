@@ -1,4 +1,9 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Safe #-}
+#if MIN_VERSION_GLASGOW_HASKELL(8, 10, 0, 0)
+-- "Data.Functor.Day" is only inferred `Safe`.
+{-# OPTIONS_GHC -Wno-inferred-safe-imports #-}
+#endif
 
 -- | Common algebras that are useful when folding.
 module Yaya.Fold.Common

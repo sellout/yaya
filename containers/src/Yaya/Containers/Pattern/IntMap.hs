@@ -1,5 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Safe #-}
+#if MIN_VERSION_GLASGOW_HASKELL(8, 10, 0, 0)
+-- With @containers-0.8@, "Data.IntSet.Internal.IntTreeCommons" is only
+--   inferred `Safe`.
+{-# OPTIONS_GHC -Wno-inferred-safe-imports #-}
+#endif
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Yaya.Containers.Pattern.IntMap
@@ -82,6 +87,8 @@ data IntMap a r
       Traversable
     )
 #endif
+
+type role IntMap representational representational
 
 instance Projectable (->) (IntMap.IntMap a) (IntMap a) where
   project = \case

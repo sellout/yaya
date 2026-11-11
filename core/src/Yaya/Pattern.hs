@@ -112,6 +112,8 @@ data XNor a b = Neither | Both ~a b
       Traversable
     )
 
+type role XNor representational representational
+
 -- | Eliminator for `XNor`, akin to `Data.Either.either` or `Data.Maybe.maybe`.
 --
 --   @since 0.6.1.0
@@ -190,6 +192,8 @@ data AndMaybe a b = Only ~a | Indeed ~a b
       Generic1,
       Traversable
     )
+
+type role AndMaybe representational representational
 
 -- | Eliminator for `AndMaybe`, akin to `Data.Either.either` or
 --  `Data.Maybe.maybe`.

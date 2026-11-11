@@ -257,6 +257,8 @@ type Nat = Mu Maybe
 -- NB: This is a newtype so we can create the usual instances.
 newtype Partial a = Partial {fromPartial :: Nu (Either a)}
 
+type role Partial representational
+
 -- TODO: There may be some way to do this over an arbitrary @newtype@, or at
 --       least a way to do it over an arbitrary `Iso`.
 insidePartial :: (Nu (Either a) -> Nu (Either b)) -> Partial a -> Partial b

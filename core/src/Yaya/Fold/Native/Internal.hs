@@ -30,6 +30,8 @@ import "this" Yaya.Fold
 --   lazy/corecursive.
 data Cofix f = Cofix (f (Cofix f))
 
+type role Cofix nominal
+
 {-# HLINT ignore Cofix "Use newtype instead of data" #-}
 
 instance Projectable (->) (Cofix f) f where

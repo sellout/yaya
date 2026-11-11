@@ -36,6 +36,8 @@ data Expr a
   | Mult a a
   deriving stock (Eq, Show, Functor, Foldable, Traversable)
 
+type role Expr representational
+
 deriveEq1 ''Expr
 deriveShow1 ''Expr
 

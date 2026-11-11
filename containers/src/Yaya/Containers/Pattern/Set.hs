@@ -66,6 +66,8 @@ data Set a r = Tip | Bin Set.Size a r r
       Traversable
     )
 
+type role Set representational representational
+
 instance Projectable (->) (Set.Set a) (Set a) where
   project Set.Tip = Tip
   project (Set.Bin size a l r) = Bin size a l r

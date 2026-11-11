@@ -40,12 +40,20 @@ if impl(ghc == 9.4.1)
 tests: True
 
 constraints:
+  -- 5.1.6 is the first version that’s @Safe@
+  free >= 5.1.6,
   -- 5 is the first version that’s @Safe@
   lens >= 5,
   -- 0.2.0 is the first version that lets us ignore violations
   no-recursion >= 0.2.0,
   -- 0.4 is the first version with many of the operations we use
   strict >= 0.4,
+
+if os(windows) && impl(ghc >= 9.4)
+  constraints:
+    -- text-2.0 links against libstdc++, but GHC 9.4 moved its Windows
+    -- toolchain to clang/libc++, which text-2.0.1 is the first to support.
+    text >= 2.0.1,
 
 allow-newer:
   -- The latest versions of these don’t have bounds that support GHC 9.14.

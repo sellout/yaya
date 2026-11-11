@@ -3,6 +3,10 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE Safe #-}
 {-# LANGUAGE ViewPatterns #-}
+#if MIN_VERSION_GLASGOW_HASKELL(8, 10, 0, 0)
+-- "Data.Functor.Day" is only inferred `Safe`.
+{-# OPTIONS_GHC -Wno-inferred-safe-imports #-}
+#endif
 {-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-decls:steppableReadPrec' #-}
 
 module Yaya.Fold
@@ -374,6 +378,8 @@ steppableReadPrec = steppableReadPrec' liftReadPrec
 --          @-XStrictData@ can help with this a lot.
 newtype Mu f = Mu (forall a. Algebra (->) f a -> a)
 
+type role Mu representational
+
 instance (Functor f) => Projectable (->) (Mu f) f where
   project = lambek
   {-# INLINEABLE project #-}
@@ -406,6 +412,8 @@ instance (Show1 f) => Show (Mu f) where
 -- | A fixed-point operator for coinductive / potentially-infinite data
 --   structures.
 data Nu f where Nu :: Coalgebra (->) f a -> a -> Nu f
+
+type role Nu representational
 
 instance (Functor f) => Projectable (->) (Nu f) f where
   project (Nu f a) = Nu f <$> f a

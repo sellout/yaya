@@ -51,6 +51,8 @@ import "this" Yaya.Pattern
 --   strict/recursive.
 newtype Fix f = Fix (f (Fix f))
 
+type role Fix nominal
+
 instance Projectable (->) (Fix f) f where
   project (Fix fFix) = fFix
 
