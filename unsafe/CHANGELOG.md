@@ -9,13 +9,13 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 
 ### Removed
 
-- support for yaya < 1.0.0 (this package depends on some definitions that were moved there)
+- support for Yaya < 1.0.0 (this package depends on some definitions that were moved there)
 
 ## [1.0.0.0] - 2026-04-22 [YANKED]
 
 ### Added
 
-- support for yaya-1.0.0.0
+- support for `yaya-1.0.0.0`
 
 ### Changed
 
@@ -98,7 +98,7 @@ Unknown changes.
 
 ### Changed
 
-- updated in sync with polykinding changes in yaya-0.3.0.0
+- updated in sync with polykind changes in Yaya 0.3.0.0
 
 ## [0.1.1.3] – 2020–05–14
 
@@ -116,13 +116,13 @@ Unknown changes.
 
 ### Added
 
-- tests for `law_cataCompose` (which bumps the yaya-hedgehog dependency for tests)
+- tests for `law_cataCompose` (which bumps the `yaya-hedgehog` dependency for tests)
 
 ## [0.1.1.0] – 2019–01–08
 
 ### Added
 
-- lower bounds on internal yaya dependencies
+- lower bounds on internal Yaya dependencies
 
 ### Changed
 

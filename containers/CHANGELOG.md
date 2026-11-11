@@ -9,7 +9,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 
 ### Added
 
-- support for yaya-1.0.0.0 and yaya-unsafe-1.0.0.0
+- support for `yaya-1.0.0.0` and `yaya-unsafe-1.0.0.0`
 
 ### Changed
 
@@ -45,6 +45,8 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [0.1.1.0] -
 
 ## [0.1.0.2] -
+
+## [0.1.0.1] -
 
 ## [0.1.0.0] -
 

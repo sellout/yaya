@@ -128,13 +128,13 @@ Unknown changes.
 
 ### Added
 
-- Copied Kmett's auto-extraction of pattern functors
+- Copied Kmett's automatic extraction of pattern functors
 
 ## [0.3.0.0] - 2020-05-14
 
 ### Changed
 
-- introduced minimal poly-kinding of type classes
+- introduced minimal polykinding of type classes
 
 ## [0.2.1.3] - 2020-05-14
 
@@ -153,7 +153,7 @@ Unknown changes.
 ### Added
 
 - documentation explaining limitations of `Mu`
-- tests for `law_cataCompose` (which bumps the yaya-hedgehog dependency for tests)
+- tests for `law_cataCompose` (which bumps the `yaya-hedgehog` dependency for tests)
 
 ## [0.2.1.0] - 2019-01-08
 
@@ -166,7 +166,7 @@ Unknown changes.
 ### Added
 
 - `DFunctor` instances for `Mu` and `Nu`
-- lower bounds on internal yaya dependencies
+- lower bounds on internal Yaya dependencies
 
 ### Changed
 

@@ -10,7 +10,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ### Added
 
 - support for QuickCheck-2.18.0
-- support for yaya-1.0.0
+- support for `yaya-1.0.0`
 
 ## [0.3.0.0] - 2026-01-18
 

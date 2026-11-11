@@ -20,28 +20,28 @@ How's this possible? You can’t have totality _and_ Turing-completeness, can yo
 
 ### organization
 
-This organization is intended to make this a lightly-opinionated library. You should only need to import one module (per package) into any module of yours.
+This organization is intended to make this a lightly opinionated library. You should only need to import one module (per package) into any module of yours.
 
 - `Pattern` – This is what you should use most of the time. It provides common pattern functors that aren’t found elsewhere as well as other operations that are useful when you’re defining your own algebras.
 - `Fold` – This (and its submodules) provides algebra transformers, fixed-point operators, and other things you use when applying folds.
 - `Retrofit` – Utilities for making your existing data types compatible with recursion schemes.
-- `Applied` – A number of commonly-useful utilities defined as folds. Intended both as examples and code that you can actually use in your projects.
+- `Applied` – A number of commonly useful utilities defined as folds. Intended both as examples and code that you can actually use in your projects.
 - `Zoo` – Names that you may have seen in the recursion scheme literature, but that we generally avoid using here. In general, prefer the right-hand side of these definitions, which shouldn’t require importing this module.
 
-### Some (hopefully) helpful guidelines
+### Some guidelines that might help
 
 Greek characters (and names) for things can often add confusion, however, there are some that we’ve kept here because I think (with the right mnemonic) they're actually clarifying.
 
 - `φ` – an algebra – “phi” (pronounced /faɪ/)
 - `ψ` – a coalgebra – “psi” (pronounced /ˈ(p)saɪ/)
 
-These are the symbols used in “the literature”, but I think they also provide a good visual mnemonic – φ, like an algebra, is folded inward, while ψ, like a coalgebra, opens up. So, I find these symbols more evocative than `f` and `g` or `algebra` and `coalgebra`, or any other pair of names I’ve come across for these concepts.
+These are the symbols used in “the literature”, but I think they also provide a good visual mnemonic – φ, like an algebra, is folded inward, while ψ, like a coalgebra, opens up. That’s why I find these symbols more evocative than `f` and `g` or `algebra` and `coalgebra`, or any other pair of names I’ve come across for these concepts.
 
-There are two other names, `Mu` and `Nu` (for the inductive and coinductive fixed-point operators), that I _don’t_ think have earned their place, but I just haven’t come up with something more helpful yet.
+I _don’t_ think two other names – `Mu` and `Nu` (for the inductive and coinductive fixed-point operators) – have earned their place, but I just haven’t come up with something more helpful yet.
 
 #### Naming Conventions
 
-There's a set of conventions around the naming of the operations. There are many variants of each operation (and they're all ultimately variants of `cata` and `ana`), so understanding this convention should help make it easier to understand the myriad possibilities rather than learning them by rote. The general pattern is
+There's a set of conventions around the naming of the operations. Each operation has many variants (and they're all ultimately variants of `cata` and `ana`), so understanding this convention should help make it easier to understand the myriad possibilities rather than learning them by rote. The general pattern is
 
 > [`e`][`g`]`operation`[`T`][`M`]
 
@@ -68,7 +68,7 @@ As a mnemonic, you can read the `e` as “exterior” as with a regular generali
 
 ##### `M`
 
-Kleisli (“monadic”) variant – This convention is much more widespread than simply recursion schemes. A fold that returns its result in a `Monad`, by applying a Kleisli algebra (that is, `f a -> m a` rather than `f a -> a`. The dual of this might be something like `anaW` (taking a seed value in a `Comonad`), but those are uninteresting. Having Kleisli variants of unfolds is unsafe, as it can force traversal of an infinite structure. If you’re looking for an operation like that, you are better off with an effectful streaming library.
+Kleisli (“monadic”) variant – This convention is much more widespread than recursion schemes alone. A fold that returns its result in a `Monad`, by applying a Kleisli algebra (that is, `f a -> m a` rather than `f a -> a`. The dual of this might be something like `anaW` (taking a seed value in a `Comonad`), but those are uninteresting. Having Kleisli variants of unfolds is unsafe, as it can force traversal of an infinite structure. If you’re looking for an operation like that, you are better off with an effectful streaming library.
 
 ### licensing
 
@@ -106,7 +106,7 @@ Scala. Here are some differences to be aware of:
 
 ### [recursion-schemes](https://github.com/ekmett/recursion-schemes)
 
-#### poly-kinded folds
+#### kind-polymorphic folds
 
 The `c` type parameter specifies the arrow to use, so while it's common to
 specialize to `(->)`, other options can give you polymorphic recursion over
@@ -128,11 +128,11 @@ promises of termination. Sometimes, the compiler can even tell you when
 you've broken these promises, but it falls short of any guarantee of totality.
 
 Anything known to be partial is relegated to the `yaya-unsafe` package -- mostly
-useful when you're in the process of converting existing directly-recursive
+useful when you're in the process of converting existing directly recursive
 code.
 
-**NB**: There are a number of instances (for example, `Corecursive [a] (XNor a)`) that
-_are_ actually safe, but they rely on Haskell’s own recursion. We could
+**NB**: A number of instances (for example, `Corecursive [a] (XNor a)`) _are_
+actually safe, but they rely on Haskell’s own recursion. We could
 potentially add a module/package in between the safe and unsafe ones, containing
 `Corecursive` instances for types that are lazy in their recursive parameters
 and `Recursive` instances for ones that are strict.
@@ -171,7 +171,7 @@ either `Corecursive` or `Steppable` in all cases.
 
 #### multi-parameter type classes
 
-A purely ergonomic difference, yaya uses multi-parameter type classes instead of
+A purely ergonomic difference, Yaya uses multi-parameter type classes instead of
 a `Base` type family.
 
 The latter frequently requires constraints in the form of
@@ -193,6 +193,6 @@ fold.
 I’m not as familiar with compdata, so I’ll have to look at it more before
 fleshing this out.
 
-- poly-kinded recursion schemes instead of separate classes for type-indexed
+- kind-polymorphic recursion schemes instead of separate classes for type-indexed
   recursion schemes. Using `PolyKinds` also allows for a wider variety of folds,
   for example, where the type index has kind `Type -> Type` rather than kind `Type`.

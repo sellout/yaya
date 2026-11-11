@@ -9,7 +9,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 
 ### Added
 
-- support for yaya-1.0.0
+- support for `yaya-1.0.0`
 
 ## [0.4.0.0] - 2026-01-18
 
@@ -77,7 +77,7 @@ Unknown changes.
 
 ### Changed
 
-- updated in sync with polykind changes in yaya-0.3.0.0
+- updated in sync with polykind changes in Yaya 0.3.0.0
 
 ## [0.1.2.2] – 2020–05–14
 
@@ -102,7 +102,7 @@ Unknown changes.
 ### Added
 
 - `law_anaRefl` as dual to `law_cataRefl`
-- lower bounds on internal yaya dependencies
+- lower bounds on internal Yaya dependencies
 
 ## [0.1.0.0] – 2019–01–04
 
