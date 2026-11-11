@@ -216,7 +216,7 @@ instance Read2 IntMap where
      in parens . prec appPrec $
           Nil
             <$ expectP (Lex.Ident "Nil")
-            <|> expectP (Lex.Ident "TipF")
+            <|> expectP (Lex.Ident "Tip")
               *> (Tip <$> step readPrec <*> step readPrecA)
 #if MIN_VERSION_containers(0, 8, 0)
             <|> expectP (Lex.Ident "Bin")
