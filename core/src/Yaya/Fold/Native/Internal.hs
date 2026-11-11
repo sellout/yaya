@@ -5,8 +5,14 @@
 {-# LANGUAGE NoStrictData #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
--- | This module only exists to restrict the scope of @NoStrictData@. Everything
+-- |
+-- Copyright: 2024 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+--   This module only exists to restrict the scope of @NoStrictData@. Everything
 --    is re-exported via "Yaya.Fold".
+--
+-- @since 0.5.0
 module Yaya.Fold.Native.Internal
   ( Cofix,
   )
@@ -28,23 +34,32 @@ import "this" Yaya.Fold
 
 -- | A fixed-point constructor that uses Haskell's built-in recursion. This is
 --   lazy/corecursive.
-data Cofix f = Cofix (f (Cofix f))
+--
+-- @since 0.5.0
+data Cofix f
+  = -- | Wraps a single layer of the pattern functor.
+    --
+    -- @since 0.5.0
+    Cofix (f (Cofix f))
 
 type role Cofix nominal
 
 {-# HLINT ignore Cofix "Use newtype instead of data" #-}
 
+-- | @since 0.5.0
 instance Projectable (->) (Cofix f) f where
   project (Cofix fCofix) = fCofix
 
+-- | @since 0.5.0
 instance Steppable (->) (Cofix f) f where
   embed = Cofix
 
+-- | @since 0.5.0
 instance (Functor f) => Corecursive (->) (Cofix f) f where
   ana φ = embed . fmap (ana φ) . φ
   {-# INLINEABLE ana #-}
 
--- | @since 0.6.1.0
+-- | @since 0.6.1
 instance (Read1 f) => Read (Cofix f) where
   readPrec = steppableReadPrec
   readListPrec = readListPrecDefault

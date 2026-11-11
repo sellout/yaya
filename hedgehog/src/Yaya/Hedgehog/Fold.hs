@@ -2,6 +2,11 @@
 {-# LANGUAGE Unsafe #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
+-- |
+-- Copyright: 2018 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+-- @since 0.1.0
 module Yaya.Hedgehog.Fold
   ( corecursiveIsUnsafe,
     embeddableOfHeight,
@@ -53,6 +58,10 @@ import safe "base" Prelude (fromIntegral)
 
 {-# HLINT ignore "Use camelCase" #-}
 
+-- | The cancellation law of `cata` – folding a freshly embedded layer is the
+--   same as applying the algebra to that layer with its children folded.
+--
+-- @since 0.1.0
 law_cataCancel ::
   ( Eq a,
     Show a,
@@ -67,6 +76,9 @@ law_cataCancel ::
 law_cataCancel φ =
   uncurry (===) . bimap (cata φ . embed) (φ . fmap (cata φ)) . diagonal
 
+-- | The reflection law of `cata` – folding with `embed` itself is the identity.
+--
+-- @since 0.1.0
 law_cataRefl ::
   (Eq t, Show t, Steppable (->) t f, Recursive (->) t f, MonadTest m) =>
   t ->
@@ -75,6 +87,8 @@ law_cataRefl = uncurry (===) . first (cata embed) . diagonal
 
 -- | NB: Since this requires both a `Corecursive` and `Eq` instance on the same
 --       type, it _likely_ requires instances from yaya-unsafe.
+--
+-- @since 0.1.1
 law_anaRefl ::
   (Eq t, Show t, Steppable (->) t f, Corecursive (->) t f, MonadTest m) =>
   t ->
@@ -92,6 +106,10 @@ law_anaRefl = uncurry (===) . first (ana project) . diagonal
 --   uncurry (==) (bimap (f . φ) (φ . fmap f) $ diagonal fa)
 --     ==> uncurry (===) (bimap (f . cata φ) (cata φ) $ diagonal t)
 
+-- | The composition law of `cata`. This follows from fusion and the naturality
+--   of @ε@. The `Proxy` selects the intermediate fixed point, @u@, of @g@.
+--
+-- @since 0.1.2
 law_cataCompose ::
   forall t f u g m b.
   ( Eq b,
@@ -132,6 +150,8 @@ law_cataCompose Proxy φ ε =
 --
 --  __NB__: Hedgehog’s `Size` is signed, so this can raise an exception if given
 --          a negative `Size`.
+--
+-- @since 0.1.0
 embeddableOfHeight ::
   (Steppable (->) t f, Functor f) =>
   -- | A generator for terminal cases (leaf nodes).
@@ -147,6 +167,8 @@ embeddableOfHeight leaf branch size =
   cata (genAlgebra leaf branch) (fromIntegral size :: Natural)
 
 -- | Builds a generic tree generator of a certain height.
+--
+-- @since 0.1.0
 genAlgebra ::
   (Steppable (->) t f, Functor f) =>
   Gen (f Void) ->
@@ -157,11 +179,15 @@ genAlgebra leaf branch =
 {-# INLINEABLE genAlgebra #-}
 
 -- | Creates a generator for potentially-infinite values.
+--
+-- @since 0.1.0
 genCorecursive :: (Corecursive (->) t f) => (a -> f a) -> Gen a -> Gen t
 genCorecursive = fmap . ana
 
 -- | Show that using a `Recursive` structure corecursively can lead to
 --   non-termination.
+--
+-- @since 0.2.1
 corecursiveIsUnsafe ::
   forall t a.
   ( Corecursive (->) (t (Pair a)) (Pair a),
@@ -184,6 +210,8 @@ corecursiveIsUnsafe Proxy x =
 
 -- | Show that using a `Corecursive` structure recursively can lead to
 --   non-termination.
+--
+-- @since 0.2.1
 recursiveIsUnsafe ::
   forall t a.
   ( Corecursive (->) (t (Pair a)) (Pair a),

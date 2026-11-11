@@ -1,8 +1,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE Unsafe #-}
 
--- | The point of this module is that it should compile _without_ importing any
+-- |
+-- Copyright: 2019 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+--   The point of this module is that it should compile _without_ importing any
 --   other Yaya modules.
+--
+-- @since 0.2.1.3
 module Test.Retrofit (tests) where
 
 import safe "base" Data.Bool (Bool)
@@ -74,5 +80,9 @@ instance Read DExpr where
 instance Show DExpr where
   showsPrec = recursiveShowsPrec
 
+-- | The test here is that the module compiles using only "Yaya.Retrofit", so
+--   there is nothing to check at runtime.
+--
+-- @since 0.2.1.3
 tests :: IO Bool
 tests = checkParallel $$discover

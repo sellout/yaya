@@ -7,6 +7,11 @@
 #endif
 {-# OPTIONS_GHC -Wno-orphans #-}
 
+-- |
+-- Copyright: 2024 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+-- @since 0.1.0
 module Yaya.Containers.Pattern.IntSet
   ( IntSet (Bin, Nil, Tip),
   )
@@ -56,33 +61,69 @@ import qualified "containers" Data.IntSet.Internal.IntTreeCommons as IntSet
   )
 #endif
 
+-- | The pattern functor of `IntSet.IntSet`, a big-endian Patricia tree with
+--   bitmap leaves. Each constructor mirrors the one of the same name in
+--   "Data.IntSet.Internal", with the recursive positions abstracted to @r@.
+--
+-- @since 1.0.0
 data IntSet r
-  = Nil
-  | Tip Int IntSet.BitMap
+  = -- | The empty set – `IntSet.Nil`.
+    --
+    -- @since 1.0.0
+    Nil
+  | -- | A leaf – `IntSet.Tip`: the high-order bits shared by a run of
+    --   members, and a `IntSet.BitMap` whose set bits mark which values with
+    --   those high-order bits are present.
+    --
+    -- @since 1.0.0
+    Tip Int IntSet.BitMap
 #if MIN_VERSION_containers(0, 8, 0)
-  | Bin IntSet.Prefix r r
+  | -- | A branch – `IntSet.Bin`: the `IntSet.Prefix` of the members below it
+    --   (which, as of @containers-0.8@, also encodes the bit at which they
+    --   branch), then the left and right subtrees.
+    --
+    -- @since 1.0.0
+    Bin IntSet.Prefix r r
   deriving stock
-    ( Eq,
+    ( -- | @since 1.0.0
+      Eq,
+      -- | @since 1.0.0
       Generic,
+      -- | @since 1.0.0
       Foldable,
+      -- | @since 1.0.0
       Functor,
+      -- | @since 1.0.0
       Generic1,
+      -- | @since 1.0.0
       Traversable
     )
 #else
-  | Bin IntSet.Prefix IntSet.Mask r r
+  | -- | A branch – `IntSet.Bin`: the `IntSet.Prefix` shared by the members
+    --   below it, the `IntSet.Mask` selecting the bit at which they branch,
+    --   then the left and right subtrees.
+    --
+    -- @since 1.0.0
+    Bin IntSet.Prefix IntSet.Mask r r
   deriving stock
-    ( Eq,
+    ( -- | @since 1.0.0
+      Eq,
+      -- | @since 1.0.0
       Generic,
+      -- | @since 1.0.0
       Foldable,
+      -- | @since 1.0.0
       Functor,
+      -- | @since 1.0.0
       Generic1,
+      -- | @since 1.0.0
       Traversable
     )
 #endif
 
 type role IntSet representational
 
+-- | @since 0.1.0
 instance Projectable (->) IntSet.IntSet IntSet where
   project = \case
     IntSet.Nil -> Nil
@@ -93,9 +134,11 @@ instance Projectable (->) IntSet.IntSet IntSet where
     IntSet.Bin prefix mask l r -> Bin prefix mask l r
 #endif
 
+-- | @since 0.1.0
 instance Recursive (->) IntSet.IntSet IntSet where
   cata = Unsafe.unsafeCata
 
+-- | @since 0.1.0
 instance Steppable (->) IntSet.IntSet IntSet where
   embed = \case
     Nil -> IntSet.Nil
@@ -106,6 +149,7 @@ instance Steppable (->) IntSet.IntSet IntSet where
     Bin prefix mask l r -> IntSet.Bin prefix mask l r
 #endif
 
+-- | @since 1.0.0
 instance Eq1 IntSet where
   liftEq f = Tuple.curry $ \case
     (Nil, Nil) -> True
@@ -122,9 +166,11 @@ instance Eq1 IntSet where
       prefix == prefix' && mask == mask' && f l l' && f r r'
 #endif
 
+-- | @since 1.0.0
 instance (Ord r) => Ord (IntSet r) where
   compare = liftCompare compare
 
+-- | @since 1.0.0
 instance Ord1 IntSet where
   liftCompare f = Tuple.curry $ \case
     (Nil, Nil) -> EQ
@@ -143,11 +189,11 @@ instance Ord1 IntSet where
       compare prefix prefix' <> compare mask mask' <> f l l' <> f r r'
 #endif
 
--- | @since 0.1.2.0
+-- | @since 1.0.0
 instance (Read r) => Read (IntSet r) where
   readPrec = liftReadPrec readPrec readListPrec
 
--- | @since 0.1.2.0
+-- | @since 1.0.0
 instance Read1 IntSet where
   liftReadPrec readPrecR _ =
     let appPrec = 10
@@ -173,9 +219,11 @@ instance Read1 IntSet where
                  )
 #endif
 
+-- | @since 1.0.0
 instance (Show r) => Show (IntSet r) where
   showsPrec = liftShowsPrec showsPrec showList
 
+-- | @since 1.0.0
 instance Show1 IntSet where
   liftShowsPrec showsPrecR _ p =
     let appPrec = 10

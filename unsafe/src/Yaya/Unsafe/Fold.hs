@@ -1,7 +1,13 @@
 {-# LANGUAGE Safe #-}
 
--- | Definitions and instances that use direct recursion, which (because of
+-- |
+-- Copyright: 2017 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+--   Definitions and instances that use direct recursion, which (because of
 --   laziness) can lead to non-termination.
+--
+-- @since 0.1.0
 module Yaya.Unsafe.Fold
   ( anaM,
     ganaM,
@@ -52,6 +58,8 @@ import "yaya" Yaya.Pattern (Maybe, Pair, maybe, uncurry)
 --   it should only be used when it is unavoidable. If you are explicitly
 --   unfolding a structure unsafely, use this function instead of importing that
 --   module.
+--
+-- @since 0.3.3
 unsafeAna :: (Steppable (->) t f, Functor f) => Coalgebra (->) f a -> a -> t
 unsafeAna = hylo embed
 
@@ -71,6 +79,8 @@ unsafeAna = hylo embed
 --   structure) is likely to result in non-termination, whereas `unsafeAna`
 --   (building a potentially-infinite structure strictly) is likely to use up
 --   the memory or overflow the stack.
+--
+-- @since 0.3.3
 unsafeCata :: (Projectable (->) t f, Functor f) => Algebra (->) f a -> t -> a
 unsafeCata = flip hylo project
 
@@ -78,6 +88,8 @@ unsafeCata = flip hylo project
 --   that can be total – with @ψ :: `CoalgebraM` (->) m f a@, @`ana` (`Compose`
 --  . ψ)@ results in something like @`Nu` (`Compose` m f)@ which is akin to an
 --   effectful stream.
+--
+-- @since 0.1.0
 anaM ::
   (Monad m, Steppable (->) t f, Traversable f) =>
   CoalgebraM (->) m f a ->
@@ -85,6 +97,11 @@ anaM ::
   m t
 anaM = hyloM (pure . embed)
 
+-- | A monadic `Yaya.Fold.gana` – lowers the `GCoalgebraM` through the
+--   `DistributiveLaw` and unfolds it with `anaM`, so it inherits the
+--   partiality of `anaM`.
+--
+-- @since 0.1.0
 ganaM ::
   (Monad m, Monad n, Traversable n, Steppable (->) t f, Traversable f) =>
   DistributiveLaw (->) n f ->
@@ -94,11 +111,19 @@ ganaM ::
 ganaM k ψ = anaM (lowerCoalgebraM k ψ) . pure
 
 -- | Fusion of an 'ana' and a 'cata'.
+--
+-- @since 0.1.0
 hylo :: (Functor f) => Algebra (->) f b -> Coalgebra (->) f a -> a -> b
 hylo φ ψ = go
   where
     go = φ . fmap go . ψ
 
+-- | A generalized `hylo` – fuses a `GCoalgebra` and a `GAlgebra`, each lowered
+--   through its `DistributiveLaw` (as for `Yaya.Fold.gana` and
+--   `Yaya.Fold.gcata`). Like `hylo`, this uses general recursion, so it may
+--   not terminate when the unfold is infinite.
+--
+-- @since 0.1.0
 ghylo ::
   (Comonad w, Monad m, Functor f) =>
   DistributiveLaw (->) f w ->
@@ -110,6 +135,11 @@ ghylo ::
 ghylo w m φ ψ =
   extract . hylo (lowerAlgebra w φ) (lowerCoalgebra m ψ) . pure
 
+-- | A monadic `hylo` – a `hylo` over @`Compose` m f@. Effects are run
+--   depth-first: a seed’s coalgebra effect, then those of its subtrees, then
+--   the algebra effect for that layer.
+--
+-- @since 0.1.0
 hyloM ::
   (Monad m, Traversable f) =>
   AlgebraM (->) m f b ->
@@ -118,6 +148,9 @@ hyloM ::
   m b
 hyloM φ ψ = hylo (φ <=< sequenceA <=< getCompose) (Compose . ψ)
 
+-- | A monadic `ghylo` – fuses a `GCoalgebraM` and a `GAlgebraM`.
+--
+-- @since 0.1.0
 ghyloM ::
   (Comonad w, Traversable w, Monad m, Traversable f, Monad n, Traversable n) =>
   DistributiveLaw (->) f w ->
@@ -145,6 +178,8 @@ ghyloM w n φ ψ =
 --
 --  __NB__: See https://gist.github.com/sellout/4709e723cb649110af00217486c4466b
 --          for some commentary and explanation.
+--
+-- @since 0.1.0
 stream' ::
   ( Projectable (->) input inputf,
     Steppable (->) output outputf,
@@ -191,6 +226,8 @@ stream' process accum = go
 --   The “Ana” in the name parallels the naming of `streamGApo`, where this form
 --   lacks the helper algebra, in the same way that `ana` lacks the helper
 --   algebra that `Yaya.Zoo.gapo` has.
+--
+-- @since 0.1.0
 streamAna ::
   ( Projectable (->) input inputf,
     Steppable (->) output outputf,
@@ -228,6 +265,8 @@ streamAna process accum = stream' process $ \_state cont -> uncurry cont . accum
 --   primary algebra “fails”. This is also why the arguments are re-ordered
 --   relative to Gibbons’ `Yaya.Unsafe.Zoo.fstream` – to make the parallel with
 --   @gapo@ more obvious.
+--
+-- @since 0.1.0
 streamGApo ::
   ( Projectable (->) input inputf,
     Steppable (->) output outputf,

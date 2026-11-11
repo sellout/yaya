@@ -1,6 +1,11 @@
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE Safe #-}
 
+-- |
+-- Copyright: 2017 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+-- @since 0.1.0
 module Yaya.Unsafe.Zoo
   ( chrono,
     codyna,
@@ -61,6 +66,11 @@ import "yaya" Yaya.Pattern
   )
 import qualified "this" Yaya.Unsafe.Fold as Unsafe
 
+-- | Chronomorphism – a `Unsafe.ghylo` of `Yaya.Zoo.histo` and `Yaya.Zoo.futu`.
+--   The coalgebra can produce multiple layers at once and the algebra can see
+--   all prior results.
+--
+-- @since 0.1.0
 chrono ::
   ( Functor f,
     forall x. Corecursive (->) (cofreef x) (EnvT x f),
@@ -76,6 +86,9 @@ chrono ::
   b
 chrono = Unsafe.ghylo (distCofreeT id) (seqFreeT id)
 
+-- | The dual of `dyna` – a plain `Algebra` fused with `Yaya.Zoo.futu`.
+--
+-- @since 0.1.0
 codyna ::
   ( Functor f,
     forall x. Recursive (->) (freef x) (FreeF f x),
@@ -90,6 +103,8 @@ codyna φ = Unsafe.ghylo distIdentity (seqFreeT id) (φ . fmap runIdentity)
 
 -- | [Recursion Schemes for Dynamic
 --   Programming](https://www.researchgate.net/publication/221440162_Recursion_Schemes_for_Dynamic_Programming)
+--
+-- @since 0.1.0
 dyna ::
   ( Functor f,
     forall x. Corecursive (->) (cofreef x) (EnvT x f),
@@ -105,6 +120,8 @@ dyna φ ψ = Unsafe.ghylo (distCofreeT id) seqIdentity φ (fmap Identity . ψ)
 -- | Unlike most `Unsafe.hylo`s, `elgot` composes an algebra and coalgebra in a
 --   way that allows information to move between them. The coalgebra can return,
 --   effectively, a pre-folded branch, short-circuiting parts of the process.
+--
+-- @since 0.1.0
 elgot ::
   (Functor f) =>
   Algebra (->) f b ->
@@ -115,10 +132,18 @@ elgot φ ψ = Unsafe.hylo (fromEither . second φ . getCompose) (Compose . ψ)
 
 -- | The dual of `elgot`, `coelgot` allows the /algebra/ to short-circuit in
 --   some cases – operating directly on a part of the seed.
+--
+-- @since 0.1.0
 coelgot ::
   (Functor f) => ElgotAlgebra (->) (Pair a) f b -> Coalgebra (->) f a -> a -> b
 coelgot φ ψ = Unsafe.hylo (φ . getCompose) (Compose . second ψ . diagonal)
 
+-- | Generalized prepromorphism – a `Yaya.Fold.gcata` that, before each
+--   recursive step, applies the natural transformation to every layer of the
+--   substructure, so a layer at depth /n/ has been transformed /n/ times by
+--   the time it is folded.
+--
+-- @since 0.1.0
 gprepro ::
   (Steppable (->) t f, Recursive (->) t f, Functor f, Comonad w) =>
   DistributiveLaw (->) f w ->
@@ -129,6 +154,12 @@ gprepro ::
 gprepro k φ e =
   Unsafe.ghylo k seqIdentity φ (fmap (Identity . cata (embed . e)) . project)
 
+-- | Generalized postpromorphism – the dual of `gprepro`, a `Yaya.Fold.gana`
+--   that applies the natural transformation to every layer of each
+--   substructure it unfolds, so a layer at depth /n/ has been transformed /n/
+--   times in the result.
+--
+-- @since 0.1.0
 gpostpro ::
   (Steppable (->) t f, Corecursive (->) t f, Functor f, Monad m) =>
   DistributiveLaw (->) m f ->
@@ -141,6 +172,8 @@ gpostpro k e =
 
 -- | The metamorphism definition from [Gibbons’
 --   paper](https://www.cs.ox.ac.uk/jeremy.gibbons/publications/metamorphisms-scp.pdf).
+--
+-- @since 0.1.0
 stream :: Coalgebra (->) (XNor c) b -> (b -> a -> b) -> b -> [a] -> [c]
 stream f g = fstream f g (const Neither)
 
@@ -150,6 +183,8 @@ stream f g = fstream f g (const Neither)
 --
 --   The implementation shows how `Unsafe.streamGApo` generalizes Gibbons’
 --  `fstream` (and `Unsafe.stream'` even more so).
+--
+-- @since 0.1.0
 fstream ::
   Coalgebra (->) (XNor c) b ->
   (b -> a -> b) ->
@@ -177,6 +212,13 @@ fstream f g h =
 -- x = stream project snoc [] [1, 2, 3, 4, 5]
 
 -- TODO: Weaken `Monad` constraint to `Applicative`.
+
+-- | Effectfully maps the elements of a structure whose pattern functor is
+--   `Bitraversable` (with the element as its first parameter), preserving its
+--   shape. It is built with `Unsafe.anaM`, so it inherits that function’s
+--   partiality.
+--
+-- @since 0.1.0
 cotraverse ::
   ( Steppable (->) t (f a),
     Steppable (->) u (f b),
@@ -191,6 +233,8 @@ cotraverse f = Unsafe.anaM (bitraverse f pure . project)
 
 -- | Zygohistomorphic prepromorphism – everyone’s favorite recursion scheme
 --   joke.
+--
+-- @since 0.1.0
 zygoHistoPrepro ::
   ( Steppable (->) t f,
     Recursive (->) t f,

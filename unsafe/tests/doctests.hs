@@ -6,6 +6,8 @@
 --
 -- Test-suite driver, adapted from
 -- [cabal-doctest](https://hackage.haskell.org/package/cabal-doctest).
+--
+-- @since 0.3.3
 module Main (main) where
 
 import safe "base" Control.Category ((.))
@@ -20,7 +22,7 @@ import "this" Build_doctests (Component (Component), components)
 
 -- | The doctest entry point.
 --
--- @since 0.0.1
+-- @since 0.3.3
 main :: IO ()
 main = fmap fold . for components $ \(Component name flags pkgs sources) -> do
   print name

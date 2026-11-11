@@ -1,5 +1,10 @@
 {-# LANGUAGE Unsafe #-}
 
+-- |
+-- Copyright: 2018 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+-- @since 0.2.1.2
 module Yaya.Hedgehog
   ( evalNonterminating,
     nonterminatingProperty,
@@ -20,6 +25,8 @@ import qualified "hedgehog" Hedgehog as HH
 -- | Returns success if the expression doesn’t terminate, failure otherwise.
 --   Termination is just checked with a 1 second timeout, so this isn’t
 --   foolproof.
+--
+-- @since 0.2.1
 evalNonterminating ::
   (HasCallStack, MonadIO m, HH.MonadTest m, Show a) => a -> m ()
 evalNonterminating =
@@ -29,5 +36,7 @@ evalNonterminating =
 
 -- | Returns success if the expression doesn’t terminate, failure otherwise.
 --   The value passed here should termina
+--
+-- @since 0.2.1
 nonterminatingProperty :: (HasCallStack, Show a) => a -> HH.Property
 nonterminatingProperty = HH.withTests 1 . HH.property . evalNonterminating

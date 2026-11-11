@@ -6,6 +6,8 @@
 --
 -- Test-suite driver, adapted from
 -- [cabal-doctest](https://hackage.haskell.org/package/cabal-doctest).
+--
+-- @since 0.0.1
 module Main (main) where
 
 import safe "base" Control.Category ((.))

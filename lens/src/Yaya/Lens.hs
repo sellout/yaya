@@ -5,6 +5,11 @@
 {-# OPTIONS_GHC -Wno-inferred-safe-imports #-}
 #endif
 
+-- |
+-- Copyright: 2017 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+-- @since 0.0.1
 module Yaya.Lens
   ( AlgebraLens,
     AlgebraLens',
@@ -53,21 +58,43 @@ import "yaya" Yaya.Fold
   )
 
 -- | An isomorphism between an @`Algebra` (->) f a@ and a @`Coalgebra` (->) g b@.
+--
+-- @since 0.0.1
 type BialgebraIso f g a b = Iso (f a) (g b) a b
 
+-- | An algebra @f a -> a@ together with its inverse coalgebra @a -> f a@.
+--
+-- @since 0.0.1
 type BialgebraIso' f a = BialgebraIso f f a a
 
+-- | A lens from one layer @f a@ to its carrier @a@, whose getter is an
+--   @`Algebra` (->) f a@ and whose setter replaces the focus, yielding a
+--   @g b@.
+--
+-- @since 0.0.1
 type AlgebraLens f g a b = Lens (f a) (g b) a b
 
+-- | A simple `AlgebraLens`, which neither changes the pattern functor nor
+--   the carrier.
+--
+-- @since 0.0.1
 type AlgebraLens' f a = AlgebraLens f f a a
 
 -- | A prism between an @`AlgebraM` (->) (`Either` (f a)) f a@ and a
 --   @`Coalgebra` g b@.
+--
+-- @since 0.0.1
 type CoalgebraPrism f g a b = Prism (f a) (g b) a b
 
+-- | A coalgebra @a -> f a@ together with a partial algebra @f a -> `Maybe` a@
+--   that inverts it.
+--
+-- @since 0.0.1
 type CoalgebraPrism' f a = CoalgebraPrism f f a a
 
 -- | The isomorphism between `embed` and `project`.
+--
+-- @since 0.0.1
 steppableIso ::
   (Steppable (->) t f, Projectable (->) u g) => BialgebraIso f g t u
 steppableIso = iso embed project
@@ -75,12 +102,19 @@ steppableIso = iso embed project
 -- | The isomorphism between `cata` and `ana` as a function from an isomorphism
 --   between (co)algebras to an isomorphism between the (co)recursive structure
 --   and its folded value.
+--
+-- @since 0.0.1
 birecursiveIso ::
   (Recursive (->) s f, Corecursive (->) t f) =>
   BialgebraIso' f a ->
   Iso s t a a
 birecursiveIso φ = iso (cata (view φ)) (ana (review φ))
 
+-- | Lifts an `AlgebraLens'` on one layer to a lens on a whole recursive
+--   structure. Its getter is the `cata` of the layer's getter, and its setter
+--   rebuilds the structure with `ana`.
+--
+-- @since 0.0.1
 folded ::
   ( Recursive (->) s f,
     Projectable (->) s f,
@@ -93,6 +127,8 @@ folded φ =
   lens (cata (view φ)) (\s -> ana . flip (set φ) $ cata (view φ) <$> project s)
 
 -- | The prism between an unfold and a monadic fold.
+--
+-- @since 0.0.1
 unfolded ::
   ( Recursive (->) s f,
     Projectable (->) s f,
@@ -110,6 +146,8 @@ unfolded ψ =
 --  `Recursive` structures.
 --
 --   source: Zanzi in [Monoidal Cafe #beginner-questions](https://discordapp.com/channels/1005220974523846678/1224686592187433082/1225431802068340796)
+--
+-- @since 0.0.1
 cataIso ::
   ( Recursive (->) t f,
     Steppable (->) t f,
@@ -121,6 +159,8 @@ cataIso ::
 cataIso nt = iso (cata $ embed . view nt) (cata $ embed . view (from nt))
 
 -- | The dual of `cataIso`.
+--
+-- @since 0.0.1
 anaIso ::
   ( Corecursive (->) t f,
     Projectable (->) t f,

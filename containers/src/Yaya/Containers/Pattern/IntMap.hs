@@ -7,6 +7,11 @@
 #endif
 {-# OPTIONS_GHC -Wno-orphans #-}
 
+-- |
+-- Copyright: 2024 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+-- @since 0.1.0
 module Yaya.Containers.Pattern.IntMap
   ( IntMap (Bin, Nil, Tip),
   )
@@ -63,33 +68,67 @@ import qualified "containers" Data.IntSet.Internal.IntTreeCommons as IntMap
   )
 #endif
 
+-- | The pattern functor of `IntMap.IntMap`, a big-endian Patricia tree. Each
+--   constructor mirrors the one of the same name in "Data.IntMap.Internal",
+--   with the recursive positions abstracted to @r@.
+--
+-- @since 1.0.0
 data IntMap a r
-  = Nil
-  | Tip IntMap.Key a
+  = -- | The empty map – `IntMap.Nil`.
+    --
+    -- @since 1.0.0
+    Nil
+  | -- | A single key and its value – `IntMap.Tip`.
+    --
+    -- @since 1.0.0
+    Tip IntMap.Key a
 #if MIN_VERSION_containers(0, 8, 0)
-  | Bin IntMap.Prefix r r
+  | -- | A branch – `IntMap.Bin`: the `IntMap.Prefix` of the keys below it
+    --   (which, as of @containers-0.8@, also encodes the bit at which they
+    --   branch), then the left and right subtrees.
+    --
+    -- @since 1.0.0
+    Bin IntMap.Prefix r r
   deriving stock
-    ( Eq,
+    ( -- | @since 1.0.0
+      Eq,
+      -- | @since 1.0.0
       Generic,
+      -- | @since 1.0.0
       Foldable,
+      -- | @since 1.0.0
       Functor,
+      -- | @since 1.0.0
       Generic1,
+      -- | @since 1.0.0
       Traversable
     )
 #else
-  | Bin IntMap.Prefix IntMap.Mask r r
+  | -- | A branch – `IntMap.Bin`: the `IntMap.Prefix` shared by the keys below
+    --   it, the `IntMap.Mask` selecting the bit at which they branch, then the
+    --   left and right subtrees.
+    --
+    -- @since 1.0.0
+    Bin IntMap.Prefix IntMap.Mask r r
   deriving stock
-    ( Eq,
+    ( -- | @since 1.0.0
+      Eq,
+      -- | @since 1.0.0
       Generic,
+      -- | @since 1.0.0
       Foldable,
+      -- | @since 1.0.0
       Functor,
+      -- | @since 1.0.0
       Generic1,
+      -- | @since 1.0.0
       Traversable
     )
 #endif
 
 type role IntMap representational representational
 
+-- | @since 0.1.0
 instance Projectable (->) (IntMap.IntMap a) (IntMap a) where
   project = \case
     IntMap.Nil -> Nil
@@ -100,9 +139,11 @@ instance Projectable (->) (IntMap.IntMap a) (IntMap a) where
     IntMap.Bin prefix mask l r -> Bin prefix mask l r
 #endif
 
+-- | @since 0.1.0
 instance Recursive (->) (IntMap.IntMap a) (IntMap a) where
   cata = Unsafe.unsafeCata
 
+-- | @since 0.1.0
 instance Steppable (->) (IntMap.IntMap a) (IntMap a) where
   embed = \case
     Nil -> IntMap.Nil
@@ -113,9 +154,11 @@ instance Steppable (->) (IntMap.IntMap a) (IntMap a) where
     Bin prefix mask l r -> IntMap.Bin prefix mask l r
 #endif
 
+-- | @since 1.0.0
 instance (Eq a) => Eq1 (IntMap a) where
   liftEq = liftEq2 (==)
 
+-- | @since 1.0.0
 instance Eq2 IntMap where
   liftEq2 f g = Tuple.curry $ \case
     (Nil, Nil) -> True
@@ -132,12 +175,15 @@ instance Eq2 IntMap where
       prefix == prefix' && mask == mask' && g l l' && g r r'
 #endif
 
+-- | @since 1.0.0
 instance (Ord a, Ord r) => Ord (IntMap a r) where
   compare = liftCompare compare
 
+-- | @since 1.0.0
 instance (Ord a) => Ord1 (IntMap a) where
   liftCompare = liftCompare2 compare
 
+-- | @since 1.0.0
 instance Ord2 IntMap where
   liftCompare2 f g = Tuple.curry $ \case
     (Nil, Nil) -> EQ
@@ -155,15 +201,15 @@ instance Ord2 IntMap where
       compare prefix prefix' <> compare mask mask' <> g l l' <> g r r'
 #endif
 
--- | @since 0.1.2.0
+-- | @since 1.0.0
 instance (Read a, Read r) => Read (IntMap a r) where
   readPrec = liftReadPrec readPrec readListPrec
 
--- | @since 0.1.2.0
+-- | @since 1.0.0
 instance (Read a) => Read1 (IntMap a) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
--- | @since 0.1.2.0
+-- | @since 1.0.0
 instance Read2 IntMap where
   liftReadPrec2 readPrecA _ readPrecR _ =
     let appPrec = 10
@@ -189,12 +235,15 @@ instance Read2 IntMap where
                  )
 #endif
 
+-- | @since 1.0.0
 instance (Show a, Show r) => Show (IntMap a r) where
   showsPrec = liftShowsPrec showsPrec showList
 
+-- | @since 1.0.0
 instance (Show a) => Show1 (IntMap a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
+-- | @since 1.0.0
 instance Show2 IntMap where
   liftShowsPrec2 showsPrecA _ showsPrecR _ p =
     let appPrec = 10

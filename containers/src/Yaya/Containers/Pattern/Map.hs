@@ -1,15 +1,16 @@
 {-# LANGUAGE Safe #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
+-- |
+-- Copyright: 2024 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+-- @since 0.1.0
 module Yaya.Containers.Pattern.Map
   ( Map (Bin, Tip),
-    -- | @since 0.1.2.0
     eqMap,
-    -- | @since 0.1.2.0
     compareMap,
-    -- | @since 0.1.2.0
     readMapPrec,
-    -- | @since 0.1.2.0
     showsMapPrec,
   )
 where
@@ -76,33 +77,62 @@ import "yaya" Yaya.Fold
 import qualified "yaya-unsafe" Yaya.Unsafe.Fold as Unsafe
 import "base" Prelude ((+))
 
-data Map k v r = Tip | Bin Map.Size k ~v r r
+-- | The pattern functor of `Map.Map`, a size-balanced binary search tree. Each
+--   constructor mirrors the one of the same name in "Data.Map.Internal", with
+--   the recursive positions abstracted to @r@.
+--
+-- @since 1.0.0
+data Map k v r
+  = -- | The empty map – `Map.Tip`.
+    --
+    -- @since 1.0.0
+    Tip
+  | -- | A node – `Map.Bin`: the size of the subtree rooted here, its key and
+    --   (lazy) value, then the left and right subtrees.
+    --
+    -- @since 1.0.0
+    Bin Map.Size k ~v r r
   deriving stock
-    ( Eq,
+    ( -- | @since 1.0.0
+      Eq,
+      -- | @since 1.0.0
       Ord,
+      -- | @since 1.0.0
       Generic,
-      -- | @since 0.1.2.0
+      -- | @since 1.0.0
       Read,
+      -- | @since 1.0.0
       Show,
+      -- | @since 1.0.0
       Foldable,
+      -- | @since 1.0.0
       Functor,
+      -- | @since 1.0.0
       Generic1,
+      -- | @since 1.0.0
       Traversable
     )
 
 type role Map representational representational representational
 
+-- | @since 0.1.0
 instance Projectable (->) (Map.Map k v) (Map k v) where
   project Map.Tip = Tip
   project (Map.Bin size k v l r) = Bin size k v l r
 
+-- | @since 0.1.0
 instance Recursive (->) (Map.Map k v) (Map k v) where
   cata = Unsafe.unsafeCata
 
+-- | @since 0.1.0
 instance Steppable (->) (Map.Map k v) (Map k v) where
   embed Tip = Map.Tip
   embed (Bin size k v l r) = Map.Bin size k v l r
 
+-- | Lifts equality tests on keys, values, and subtrees to a `Map` layer. Two
+--   `Bin`s are equal when their sizes and all corresponding fields are.
+--
+-- @since 1.0.0
 eqMap ::
   (k -> k' -> Bool) ->
   (v -> v' -> Bool) ->
@@ -116,6 +146,11 @@ eqMap eqK eqV eqR = Tuple.curry $ \case
     size == size' && eqK k k' && eqV v v' && eqR l l' && eqR r r'
   (_, _) -> False
 
+-- | Lifts comparisons of keys, values, and subtrees to a `Map` layer: `Tip`
+--   precedes every `Bin`, and `Bin`s are compared lexicographically by size,
+--   key, value, left subtree, then right subtree.
+--
+-- @since 1.0.0
 compareMap ::
   (k -> k' -> Ordering) ->
   (v -> v' -> Ordering) ->
@@ -134,6 +169,10 @@ compareMap compareK compareV compareR = Tuple.curry $ \case
       <> compareR l l'
       <> compareR r r'
 
+-- | Lifts parsers for keys, values, and subtrees to a `Map` layer, reading
+--   the constructor syntax that `showsMapPrec` produces.
+--
+-- @since 1.0.0
 readMapPrec :: ReadPrec k -> ReadPrec v -> ReadPrec r -> ReadPrec (Map k v r)
 readMapPrec readPrecK readPrecV readPrecR =
   let appPrec = 10
@@ -149,6 +188,10 @@ readMapPrec readPrecK readPrecV readPrecR =
                    <*> step readPrecR
                )
 
+-- | Lifts printers for keys, values, and subtrees to a `Map` layer, rendering
+--   it in constructor syntax at the given precedence.
+--
+-- @since 1.0.0
 showsMapPrec ::
   (Int -> k -> ShowS) ->
   (Int -> v -> ShowS) ->
@@ -174,30 +217,36 @@ showsMapPrec showsPrecK showsPrecV showsPrecR p =
               . showString " "
               . showsPrecR nextPrec r
 
+-- | @since 1.0.0
 instance (Eq k, Eq v) => Eq1 (Map k v) where
   liftEq = liftEq2 (==)
 
+-- | @since 1.0.0
 instance (Eq k) => Eq2 (Map k) where
   liftEq2 = eqMap (==)
 
+-- | @since 1.0.0
 instance (Ord k, Ord v) => Ord1 (Map k v) where
   liftCompare = liftCompare2 compare
 
+-- | @since 1.0.0
 instance (Ord k) => Ord2 (Map k) where
   liftCompare2 = compareMap compare
 
--- | @since 0.1.2.0
+-- | @since 1.0.0
 instance (Read k, Read v) => Read1 (Map k v) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
--- | @since 0.1.2.0
+-- | @since 1.0.0
 instance (Read k) => Read2 (Map k) where
   liftReadPrec2 readPrecV _ readPrecR _ =
     readMapPrec readPrec readPrecV readPrecR
 
+-- | @since 1.0.0
 instance (Show k, Show v) => Show1 (Map k v) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
+-- | @since 1.0.0
 instance (Show k) => Show2 (Map k) where
   liftShowsPrec2 showsPrecV _ showsPrecR _ =
     showsMapPrec showsPrec showsPrecV showsPrecR
