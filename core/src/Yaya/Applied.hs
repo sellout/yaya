@@ -256,7 +256,7 @@ reverse' (Both a fn) = fn . Both a . embed
 reverse :: (Recursive (->) t (XNor a), Steppable (->) u (XNor a)) => t -> u
 reverse = embed . flip (cata reverse') Neither
 
--- | Extracts _no more than_ @n@ elements from the possibly-infinite sequence
+-- | Extracts /no more than/ @n@ elements from the possibly-infinite sequence
 --  @s@.
 --
 -- @since 0.1.0
@@ -270,7 +270,7 @@ takeUpTo ::
   l
 takeUpTo = cata2 (embed . takeAvailable)
 
--- | Extracts _exactly_ @n@ elements from the infinite stream @s@.
+-- | Extracts /exactly/ @n@ elements from the infinite stream @s@.
 --
 -- @since 0.1.0
 take ::
@@ -397,7 +397,7 @@ truncate ::
   u
 truncate = cata2 (embed . truncate')
 
--- | An implementation of `IsList.toList` for `Corecursive` fixed-points of
+-- | An implementation of `IsList.fromList` for `Corecursive` fixed-points of
 --  `XNor`.
 --
 -- @since 0.5.1

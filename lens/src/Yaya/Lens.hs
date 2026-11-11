@@ -57,7 +57,8 @@ import "yaya" Yaya.Fold
     project,
   )
 
--- | An isomorphism between an @`Algebra` (->) f a@ and a @`Coalgebra` (->) g b@.
+-- | An isomorphism between an @`Algebra` (->) f a@ and a
+--   @`Coalgebra` (->) g b@.
 --
 -- @since 0.0.1
 type BialgebraIso f g a b = Iso (f a) (g b) a b
@@ -80,8 +81,8 @@ type AlgebraLens f g a b = Lens (f a) (g b) a b
 -- @since 0.0.1
 type AlgebraLens' f a = AlgebraLens f f a a
 
--- | A prism between an @`AlgebraM` (->) (`Either` (f a)) f a@ and a
---   @`Coalgebra` g b@.
+-- | A prism between an @`AlgebraM` (->) (`Either` (g b)) f a@ and a
+--   @`Coalgebra` (->) g b@.
 --
 -- @since 0.0.1
 type CoalgebraPrism f g a b = Prism (f a) (g b) a b

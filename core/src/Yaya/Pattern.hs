@@ -146,7 +146,8 @@ xnor neither both = \case
   Neither -> neither
   Both x y -> both x y
 
--- | Eliminator for `XNor`, akin to `Data.Either.isLeft` or `Data.Maybe.isNothing`.
+-- | A predicate on `XNor`, akin to `Data.Either.isLeft` or
+--   `Data.Maybe.isNothing`.
 --
 -- @since 1.0.0
 isNeither :: XNor a b -> Bool

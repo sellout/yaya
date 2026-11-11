@@ -86,7 +86,7 @@ law_cataRefl ::
 law_cataRefl = uncurry (===) . first (cata embed) . diagonal
 
 -- | NB: Since this requires both a `Corecursive` and `Eq` instance on the same
---       type, it _likely_ requires instances from yaya-unsafe.
+--       type, it /likely/ requires instances from yaya-unsafe.
 --
 -- @since 0.1.1
 law_anaRefl ::

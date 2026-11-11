@@ -129,7 +129,7 @@ cataM = cata . (<=< sequenceA)
 
 -- | A recursion scheme that allows two algebras to see each others’ results. (A
 --   generalization of `zygo`.) This is an example that falls outside the scope
---   of “comonadic folds”, but _would_ be covered by “adjoint folds”.
+--   of “comonadic folds”, but /would/ be covered by “adjoint folds”.
 --
 -- @since 0.1.0
 mutu ::
@@ -350,7 +350,7 @@ instance Monad Partial where
         insidePartial $
           elgotAna (seqEither project) (bimap fromPartial Right . project)
 
--- | Always-infinite streams (as opposed to `Colist`, which _may_ terminate).
+-- | Always-infinite streams (as opposed to `Colist`, which /may/ terminate).
 --
 -- @since 0.1.0
 type Stream a = Nu (Pair a)

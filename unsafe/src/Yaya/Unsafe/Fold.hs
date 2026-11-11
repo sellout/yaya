@@ -198,7 +198,11 @@ stream' ::
   --
   --  __TODO__: Consider whether it’d be useful/possible to use
   --
-  --          > forall x. state -> ((state -> state) -> x -> output) -> inputf x -> output
+  --          > forall x.
+  --          >   state ->
+  --          >   ((state -> state) -> x -> output) ->
+  --          >   inputf x ->
+  --          >   output
   --
   --            to prevent the function from consuming more than one element of
   --            the input per call.

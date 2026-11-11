@@ -5,7 +5,7 @@
 -- Copyright: 2019 Greg Pfeil
 -- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
 --
---   The point of this module is that it should compile _without_ importing any
+--   The point of this module is that it should compile /without/ importing any
 --   other Yaya modules.
 --
 -- @since 0.2.1.3

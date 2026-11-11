@@ -300,7 +300,7 @@ class Recursive c t f | t -> f where
   -- @since 0.1.0
   cata :: Algebra c f a -> t `c` a
 
--- | Coinductive (potentially-infinite) structures that guarantee _productivity_
+-- | Coinductive (potentially-infinite) structures that guarantee /productivity/
 --   rather than termination.
 --
 -- @since 0.1.0
@@ -347,8 +347,8 @@ recursiveCompare' ::
   Ordering
 recursiveCompare' = cata2 . compareDay
 
--- | An implementation of `==` for any `Recursive` instance. Note that this is
---   actually more general than `Ord`’s `compare`, as it can compare between
+-- | An implementation of `compare` for any `Recursive` instance. Note that this
+--   is actually more general than `Ord`’s `compare`, as it can compare between
 --   different fixed-point representations of the same functor.
 --
 --  __NB__: Use `recursiveCompare'` if you need to use a custom comparator for
@@ -408,7 +408,7 @@ recursiveShowsPrec :: (Recursive (->) t f, Show1 f) => Int -> t -> ShowS
 recursiveShowsPrec = recursiveShowsPrec' $ flip showsPrecF
 {-# INLINEABLE recursiveShowsPrec #-}
 
--- | Like `steppableReadPrec`, but allows you to provide a custom display
+-- | Like `steppableReadPrec`, but allows you to provide a custom parsing
 --   function for @f@.
 --
 -- @since 0.6.1
