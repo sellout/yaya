@@ -47,6 +47,7 @@ import "base" Data.Bifunctor (Bifunctor, bimap, first)
 import "base" Data.Bitraversable (Bitraversable, bisequence, bitraverse)
 import "base" Data.Function (flip, ($))
 import "base" Data.Functor (Functor, fmap)
+import "base" Data.Kind (Type)
 import "base" Data.Traversable (Traversable, sequenceA)
 import "comonad" Control.Comonad (Comonad, duplicate, extract)
 import "comonad" Control.Comonad.Env (EnvT (EnvT))
@@ -285,28 +286,28 @@ zygoM = mutuM . (. fmap snd)
 -- | Potentially-infinite lists, like `[]`.
 --
 -- @since 0.1.0
-type Colist a = Nu (XNor a)
+type Colist (a :: Type) = (Nu (XNor a) :: Type)
 
 -- | Finite lists.
 --
 -- @since 0.1.0
-type List a = Mu (XNor a)
+type List (a :: Type) = (Mu (XNor a) :: Type)
 
 -- | Finite non-empty lists.
 --
 -- @since 0.1.0
-type NonEmptyList a = Mu (AndMaybe a)
+type NonEmptyList (a :: Type) = (Mu (AndMaybe a) :: Type)
 
 -- | Finite natural numbers.
 --
 -- @since 0.1.0
-type Nat = Mu Maybe
+type Nat = (Mu Maybe :: Type)
 
 -- | Represents partial functions that may eventually return a value (`Left`).
 -- NB: This is a newtype so we can create the usual instances.
 --
 -- @since 0.1.0
-newtype Partial a
+newtype Partial (a :: Type)
   = -- | A computation that might not terminate.
     --
     -- @since 0.1.0
@@ -353,7 +354,7 @@ instance Monad Partial where
 -- | Always-infinite streams (as opposed to `Colist`, which /may/ terminate).
 --
 -- @since 0.1.0
-type Stream a = Nu (Pair a)
+type Stream (a :: Type) = (Nu (Pair a) :: Type)
 
 -- | A more general implementation of `fmap`, because it can also work to, from,
 --   or within monomorphic structures, obviating the need for classes like

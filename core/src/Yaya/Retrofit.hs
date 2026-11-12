@@ -62,6 +62,7 @@ import safe "base" Data.Foldable (Foldable, foldl, length, null)
 import safe "base" Data.Function (const, flip, ($))
 import safe "base" Data.Functor (Functor, fmap, (<$>))
 import safe "base" Data.Functor.Identity (Identity (Identity), runIdentity)
+import safe "base" Data.Kind (Type)
 import safe "base" Data.List (all, elemIndex, splitAt, zip, zip3)
 import safe "base" Data.List.NonEmpty (NonEmpty)
 import safe "base" Data.Maybe (Maybe (Just, Nothing), maybe)
@@ -97,14 +98,14 @@ import safe "this" Yaya.Fold
   )
 
 #if MIN_VERSION_template_haskell(2, 21, 0)
-type TyVarBndrUnit = TH.TyVarBndrUnit
-type TyVarBndrVis = TH.TyVarBndrVis
+type TyVarBndrUnit = (TH.TyVarBndrUnit :: Type)
+type TyVarBndrVis = (TH.TyVarBndrVis :: Type)
 #elif MIN_VERSION_template_haskell(2, 17, 0)
-type TyVarBndrUnit = TH.TyVarBndrUnit
-type TyVarBndrVis = TH.TyVarBndr ()
+type TyVarBndrUnit = (TH.TyVarBndrUnit :: Type)
+type TyVarBndrVis = (TH.TyVarBndr () :: Type)
 #else
-type TyVarBndrUnit = TH.TyVarBndr
-type TyVarBndrVis = TH.TyVarBndr
+type TyVarBndrUnit = (TH.TyVarBndr :: Type)
+type TyVarBndrVis = (TH.TyVarBndr :: Type)
 #endif
 
 conP' :: TH.Name -> [TH.Pat] -> TH.Pat
@@ -353,7 +354,7 @@ makePrimForDI' rules safeVariant tyName vars cons = do
   let r = TH.VarT rName
 
   -- Vars
-  let varsF = vars <> [TH.plainTV rName]
+  let varsF = vars <> [TH.kindedTV rName TH.StarT]
 
   -- ekmett/recursion-schemes#33
   cons' <- traverse (conTypeTraversal TH.Abs.resolveTypeSynonyms) cons
@@ -443,9 +444,11 @@ conTypeMap = over conTypeTraversal
 -- Lenses
 -------------------------------------------------------------------------------
 
-type Lens' s a = forall f. (Functor f) => (a -> f a) -> s -> f s
+type Lens' (s :: Type) (a :: Type) =
+  (forall f. (Functor f) => (a -> f a) -> s -> f s :: Type)
 
-type Traversal' s a = forall f. (Applicative f) => (a -> f a) -> s -> f s
+type Traversal' (s :: Type) (a :: Type) =
+  (forall f. (Applicative f) => (a -> f a) -> s -> f s :: Type)
 
 lens :: (s -> a) -> (s -> a -> s) -> Lens' s a
 lens sa sas afa s = sas s <$> afa (sa s)

@@ -42,6 +42,7 @@ import "base" Data.Functor.Classes
     liftShowsPrec,
     liftShowsPrec2,
   )
+import "base" Data.Kind (Type)
 import "base" Data.Ord (Ord, Ordering (EQ, GT, LT), compare, (<=))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
@@ -73,7 +74,7 @@ import qualified "containers" Data.IntSet.Internal.IntTreeCommons as IntMap
 --   with the recursive positions abstracted to @r@.
 --
 -- @since 1.0.0
-data IntMap a r
+data IntMap (a :: Type) (r :: Type)
   = -- | The empty map – `IntMap.Nil`.
     --
     -- @since 1.0.0

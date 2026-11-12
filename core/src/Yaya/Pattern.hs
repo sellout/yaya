@@ -57,6 +57,7 @@ import "base" Data.Functor.Classes
     liftShowsPrec,
     liftShowsPrec2,
   )
+import "base" Data.Kind (Type)
 import "base" Data.Ord (Ord, Ordering (EQ, GT, LT), compare, (<=))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
@@ -106,7 +107,7 @@ import "base" Prelude ((+))
 -- | Isomorphic to @'Maybe` (a, b)@, it’s also the pattern functor for lists.
 --
 -- @since 0.1.0
-data XNor a b
+data XNor (a :: Type) (b :: Type)
   = -- | The empty case (@Nil@, for lists).
     --
     -- @since 0.1.0
@@ -216,7 +217,7 @@ instance Bifunctor XNor where
 --   lists.
 --
 -- @since 0.1.0
-data AndMaybe a b
+data AndMaybe (a :: Type) (b :: Type)
   = -- | A lone @a@ (the last element, for non-empty lists).
     --
     -- @since 0.1.0

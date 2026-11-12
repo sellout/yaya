@@ -41,6 +41,7 @@ import "base" Data.Functor.Classes
     liftShowsPrec2,
   )
 import "base" Data.Int (Int)
+import "base" Data.Kind (Type)
 import "base" Data.Ord (Ord, Ordering (EQ, GT, LT), compare, (<=))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
@@ -82,7 +83,7 @@ import "base" Prelude ((+))
 --   the recursive positions abstracted to @r@.
 --
 -- @since 1.0.0
-data Map k v r
+data Map (k :: Type) (v :: Type) (r :: Type)
   = -- | The empty map – `Map.Tip`.
     --
     -- @since 1.0.0

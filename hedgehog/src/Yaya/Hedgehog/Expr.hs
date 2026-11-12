@@ -24,6 +24,7 @@ import safe "base" Data.Eq (Eq)
 import safe "base" Data.Foldable (Foldable)
 import safe "base" Data.Functor (Functor, (<$>))
 import safe "base" Data.Int (Int)
+import safe "base" Data.Kind (Type)
 import safe "base" Data.Traversable (Traversable)
 import safe "base" Text.Show (Show)
 import safe "deriving-compat" Data.Eq.Deriving (deriveEq1)
@@ -39,7 +40,7 @@ import safe "this" Yaya.Hedgehog.Fold (embeddableOfHeight)
 --   closed under addition and multiplication.
 --
 -- @since 0.1.0
-data Expr a
+data Expr (a :: Type)
   = -- | An integer literal.
     --
     -- @since 0.1.0

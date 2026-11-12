@@ -22,6 +22,7 @@ import "base" Data.Foldable (Foldable, toList)
 import "base" Data.Function (($))
 import "base" Data.Functor (Functor, fmap)
 import "base" Data.Functor.Classes (Eq1, Ord1, Read1, Show1)
+import "base" Data.Kind (Type)
 import "base" Data.List.NonEmpty (NonEmpty ((:|)))
 import "base" Data.Ord (Ord, compare)
 import "base" Numeric.Natural (Natural)
@@ -57,7 +58,7 @@ import "this" Yaya.Pattern
 --   strict/recursive.
 --
 -- @since 0.1.0
-newtype Fix f
+newtype Fix (f :: Type -> Type)
   = -- | Wraps a single layer of the pattern functor.
     --
     -- @since 0.1.0

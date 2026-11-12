@@ -21,6 +21,7 @@ where
 import "base" Control.Category ((.))
 import "base" Data.Functor (Functor, fmap)
 import "base" Data.Functor.Classes (Read1)
+import "base" Data.Kind (Type)
 import "base" Text.Read (Read, readListPrec, readListPrecDefault, readPrec)
 import "this" Yaya.Fold
   ( Corecursive,
@@ -36,7 +37,7 @@ import "this" Yaya.Fold
 --   lazy/corecursive.
 --
 -- @since 0.5.0
-data Cofix f
+data Cofix (f :: Type -> Type)
   = -- | Wraps a single layer of the pattern functor.
     --
     -- @since 0.5.0

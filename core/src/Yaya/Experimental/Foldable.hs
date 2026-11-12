@@ -23,6 +23,7 @@ where
 
 import "base" Control.Category (id, (.))
 import "base" Data.Function (flip)
+import "base" Data.Kind (Type)
 import "base" Data.Monoid (Monoid)
 import "free" Control.Monad.Trans.Free (Free, iter)
 import "this" Yaya.Fold (Recursive, cata)
@@ -41,7 +42,7 @@ foldMap = cata . lowerMonoid
 --   specialized to lists.
 --
 -- @since 0.1.0
-class Listable f where
+class Listable (f :: Type -> Type -> Type) where
   -- | Expresses one layer of @f a@ as a segment of a list.
   --
   -- @since 0.1.0

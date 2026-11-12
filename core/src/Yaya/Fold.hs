@@ -105,6 +105,7 @@ import "base" Data.Functor.Classes
 import "base" Data.Functor.Const (Const (Const), getConst)
 import "base" Data.Functor.Identity (Identity (Identity), runIdentity)
 import "base" Data.Int (Int)
+import "base" Data.Kind (Type)
 import "base" Data.List.NonEmpty (NonEmpty ((:|)))
 import "base" Data.Ord (Ord, Ordering, compare, (<=))
 import "base" Data.String (String)
@@ -167,65 +168,90 @@ import "base" Data.List.NonEmpty (unzip)
 --   into an @a@.
 --
 -- @since 0.1.0
-type Algebra c f a = f a `c` a
+type Algebra (c :: k -> k -> Type) (f :: k -> k) (a :: k) = (f a `c` a :: Type)
 
 -- | A generalized algebra, where each recursive position carries a comonadic
 --   context @w@ alongside the folded result.
 --
 -- @since 0.1.0
-type GAlgebra c w f a = f (w a) `c` a
+type GAlgebra (c :: k -> k -> Type) (w :: k -> k) (f :: k -> k) (a :: k) =
+  (f (w a) `c` a :: Type)
 
 -- | Like a `GAlgebra`, but with the comonadic context @w@ around the whole
 --   layer rather than inside each recursive position.
 --
 -- @since 0.1.0
-type ElgotAlgebra c w f a = w (f a) `c` a
+type ElgotAlgebra (c :: k -> k -> Type) (w :: k -> k) (f :: k -> k) (a :: k) =
+  (w (f a) `c` a :: Type)
 
 -- | An `Algebra` with its result in a monad @m@ – that is, a Kleisli arrow out
 --   of @f a@.
 --
 -- @since 0.1.0
-type AlgebraM c m f a = f a `c` m a
+type AlgebraM (c :: k -> k -> Type) (m :: k -> k) (f :: k -> k) (a :: k) =
+  (f a `c` m a :: Type)
 
 -- | A `GAlgebra` with its result in a monad @m@.
 --
 -- @since 0.1.0
-type GAlgebraM c m w f a = f (w a) `c` m a
+type GAlgebraM
+  (c :: k -> k -> Type)
+  (m :: k -> k)
+  (w :: k -> k)
+  (f :: k -> k)
+  (a :: k) =
+  (f (w a) `c` m a :: Type)
 
 -- | An `ElgotAlgebra` with its result in a monad @m@.
 --
 -- @since 0.1.0
-type ElgotAlgebraM c m w f a = w (f a) `c` m a
+type ElgotAlgebraM
+  (c :: k -> k -> Type)
+  (m :: k -> k)
+  (w :: k -> k)
+  (f :: k -> k)
+  (a :: k) =
+  (w (f a) `c` m a :: Type)
 
 -- | An F-coalgebra in the category @c@ – a way to expand a seed @a@ into one
 --   layer of @f@, with new seeds in its recursive positions.
 --
 -- @since 0.1.0
-type Coalgebra c f a = a `c` f a
+type Coalgebra (c :: k -> k -> Type) (f :: k -> k) (a :: k) =
+  (a `c` f a :: Type)
 
 -- | A generalized coalgebra, where each recursive position holds a seed in a
 --   monadic context @m@.
 --
 -- @since 0.1.0
-type GCoalgebra c m f a = a `c` f (m a)
+type GCoalgebra (c :: k -> k -> Type) (m :: k -> k) (f :: k -> k) (a :: k) =
+  (a `c` f (m a) :: Type)
 
 -- | Like a `GCoalgebra`, but with the monad @m@ around the whole layer rather
 --   than inside each recursive position.
 --
 -- @since 0.1.0
-type ElgotCoalgebra c m f a = a `c` m (f a)
+type ElgotCoalgebra (c :: k -> k -> Type) (m :: k -> k) (f :: k -> k) (a :: k) =
+  (a `c` m (f a) :: Type)
 
 -- | Note that using a `CoalgebraM` “directly” is partial (e.g., with
 --  `Yaya.Unsafe.Fold.anaM`). However, @ana . Compose@ can accept a `CoalgebraM`
 --   and produce something like an effectful stream.
 --
 -- @since 0.1.0
-type CoalgebraM c m f a = a `c` m (f a)
+type CoalgebraM (c :: k -> k -> Type) (m :: k -> k) (f :: k -> k) (a :: k) =
+  (a `c` m (f a) :: Type)
 
 -- | A `GCoalgebra` with its result in a monad @m@.
 --
 -- @since 0.1.0
-type GCoalgebraM c m n f a = a `c` m (f (n a))
+type GCoalgebraM
+  (c :: k -> k -> Type)
+  (m :: k -> k)
+  (n :: k -> k)
+  (f :: k -> k)
+  (a :: k) =
+  (a `c` m (f (n a)) :: Type)
 
 -- | This type class is lawless on its own, but there exist types that can’t
 --   implement the corresponding `embed` operation. Laws are induced by
@@ -233,7 +259,7 @@ type GCoalgebraM c m n f a = a `c` m (f (n a))
 --  (which doesn’t).
 --
 -- @since 0.1.0
-class Projectable c t f | t -> f where
+class Projectable (c :: k -> k -> Type) (t :: k) (f :: k -> k) | t -> f where
   -- | Exposes the outermost layer of the structure – the @f@-coalgebra
   --   structure on @t@, dual to `embed`.
   --
@@ -282,7 +308,11 @@ pattern Project t <- (embed -> t)
 -- | Structures you can walk through step-by-step.
 --
 -- @since 0.1.0
-class (Projectable c t f) => Steppable c t f | t -> f where
+class
+  (Projectable c t f) =>
+  Steppable (c :: k -> k -> Type) (t :: k) (f :: k -> k)
+    | t -> f
+  where
   -- | Wraps one layer of @f@ around its substructures – the @f@-algebra
   --   structure on @t@, dual to `project`.
   --
@@ -293,7 +323,7 @@ class (Projectable c t f) => Steppable c t f | t -> f where
 --   with pattern matching.
 --
 -- @since 0.1.0
-class Recursive c t f | t -> f where
+class Recursive (c :: k -> k -> Type) (t :: k) (f :: k -> k) | t -> f where
   -- | The catamorphism, which folds the structure bottom-up with the given
   --   algebra.
   --
@@ -304,7 +334,7 @@ class Recursive c t f | t -> f where
 --   rather than termination.
 --
 -- @since 0.1.0
-class Corecursive c t f | t -> f where
+class Corecursive (c :: k -> k -> Type) (t :: k) (f :: k -> k) | t -> f where
   -- | The anamorphism, which unfolds a seed top-down with the given coalgebra.
   --
   -- @since 0.1.0
@@ -444,7 +474,7 @@ steppableReadPrec = steppableReadPrec' liftReadPrec
 --          @-XStrictData@ can help with this a lot.
 --
 -- @since 0.1.0
-newtype Mu f
+newtype Mu (f :: Type -> Type)
   = -- | The Böhm–Berarducci (Church) encoding: a value /is/ its own fold,
     --   and `cata` simply applies it to the algebra.
     --
@@ -492,7 +522,7 @@ instance (Show1 f) => Show (Mu f) where
 --   structures.
 --
 -- @since 0.1.0
-data Nu f where
+data Nu (f :: Type -> Type) where
   -- | A suspended unfold: a `Coalgebra` paired with a seed. `ana` is this
   --   constructor.
   --
@@ -778,7 +808,8 @@ colambek = ana (fmap project)
 --   Yaya also provides others for specific recursion schemes.
 --
 -- @since 0.1.0
-type DistributiveLaw c f g = forall a. f (g a) `c` g (f a)
+type DistributiveLaw (c :: k -> k -> Type) (f :: k -> k) (g :: k -> k) =
+  ((forall a. f (g a) `c` g (f a)) :: Type)
 
 -- | A less-constrained `Data.Distributive.distribute` for `Identity`.
 --

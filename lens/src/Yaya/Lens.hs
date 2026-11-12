@@ -31,6 +31,7 @@ import "base" Control.Monad ((<=<))
 import "base" Data.Bifunctor (first)
 import "base" Data.Function (const, flip, ($))
 import "base" Data.Functor ((<$>))
+import "base" Data.Kind (Type)
 import "base" Data.Traversable (Traversable, sequenceA)
 import "lens" Control.Lens
   ( Iso,
@@ -61,37 +62,40 @@ import "yaya" Yaya.Fold
 --   @`Coalgebra` (->) g b@.
 --
 -- @since 0.0.1
-type BialgebraIso f g a b = Iso (f a) (g b) a b
+type BialgebraIso (f :: Type -> Type) (g :: Type -> Type) (a :: Type) (b :: Type) =
+  (Iso (f a) (g b) a b :: Type)
 
 -- | An algebra @f a -> a@ together with its inverse coalgebra @a -> f a@.
 --
 -- @since 0.0.1
-type BialgebraIso' f a = BialgebraIso f f a a
+type BialgebraIso' (f :: Type -> Type) (a :: Type) = (BialgebraIso f f a a :: Type)
 
 -- | A lens from one layer @f a@ to its carrier @a@, whose getter is an
 --   @`Algebra` (->) f a@ and whose setter replaces the focus, yielding a
 --   @g b@.
 --
 -- @since 0.0.1
-type AlgebraLens f g a b = Lens (f a) (g b) a b
+type AlgebraLens (f :: Type -> Type) (g :: Type -> Type) (a :: Type) (b :: Type) =
+  (Lens (f a) (g b) a b :: Type)
 
 -- | A simple `AlgebraLens`, which neither changes the pattern functor nor
 --   the carrier.
 --
 -- @since 0.0.1
-type AlgebraLens' f a = AlgebraLens f f a a
+type AlgebraLens' (f :: Type -> Type) (a :: Type) = (AlgebraLens f f a a :: Type)
 
 -- | A prism between an @`AlgebraM` (->) (`Either` (g b)) f a@ and a
 --   @`Coalgebra` (->) g b@.
 --
 -- @since 0.0.1
-type CoalgebraPrism f g a b = Prism (f a) (g b) a b
+type CoalgebraPrism (f :: Type -> Type) (g :: Type -> Type) (a :: Type) (b :: Type) =
+  (Prism (f a) (g b) a b :: Type)
 
 -- | A coalgebra @a -> f a@ together with a partial algebra @f a -> `Maybe` a@
 --   that inverts it.
 --
 -- @since 0.0.1
-type CoalgebraPrism' f a = CoalgebraPrism f f a a
+type CoalgebraPrism' (f :: Type -> Type) (a :: Type) = (CoalgebraPrism f f a a :: Type)
 
 -- | The isomorphism between `embed` and `project`.
 --

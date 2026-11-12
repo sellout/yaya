@@ -65,6 +65,7 @@ import safe "base" Data.Function (flip)
 import safe "base" Data.Functor (Functor, fmap)
 import safe "base" Data.Functor.Identity (Identity, runIdentity)
 import safe "base" Data.Int (Int)
+import safe "base" Data.Kind (Type)
 import safe "base" Data.Monoid (Monoid, mempty)
 import safe "base" Data.Ord (Ord, max)
 import safe "base" Data.Semigroup (Semigroup, stimes, stimesMonoid, (<>))
@@ -144,7 +145,7 @@ fromMaybe = maybe (ana (toRight . never) ()) now
 --   encoding of `Data.Void.Void`.
 --
 -- @since 0.1.0
-type Void = Mu Identity
+type Void = (Mu Identity :: Type)
 
 -- | Eliminates a `Recursive` fixed-point of `Identity` (an uninhabited type)
 --   into any type, as `Data.Void.absurd` does.

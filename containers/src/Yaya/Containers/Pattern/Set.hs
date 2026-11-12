@@ -36,6 +36,7 @@ import "base" Data.Functor.Classes
     liftShowsPrec,
     liftShowsPrec2,
   )
+import "base" Data.Kind (Type)
 import "base" Data.Ord (Ord, Ordering (EQ, GT, LT), compare, (<=))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
@@ -62,7 +63,7 @@ import "base" Prelude ((+))
 --   the recursive positions abstracted to @r@.
 --
 -- @since 1.0.0
-data Set a r
+data Set (a :: Type) (r :: Type)
   = -- | The empty set – `Set.Tip`.
     --
     -- @since 1.0.0

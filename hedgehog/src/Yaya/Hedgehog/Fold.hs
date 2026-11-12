@@ -203,9 +203,9 @@ corecursiveIsUnsafe ::
 corecursiveIsUnsafe Proxy x =
   withTests 1 . property $ do
     -- a properly-finite data structure will diverge on infinite unfolding
-    evalNonterminating . fst . project @_ @(t (Pair a)) $ ana (\y -> y :!: y) x
+    evalNonterminating . fst . project @_ @_ @(t (Pair a)) $ ana (\y -> y :!: y) x
     -- but using a lazy functor loses this property
-    Tuple.fst (project @_ @(t ((,) a)) $ ana (\y -> (y, y)) x) === x
+    Tuple.fst (project @_ @_ @(t ((,) a)) $ ana (\y -> (y, y)) x) === x
 {-# INLINEABLE corecursiveIsUnsafe #-}
 
 -- | Show that using a `Corecursive` structure recursively can lead to
@@ -228,10 +228,10 @@ recursiveIsUnsafe ::
 recursiveIsUnsafe Proxy x =
   withTests 1 . property $ do
     -- We can easily get the first element of a corecursive infinite sequence
-    fst (project $ ana @_ @(t (Pair a)) (\y -> y :!: y) x) === x
+    fst (project $ ana @_ @_ @(t (Pair a)) (\y -> y :!: y) x) === x
     -- Of course, you can’t fold it.
-    evalNonterminating . cata fst $ ana @_ @(t (Pair a)) (\y -> y :!: y) x
+    evalNonterminating . cata fst $ ana @_ @_ @(t (Pair a)) (\y -> y :!: y) x
     -- But again, if you use a lazy functor, you lose that property, and you can
     -- short-circuit.
-    cata Tuple.fst (ana @_ @(t ((,) a)) (\y -> (y, y)) x) === x
+    cata Tuple.fst (ana @_ @_ @(t ((,) a)) (\y -> (y, y)) x) === x
 {-# INLINEABLE recursiveIsUnsafe #-}

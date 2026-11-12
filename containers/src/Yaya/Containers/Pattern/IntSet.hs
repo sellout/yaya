@@ -35,6 +35,7 @@ import "base" Data.Functor.Classes
     liftShowsPrec,
   )
 import "base" Data.Int (Int)
+import "base" Data.Kind (Type)
 import "base" Data.Ord (Ord, Ordering (EQ, GT, LT), compare, (<=))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
@@ -66,7 +67,7 @@ import qualified "containers" Data.IntSet.Internal.IntTreeCommons as IntSet
 --   "Data.IntSet.Internal", with the recursive positions abstracted to @r@.
 --
 -- @since 1.0.0
-data IntSet r
+data IntSet (r :: Type)
   = -- | The empty set – `IntSet.Nil`.
     --
     -- @since 1.0.0

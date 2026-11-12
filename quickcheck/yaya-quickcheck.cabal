@@ -158,14 +158,6 @@ common defaults
     -- as possible) without the remainder worrying users.
     -Wno-all-missed-specialisations
     -Wno-missed-specialisations
-  -- remove if the oldest supported version is GHC 8.10.1+ (then use standalone
-  -- kind signatures instead)
-  if impl(ghc >= 9.2.1)
-    ghc-options:
-      -Wno-missing-kind-signatures
-  if impl(ghc >= 9.8.1)
-    ghc-options:
-      -Wno-missing-poly-kind-signatures
   default-extensions:
     BlockArguments
     DefaultSignatures
