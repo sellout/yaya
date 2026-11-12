@@ -49,6 +49,12 @@ constraints:
   -- 0.4 is the first version with many of the operations we use
   strict >= 0.4,
 
+if impl(ghc == 9.4.1)
+  constraints:
+    -- GHC 9.4.1’s specialiser panics when compiling newer `Cabal-syntax`
+    -- versions, so use the `Cabal` that ships with it.
+    any.Cabal installed,
+
 if os(windows) && impl(ghc >= 9.4)
   constraints:
     -- text-2.0 links against libstdc++, but GHC 9.4 moved its Windows
