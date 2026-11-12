@@ -198,9 +198,9 @@ library
   hs-source-dirs:
     src
   build-depends:
-    comonad ^>= 5.0.7,
+    comonad ^>= {5.0.8},
     free ^>= {5.1.6, 5.2},
-    yaya ^>= {1.0.0},
+    yaya ^>= {0.5.1, 0.6.0, 0.7.0, 1.0.0},
   exposed-modules:
     Yaya.Unsafe.Applied
     Yaya.Unsafe.Fold
@@ -214,7 +214,7 @@ test-suite doctests
     tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.16.3, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.2, 0.25.0},
+    doctest ^>= {0.16.2, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.2, 0.25.0},
     yaya-unsafe,
   if impl(ghc >= 8.10.1)
     ghc-options:
@@ -250,7 +250,7 @@ test-suite yaya-unsafe
     Test.Fold
   build-depends:
     hedgehog ^>= {1.0.1, 1.1, 1.2, 1.4, 1.5, 1.7},
-    yaya ^>= {1.0.0},
+    yaya ^>= {0.5.1, 0.6.0, 0.7.0, 1.0.0},
     yaya-hedgehog ^>= {1.0.0},
     yaya-unsafe,
   ghc-options:
