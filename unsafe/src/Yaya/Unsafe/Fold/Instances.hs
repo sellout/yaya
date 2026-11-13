@@ -11,7 +11,11 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
--- | Type class instances that use direct recursion in a potentially partial
+-- |
+-- Copyright: 2017 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+--   Type class instances that use direct recursion in a potentially partial
 --   way. This is separated from the rest of `Yaya.Unsafe.Fold` because you can
 --   neither control nor qualify the import of instances. Therefore this module
 --   is /extra/ dangerous, as having these instances available applies to the
@@ -20,6 +24,8 @@
 --   This contains instances that you might /expect/ to see, but which aren’t
 --   actually total. For example, folding a lazy list @[a]@ is /not/ guaranteed
 --   to terminate.
+--
+-- @since 0.1.0
 module Yaya.Unsafe.Fold.Instances () where
 
 import safe "base" Data.Eq (Eq, (==))
@@ -58,50 +64,62 @@ import "base" GHC.IsList (IsList (Item, fromList, fromListN, toList))
 import "base" GHC.Exts (IsList (Item, fromList, fromListN, toList))
 #endif
 
+-- | @since 0.3.3
 instance (Functor f) => Corecursive (->) (Fix f) f where
   ana = Unsafe.hylo embed
 
+-- | @since 0.3.3
 instance (Functor f) => Recursive (->) (Cofix f) f where
   cata = flip Unsafe.hylo project
 
+-- | @since 0.3.3
 instance (Functor f, Foldable f, Eq1 f) => Eq (Cofix f) where
   (==) = recursiveEq
   {-# INLINEABLE (==) #-}
 
--- | @since 0.4.1.0
+-- | @since 0.4.1
 instance (Functor f, Foldable f, Ord1 f) => Ord (Cofix f) where
   compare = recursiveCompare
 
+-- | @since 0.3.3
 instance (Functor f, Show1 f) => Show (Cofix f) where
   showsPrec = recursiveShowsPrec
 
+-- | @since 0.1.0
 instance (Functor f) => Corecursive (->) (Mu f) f where
   ana = Unsafe.unsafeAna
   {-# INLINEABLE ana #-}
 
+-- | @since 0.1.0
 instance (Functor f) => Recursive (->) (Nu f) f where
   cata = Unsafe.unsafeCata
 
+-- | @since 0.1.0
 instance (Functor f, Foldable f, Eq1 f) => Eq (Nu f) where
   (==) = recursiveEq
   {-# INLINEABLE (==) #-}
 
--- | @since 0.4.1.0
+-- | @since 0.4.1
 instance (Functor f, Foldable f, Ord1 f) => Ord (Nu f) where
   compare = recursiveCompare
 
+-- | @since 0.1.0
 instance (Functor f, Show1 f) => Show (Nu f) where
   showsPrec = recursiveShowsPrec
 
+-- | @since 0.1.0
 instance Recursive (->) [a] (XNor a) where
   cata = Unsafe.unsafeCata
 
+-- | @since 0.1.0
 instance Recursive (->) (NonEmpty a) (AndMaybe a) where
   cata = Unsafe.unsafeCata
 
+-- | @since 0.1.0
 instance (Functor f) => Recursive (->) (Cofree f a) (EnvT a f) where
   cata = Unsafe.unsafeCata
 
+-- | @since 0.1.0
 instance (Functor f) => Recursive (->) (Free f a) (FreeF f a) where
   cata = Unsafe.unsafeCata
 
@@ -110,6 +128,8 @@ instance (Functor f) => Recursive (->) (Free f a) (FreeF f a) where
 --
 --   This means that most uses of @OverloadedLists@ should be fine, but not the
 --   range (`..`) syntax.
+--
+-- @since 0.3.3
 instance IsList (Fix (XNor a)) where
   type Item (Fix (XNor a)) = a
   fromList = unsafeFromList
@@ -121,6 +141,8 @@ instance IsList (Fix (XNor a)) where
 --
 --   This means that most uses of @OverloadedLists@ should be fine, but not the
 --   range (`..`) syntax.
+--
+-- @since 0.3.3
 instance IsList (Mu (XNor a)) where
   type Item (Mu (XNor a)) = a
   fromList = unsafeFromList

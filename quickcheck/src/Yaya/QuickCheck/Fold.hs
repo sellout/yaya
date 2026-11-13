@@ -2,6 +2,11 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin-opt=NoRecursion:ignore-decls:arbitrarySteppable,shrinkSteppable #-}
 
+-- |
+-- Copyright: 2024 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+-- @since 0.1.0
 module Yaya.QuickCheck.Fold
   ( arbitrarySteppable,
     shrinkSteppable,
@@ -19,11 +24,23 @@ import "yaya" Yaya.Fold (Mu, Nu, Steppable, embed, project)
 import "yaya" Yaya.Fold.Native (Cofix, Fix)
 import "yaya" Yaya.Pattern (AndMaybe (Indeed, Only), XNor (Both, Neither))
 
+-- | Generates a `Steppable` value one layer at a time, given a way to lift a
+--   generator through the pattern functor (e.g., `QC.liftArbitrary`). This
+--   terminates only if the lifted generator eventually produces a layer with
+--   no recursive positions.
+--
+-- @since 0.1.0
 arbitrarySteppable ::
   (Steppable (->) t f, Functor f) => (QC.Gen t -> QC.Gen (f t)) -> QC.Gen t
 arbitrarySteppable liftArbitraryF =
   embed <$> liftArbitraryF (arbitrarySteppable liftArbitraryF)
 
+-- | Shrinks a `Steppable` value to each of its immediate subterms, then to
+--   each shrink of its outermost layer, given a way to lift a shrinker through
+--   the pattern functor (e.g., `QC.liftShrink`). Subterms are shrunk
+--   recursively.
+--
+-- @since 0.1.0
 shrinkSteppable ::
   (Steppable (->) t f, Foldable f, Functor f) =>
   ((t -> [t]) -> f t -> [f t]) ->
@@ -34,44 +51,54 @@ shrinkSteppable liftShrinkF fix =
    in Foldable.toList ft
         <> (embed <$> liftShrinkF (shrinkSteppable liftShrinkF) ft)
 
+-- | @since 0.1.0
 instance (Foldable f, Functor f, QC.Arbitrary1 f) => QC.Arbitrary (Cofix f) where
   arbitrary = arbitrarySteppable QC.liftArbitrary
   shrink = shrinkSteppable QC.liftShrink
 
+-- | @since 0.1.0
 instance (Foldable f, Functor f, QC.Arbitrary1 f) => QC.Arbitrary (Fix f) where
   arbitrary = arbitrarySteppable QC.liftArbitrary
   shrink = shrinkSteppable QC.liftShrink
 
+-- | @since 0.1.0
 instance (Foldable f, Functor f, QC.Arbitrary1 f) => QC.Arbitrary (Mu f) where
   arbitrary = arbitrarySteppable QC.liftArbitrary
   shrink = shrinkSteppable QC.liftShrink
 
+-- | @since 0.1.0
 instance (Foldable f, Functor f, QC.Arbitrary1 f) => QC.Arbitrary (Nu f) where
   arbitrary = arbitrarySteppable QC.liftArbitrary
   shrink = shrinkSteppable QC.liftShrink
 
+-- | @since 0.1.0
 instance (QC.Arbitrary a, QC.Arbitrary b) => QC.Arbitrary (XNor a b) where
   arbitrary = QC.liftArbitrary QC.arbitrary
   shrink = QC.liftShrink QC.shrink
 
+-- | @since 0.1.0
 instance (QC.Arbitrary a) => QC.Arbitrary1 (XNor a) where
   liftArbitrary = QC.liftArbitrary2 QC.arbitrary
   liftShrink = QC.liftShrink2 QC.shrink
 
+-- | @since 0.1.0
 instance QC.Arbitrary2 XNor where
   liftArbitrary2 a b = QC.frequency [(1, pure Neither), (3, Both <$> a <*> b)]
   liftShrink2 shrinkA shrinkB = \case
     Neither -> []
     Both a b -> Neither : (flip Both b <$> shrinkA a) <> (Both a <$> shrinkB b)
 
+-- | @since 0.1.0
 instance (QC.Arbitrary a, QC.Arbitrary b) => QC.Arbitrary (AndMaybe a b) where
   arbitrary = QC.liftArbitrary QC.arbitrary
   shrink = QC.liftShrink QC.shrink
 
+-- | @since 0.1.0
 instance (QC.Arbitrary a) => QC.Arbitrary1 (AndMaybe a) where
   liftArbitrary = QC.liftArbitrary2 QC.arbitrary
   liftShrink = QC.liftShrink2 QC.shrink
 
+-- | @since 0.1.0
 instance QC.Arbitrary2 AndMaybe where
   liftArbitrary2 a b = QC.frequency [(1, Only <$> a), (3, Indeed <$> a <*> b)]
   liftShrink2 shrinkA shrinkB = \case

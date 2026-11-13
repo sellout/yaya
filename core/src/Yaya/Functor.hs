@@ -1,7 +1,13 @@
 {-# LANGUAGE Safe #-}
 
--- | This should probably be a separate library, but it provides a number of
+-- |
+-- Copyright: 2019 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+--   This should probably be a separate library, but it provides a number of
 --   functor type classes between various categories.
+--
+-- @since 0.2.0
 module Yaya.Functor
   ( DFunctor,
     HFunctor,
@@ -33,7 +39,13 @@ import qualified "transformers" Control.Monad.Trans.Writer.Strict as W
 
 -- | A functor from the category of endofunctors to *Hask*. The @D@ is meant to
 --   be a mnemonic for “down”, as we’re “lowering” from endofunctors to types.
+--
+-- @since 0.2.0
 class DFunctor (d :: (Type -> Type) -> Type) where
+  -- | Lifts a natural transformation from @f@ to @g@ to a function from @d f@
+  --   to @d g@.
+  --
+  -- @since 0.2.0
   dmap :: (forall x. f x -> g x) -> d f -> d g
 
 -- | This isn’t a Functor instance because of the position of the @a@, but you
@@ -41,6 +53,8 @@ class DFunctor (d :: (Type -> Type) -> Type) where
 --   > newtype List a = List (Mu (XNor a))
 --   > instance Functor List where
 --   >   fmap f (List mu) = List (firstMap f mu)
+--
+-- @since 0.2.0
 firstMap :: (DFunctor d, Bifunctor f) => (a -> b) -> d (f a) -> d (f b)
 firstMap f = dmap (first f)
 
@@ -49,48 +63,68 @@ firstMap f = dmap (first f)
 --  __NB__: This is similar to `Control.Monad.Morph.MFunctor` /
 --         `Control.Monad.Morph.hoist` from mmorph, but without the
 --         `Control.Monad.Monad` constraint on @f@.
+--
+-- @since 0.2.0
 class HFunctor (h :: (Type -> Type) -> Type -> Type) where
+  -- | Lifts a natural transformation from @f@ to @g@ to one from @h f@ to
+  --   @h g@.
+  --
+  -- @since 0.2.0
   hmap :: (forall x. f x -> g x) -> h f a -> h g a
 
+-- | @since 0.3.1.2
 instance HFunctor (Ex.ExceptT e) where
   hmap nat m = Ex.ExceptT (nat (Ex.runExceptT m))
 
+-- | @since 0.3.1.2
 instance HFunctor I.IdentityT where
   hmap nat m = I.IdentityT (nat (I.runIdentityT m))
 
+-- | @since 0.3.1.2
 instance HFunctor M.MaybeT where
   hmap nat m = M.MaybeT (nat (M.runMaybeT m))
 
+-- | @since 0.3.1.2
 instance HFunctor (R.ReaderT r) where
   hmap nat m = R.ReaderT $ nat . R.runReaderT m
 
+-- | @since 0.3.1.2
 instance HFunctor (RWS.RWST r w s) where
   hmap nat m = RWS.RWST (\r s -> nat (RWS.runRWST m r s))
 
+-- | @since 0.3.1.2
 instance HFunctor (RWS'.RWST r w s) where
   hmap nat m = RWS'.RWST (\r s -> nat (RWS'.runRWST m r s))
 
+-- | @since 0.3.1.2
 instance HFunctor (S.StateT s) where
   hmap nat m = S.StateT $ nat . S.runStateT m
 
+-- | @since 0.3.1.2
 instance HFunctor (S'.StateT s) where
   hmap nat m = S'.StateT $ nat . S'.runStateT m
 
+-- | @since 0.3.1.2
 instance HFunctor (W.WriterT w) where
   hmap nat m = W.WriterT (nat (W.runWriterT m))
 
+-- | @since 0.3.1.2
 instance HFunctor (W'.WriterT w) where
   hmap nat m = W'.WriterT (nat (W'.runWriterT m))
 
+-- | @since 0.3.1.2
 instance (Functor f) => HFunctor (Compose f) where
   hmap nat (Compose f) = Compose (fmap nat f)
 
+-- | @since 0.3.1.2
 instance HFunctor (Product f) where
   hmap nat (Pair f g) = Pair f (nat g)
 
+-- | @since 0.3.1.2
 instance HFunctor Backwards where
   hmap nat (Backwards f) = Backwards (nat f)
 
+-- | @since 0.3.1.2
 instance HFunctor Lift where
   hmap _ (Pure a) = Pure a
   hmap nat (Other f) = Other (nat f)

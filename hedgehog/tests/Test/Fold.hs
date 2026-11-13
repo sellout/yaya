@@ -2,6 +2,11 @@
 {-# LANGUAGE Unsafe #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
+-- |
+-- Copyright: 2018 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+-- @since 0.2.1.3
 module Test.Fold (tests) where
 
 import safe "base" Control.Category (id)
@@ -44,5 +49,8 @@ prop_muCataCompose =
     law_cataCompose (Proxy :: Proxy (Mu Expr)) size id
       =<< forAll (Gen.sized genMuExpr)
 
+-- | Checks the laws.
+--
+-- @since 0.2.1.3
 tests :: IO Bool
 tests = checkParallel $$discover

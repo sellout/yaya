@@ -1,10 +1,16 @@
 {-# LANGUAGE Safe #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
--- | Common pattern functors (and instances for them).
+-- |
+-- Copyright: 2017 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+--   Common pattern functors (and instances for them).
 --
 --   This re-exports the functors from the strict library because it also adds
 --   some orphan instances for them.
+--
+-- @since 0.1.0
 module Yaya.Pattern
   ( module Data.Strict.Either,
     module Data.Strict.Maybe,
@@ -51,6 +57,7 @@ import "base" Data.Functor.Classes
     liftShowsPrec,
     liftShowsPrec2,
   )
+import "base" Data.Kind (Type)
 import "base" Data.Ord (Ord, Ordering (EQ, GT, LT), compare, (<=))
 import "base" Data.Semigroup ((<>))
 import "base" Data.Traversable (Traversable)
@@ -98,44 +105,71 @@ import "strict" Data.Strict.Tuple
 import "base" Prelude ((+))
 
 -- | Isomorphic to @'Maybe` (a, b)@, it’s also the pattern functor for lists.
-data XNor a b = Neither | Both ~a b
+--
+-- @since 0.1.0
+data XNor (a :: Type) (b :: Type)
+  = -- | The empty case (@Nil@, for lists).
+    --
+    -- @since 0.1.0
+    Neither
+  | -- | Both an @a@ and a @b@ (@Cons@, for lists, where @b@ is the tail).
+    --
+    -- @since 0.1.0
+    Both ~a b
   deriving stock
-    ( Eq,
+    ( -- | @since 0.5.1
+      Eq,
+      -- | @since 0.5.2.1
       Generic,
+      -- | @since 0.5.1
       Ord,
-      -- | @since 0.6.1.0
+      -- | @since 0.6.1
       Read,
+      -- | @since 0.5.1
       Show,
+      -- | @since 0.1.0
       Foldable,
+      -- | @since 0.1.0
       Functor,
+      -- | @since 0.5.2.1
       Generic1,
+      -- | @since 0.1.0
       Traversable
     )
 
+type role XNor representational representational
+
 -- | Eliminator for `XNor`, akin to `Data.Either.either` or `Data.Maybe.maybe`.
 --
---   @since 0.6.1.0
+-- @since 0.6.1
 xnor :: c -> (a -> b -> c) -> XNor a b -> c
 xnor neither both = \case
   Neither -> neither
   Both x y -> both x y
 
--- | Eliminator for `XNor`, akin to `Data.Either.isLeft` or `Data.Maybe.isNothing`.
+-- | A predicate on `XNor`, akin to `Data.Either.isLeft` or
+--   `Data.Maybe.isNothing`.
+--
+-- @since 1.0.0
 isNeither :: XNor a b -> Bool
 isNeither = xnor True (\_ _ -> False)
 
+-- | @since 0.5.1
 instance (Eq a) => Eq1 (XNor a) where
   liftEq = liftEq2 (==)
 
+-- | @since 0.5.1
 instance Eq2 XNor where
   liftEq2 f g = Tuple.curry $ \case
     (Neither, Neither) -> True
     (Both x y, Both x' y') -> f x x' && g y y'
     (_, _) -> False
 
+-- | @since 0.5.1
 instance (Ord a) => Ord1 (XNor a) where
   liftCompare = liftCompare2 compare
 
+-- | @since 0.5.1
 instance Ord2 XNor where
   liftCompare2 f g = Tuple.curry $ \case
     (Neither, Neither) -> EQ
@@ -143,11 +177,11 @@ instance Ord2 XNor where
     (Both _ _, Neither) -> GT
     (Both x y, Both x' y') -> f x x' <> g y y'
 
--- | @since 0.6.1.0
+-- | @since 0.6.1
 instance (Read a) => Read1 (XNor a) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
--- | @since 0.6.1.0
+-- | @since 0.6.1
 instance Read2 XNor where
   liftReadPrec2 readPrecX _ readPrecY _ =
     let appPrec = 10
@@ -156,9 +190,11 @@ instance Read2 XNor where
             <|> expectP (Lex.Ident "Both")
               *> (Both <$> step readPrecX <*> step readPrecY)
 
+-- | @since 0.5.1
 instance (Show a) => Show1 (XNor a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
+-- | @since 0.5.1
 instance Show2 XNor where
   liftShowsPrec2 showsPrecX _ showsPrecY _ p =
     let appPrec = 10
@@ -173,36 +209,59 @@ instance Show2 XNor where
                   . showsPrecY nextPrec y
           )
 
+-- | @since 0.1.0
 instance Bifunctor XNor where
   bimap f g = xnor Neither (\a -> Both (f a) . g)
 
 -- | Isomorphic to @(a, `Maybe` b)@, it’s also the pattern functor for non-empty
 --   lists.
-data AndMaybe a b = Only ~a | Indeed ~a b
+--
+-- @since 0.1.0
+data AndMaybe (a :: Type) (b :: Type)
+  = -- | A lone @a@ (the last element, for non-empty lists).
+    --
+    -- @since 0.1.0
+    Only ~a
+  | -- | An @a@ followed by a @b@ (an element and the rest, for non-empty
+    --   lists).
+    --
+    -- @since 0.1.0
+    Indeed ~a b
   deriving stock
-    ( Eq,
+    ( -- | @since 0.5.1
+      Eq,
+      -- | @since 0.5.2.1
       Generic,
-      -- | @since 0.6.1.0
+      -- | @since 0.6.1
       Read,
+      -- | @since 0.5.1
       Show,
+      -- | @since 0.1.0
       Foldable,
+      -- | @since 0.1.0
       Functor,
+      -- | @since 0.5.2.1
       Generic1,
+      -- | @since 0.1.0
       Traversable
     )
+
+type role AndMaybe representational representational
 
 -- | Eliminator for `AndMaybe`, akin to `Data.Either.either` or
 --  `Data.Maybe.maybe`.
 --
---   @since 0.6.1.0
+-- @since 0.6.1
 andMaybe :: (a -> c) -> (a -> b -> c) -> AndMaybe a b -> c
 andMaybe only indeed = \case
   Only a -> only a
   Indeed a b -> indeed a b
 
+-- | @since 0.5.1
 instance (Eq a) => Eq1 (AndMaybe a) where
   liftEq = liftEq2 (==)
 
+-- | @since 0.5.1
 instance Eq2 AndMaybe where
   liftEq2 f g = Tuple.curry $ \case
     (Only x, Only x') -> f x x'
@@ -213,12 +272,16 @@ instance Eq2 AndMaybe where
 --   the derived instance would always have
 --   @`compare` (`Only` x) (`Indeed` x' y) `==` `LT`@, but this instance will
 --   return `GT` if @`compare` x x' `==` `GT`@.
+--
+-- @since 0.5.1
 instance (Ord a, Ord b) => Ord (AndMaybe a b) where
   compare = liftCompare compare
 
+-- | @since 0.5.1
 instance (Ord a) => Ord1 (AndMaybe a) where
   liftCompare = liftCompare2 compare
 
+-- | @since 0.5.1
 instance Ord2 AndMaybe where
   liftCompare2 f g = Tuple.curry $ \case
     (Only x, Only x') -> f x x'
@@ -226,11 +289,11 @@ instance Ord2 AndMaybe where
     (Indeed x _, Only x') -> f x x' <> GT
     (Indeed x y, Indeed x' y') -> f x x' <> g y y'
 
--- | @since 0.6.1.0
+-- | @since 0.6.1
 instance (Read a) => Read1 (AndMaybe a) where
   liftReadPrec = liftReadPrec2 readPrec readListPrec
 
--- | @since 0.6.1.0
+-- | @since 0.6.1
 instance Read2 AndMaybe where
   liftReadPrec2 readPrecX _ readPrecY _ =
     let appPrec = 10
@@ -239,9 +302,11 @@ instance Read2 AndMaybe where
             <|> expectP (Lex.Ident "Indeed")
               *> (Indeed <$> step readPrecX <*> step readPrecY)
 
+-- | @since 0.5.1
 instance (Show a) => Show1 (AndMaybe a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
+-- | @since 0.5.1
 instance Show2 AndMaybe where
   liftShowsPrec2 showsPrecX _ showsPrecY _ p =
     let appPrec = 10
@@ -256,6 +321,7 @@ instance Show2 AndMaybe where
                   . showsPrecY nextPrec y
             )
 
+-- | @since 0.1.0
 instance Bifunctor AndMaybe where
   bimap f g = andMaybe (Only . f) (\a -> Indeed (f a) . g)
 
@@ -263,6 +329,7 @@ instance Bifunctor AndMaybe where
 
 -- TODO: Explain why these instances are actually legit (fast & loose).
 
+-- | @since 0.5.2.1
 instance Applicative (Either a) where
   pure = Right
   liftA2 f = curry $ \case
@@ -270,20 +337,24 @@ instance Applicative (Either a) where
     Right _ :!: Left a -> Left a
     Left a :!: _ -> Left a
 
+-- | @since 0.5.2.1
 instance Monad (Either a) where
   Left a >>= _ = Left a
   Right b >>= f = f b
 
+-- | @since 0.5.2.1
 instance Applicative Maybe where
   pure = Just
   liftA2 f = curry $ \case
     Just x :!: Just y -> Just $ f x y
     _ :!: _ -> Nothing
 
+-- | @since 0.5.2.1
 instance Monad Maybe where
   Nothing >>= _ = Nothing
   Just a >>= f = f a
 
+-- | @since 0.5.2.1
 instance Comonad (Pair a) where
   extract = snd
   duplicate x@(a :!: _) = a :!: x

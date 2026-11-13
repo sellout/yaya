@@ -2,27 +2,64 @@
 -- initializing and updating dependency bounds, but shouldn’t have an impact on
 -- regular usage, because the explicit bounds reduce the search space.
 max-backjumps: -1
-minimize-conflict-set: true
-reorder-goals: true
+minimize-conflict-set: True
+reorder-goals: True
+
+-- Maximize parallelism
+jobs: $ncpus
+if impl(ghc >= 9.8)
+  semaphore: True
 
 flags:
-  -- Ensure development of this project always uses @NoRecursion@, even if it
-  -- causes the solver to fail.
-  +verify-no-recursion
+  -- Ensure development of this project always uses linters, even if it causes
+  -- the solver to fail.
+  +lint
 
 program-options
   ghc-options:
     -Werror
 
+if impl(ghc >= 8.0.1)
+  program-options
+    ghc-options:
+      -- We should address the warnings these emit when we can, but they flag a
+      -- lot of things that are outside our control. Even though these don’t
+      -- throw under @-Werror@ it can be confusing to contributors to see them
+      -- labeled as errors alongside actual errors.
+      -Wall-missed-specialisations
+      -Wmissed-specialisations
+      -Wwarn=all-missed-specialisations
+      -Wwarn=missed-specialisations
+
+if impl(ghc == 9.4.1)
+  constraints:
+    -- GHC 9.4.1’s specialiser panics when compiling newer `Cabal-syntax`
+    -- versions, so use the `Cabal` that ships with it.
+    any.Cabal installed,
+
 tests: True
 
 constraints:
+  -- 5.1.6 is the first version that’s @Safe@
+  free >= 5.1.6,
   -- 5 is the first version that’s @Safe@
   lens >= 5,
   -- 0.2.0 is the first version that lets us ignore violations
   no-recursion >= 0.2.0,
   -- 0.4 is the first version with many of the operations we use
   strict >= 0.4,
+
+if impl(ghc == 9.4.1)
+  constraints:
+    -- GHC 9.4.1’s specialiser panics when compiling newer `Cabal-syntax`
+    -- versions, so use the `Cabal` that ships with it.
+    any.Cabal installed,
+
+if os(windows) && impl(ghc >= 9.4)
+  constraints:
+    -- text-2.0 links against libstdc++, but GHC 9.4 moved its Windows
+    -- toolchain to clang/libc++, which text-2.0.1 is the first to support.
+    text >= 2.0.1,
 
 allow-newer:
   -- The latest versions of these don’t have bounds that support GHC 9.14.

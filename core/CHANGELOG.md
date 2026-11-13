@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog 1.1](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
@@ -128,13 +128,13 @@ Unknown changes.
 
 ### Added
 
-- Copied Kmett's auto-extraction of pattern functors
+- Copied Kmett's automatic extraction of pattern functors
 
 ## [0.3.0.0] - 2020-05-14
 
 ### Changed
 
-- introduced minimal poly-kinding of type classes
+- introduced minimal polykinding of type classes
 
 ## [0.2.1.3] - 2020-05-14
 
@@ -153,7 +153,7 @@ Unknown changes.
 ### Added
 
 - documentation explaining limitations of `Mu`
-- tests for `law_cataCompose` (which bumps the yaya-hedgehog dependency for tests)
+- tests for `law_cataCompose` (which bumps the `yaya-hedgehog` dependency for tests)
 
 ## [0.2.1.0] - 2019-01-08
 
@@ -166,7 +166,7 @@ Unknown changes.
 ### Added
 
 - `DFunctor` instances for `Mu` and `Nu`
-- lower bounds on internal yaya dependencies
+- lower bounds on internal Yaya dependencies
 
 ### Changed
 
@@ -178,6 +178,8 @@ Unknown changes.
 ### Added
 
 - everything (this is the initial release)
+
+<!-- NB: The version on the left is the Haskell package version (PVP), the version on the right is the repo (tag) version (SemVer). Their only relationship is that a change of any severity on the left implies a change of at least that severity on the right. -->
 
 [1.0.0.0]: https://github.com/sellout/yaya/compare/v4.0.0...v5.0.0
 [0.7.0.0]: https://github.com/sellout/yaya/compare/v3.2.3...v4.0.0

@@ -3,6 +3,11 @@
 {-# LANGUAGE Unsafe #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
+-- |
+-- Copyright: 2018 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+-- @since 0.3.3.1
 module Test.Fold (tests) where
 
 import safe "base" Control.Category (id)
@@ -107,5 +112,8 @@ prop_nuIsntRecursive = recursiveIsUnsafe (Proxy :: Proxy Nu) (1 :: Int)
 prop_cofixIsntRecursive :: Property
 prop_cofixIsntRecursive = recursiveIsUnsafe (Proxy :: Proxy Cofix) (1 :: Int)
 
+-- | Checks the laws.
+--
+-- @since 0.3.3.1
 tests :: IO Bool
 tests = checkParallel $$discover

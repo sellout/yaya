@@ -1,11 +1,17 @@
 {-# LANGUAGE Safe #-}
 
--- | This shows how `Data.Foldable.Foldable` is basically `Recursive`
+-- |
+-- Copyright: 2017 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+--   This shows how `Data.Foldable.Foldable` is basically `Recursive`
 --   specialized to lists. The true operation of `Data.Foldable.Foldable` is
 --  `Data.Foldable.toList`.
 --
 --   As these few operations have the usual signatures, the rest of the type
 --   class can be implemented in the as in @base@.
+--
+-- @since 0.1.0
 module Yaya.Experimental.Foldable
   ( Listable,
     foldMap,
@@ -17,12 +23,16 @@ where
 
 import "base" Control.Category (id, (.))
 import "base" Data.Function (flip)
+import "base" Data.Kind (Type)
 import "base" Data.Monoid (Monoid)
 import "free" Control.Monad.Trans.Free (Free, iter)
 import "this" Yaya.Fold (Recursive, cata)
 import "this" Yaya.Fold.Common (lowerMonoid)
 import "this" Yaya.Pattern (XNor (Both, Neither))
 
+-- | Maps each element of a list into a `Monoid` and combines the results.
+--
+-- @since 0.1.0
 foldMap :: (Recursive (->) t (XNor a), Monoid m) => (a -> m) -> t -> m
 foldMap = cata . lowerMonoid
 
@@ -30,7 +40,12 @@ foldMap = cata . lowerMonoid
 --   list. It is equivalent to `Data.Foldable.Foldable`, but designed to
 --   illustrate the representation of `Data.Foldable.Foldable` as `Recursive`
 --   specialized to lists.
-class Listable f where
+--
+-- @since 0.1.0
+class Listable (f :: Type -> Type -> Type) where
+  -- | Expresses one layer of @f a@ as a segment of a list.
+  --
+  -- @since 0.1.0
   naturalList :: f a b -> Free (XNor a) b
 
 -- toColist :: (Projectable t (f a), Corecursive (->) u (XNor a)) => t -> u
@@ -42,6 +57,8 @@ class Listable f where
 
 -- | This is simply `cata` applied to a list – the function is the @Cons@
 --   case, while the initial value is the @Nil@ case.
+--
+-- @since 0.1.0
 foldr :: (Listable f, Recursive (->) t (f a)) => (a -> b -> b) -> b -> t -> b
 foldr f b =
   cata
@@ -54,6 +71,8 @@ foldr f b =
     )
 
 -- | Simply `cata` with a carrier of @b -> b@.
+--
+-- @since 0.1.0
 foldl :: (Listable f, Recursive (->) t (f a)) => (b -> a -> b) -> b -> t -> b
 foldl f =
   flip

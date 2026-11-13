@@ -1,12 +1,18 @@
 {-# LANGUAGE CPP #-}
 #if MIN_VERSION_GLASGOW_HASKELL(9, 0, 0, 0)
 {-# LANGUAGE Safe #-}
+-- "Data.Either.Validation" is only inferred `Safe`.
+{-# OPTIONS_GHC -Wno-inferred-safe-imports #-}
 #else
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE Trustworthy #-}
 #endif
 
--- | This module re-exports a subset of `Yaya.Fold`, intended for when you want
+-- |
+-- Copyright: 2018 Greg Pfeil
+-- License: AGPL-3.0-only WITH Universal-FOSS-exception-1.0 OR LicenseRef-proprietary
+--
+--   This module re-exports a subset of `Yaya.Fold`, intended for when you want
 --   to define recursion scheme instances for your existing recursive types.
 --
 --   This is /not/ the recommended way to use Yaya, but it solves some real
@@ -27,6 +33,8 @@
 --   Another difference when you have control is that it means you may migrate
 --   away from direct recursion entirely, at which point this import should
 --   disappear.
+--
+-- @since 0.1.0
 module Yaya.Retrofit
   ( module Yaya.Fold,
     PatternFunctorRules (PatternFunctorRules),
@@ -54,6 +62,7 @@ import safe "base" Data.Foldable (Foldable, foldl, length, null)
 import safe "base" Data.Function (const, flip, ($))
 import safe "base" Data.Functor (Functor, fmap, (<$>))
 import safe "base" Data.Functor.Identity (Identity (Identity), runIdentity)
+import safe "base" Data.Kind (Type)
 import safe "base" Data.List (all, elemIndex, splitAt, zip, zip3)
 import safe "base" Data.List.NonEmpty (NonEmpty)
 import safe "base" Data.Maybe (Maybe (Just, Nothing), maybe)
@@ -89,14 +98,14 @@ import safe "this" Yaya.Fold
   )
 
 #if MIN_VERSION_template_haskell(2, 21, 0)
-type TyVarBndrUnit = TH.TyVarBndrUnit
-type TyVarBndrVis = TH.TyVarBndrVis
+type TyVarBndrUnit = (TH.TyVarBndrUnit :: Type)
+type TyVarBndrVis = (TH.TyVarBndrVis :: Type)
 #elif MIN_VERSION_template_haskell(2, 17, 0)
-type TyVarBndrUnit = TH.TyVarBndrUnit
-type TyVarBndrVis = TH.TyVarBndr ()
+type TyVarBndrUnit = (TH.TyVarBndrUnit :: Type)
+type TyVarBndrVis = (TH.TyVarBndr () :: Type)
 #else
-type TyVarBndrUnit = TH.TyVarBndr
-type TyVarBndrVis = TH.TyVarBndr
+type TyVarBndrUnit = (TH.TyVarBndr :: Type)
+type TyVarBndrVis = (TH.TyVarBndr :: Type)
 #endif
 
 conP' :: TH.Name -> [TH.Pat] -> TH.Pat
@@ -158,20 +167,43 @@ conP' = TH.ConP
 --   these is always unsafe. In future, we should check the strictness of the
 --   recursive parameter and generate only the appropriate one (unless
 --   overridden by a rule).
+--
+-- @since 0.3.1
 extractPatternFunctor :: PatternFunctorRules -> TH.Name -> TH.Q [TH.Dec]
 extractPatternFunctor rules =
   either (fail . displayUnsupportedDatatype) id . makePrimForDI rules
     <=< TH.Abs.reifyDatatype
 
 -- | Rules of renaming data names
-data PatternFunctorRules = PatternFunctorRules
-  { patternType :: TH.Name -> TH.Name,
-    patternCon :: TH.Name -> TH.Name,
-    patternField :: TH.Name -> TH.Name
-  }
+--
+-- @since 0.3.1
+data PatternFunctorRules
+  = -- | Specifies a renaming for each kind of name in the generated pattern
+    --   functor.
+    --
+    -- @since 0.3.1
+    PatternFunctorRules
+    { -- | Names the pattern functor, given the name of the directly-recursive
+      --   type.
+      --
+      -- @since 0.3.1
+      patternType :: TH.Name -> TH.Name,
+      -- | Names each constructor of the pattern functor, given the
+      --   corresponding constructor of the directly-recursive type.
+      --
+      -- @since 0.3.1
+      patternCon :: TH.Name -> TH.Name,
+      -- | Names each record field of the pattern functor, given the
+      --   corresponding field of the directly-recursive type.
+      --
+      -- @since 0.3.1
+      patternField :: TH.Name -> TH.Name
+    }
 
 -- | Default 'PatternFunctorRules': append @F@ or @$@ to data type, constructors
 --   and field names.
+--
+-- @since 0.3.1
 defaultRules :: PatternFunctorRules
 defaultRules =
   PatternFunctorRules
@@ -183,6 +215,8 @@ defaultRules =
 -- | Use these rules when you are defining the pattern functor in a different
 --   module from the directly-recursive type, and the directly-recursive type is
 --   imported qualified (so the functor can use the same names for everything).
+--
+-- @since 1.0.0
 qualifiedRules :: PatternFunctorRules
 qualifiedRules =
   PatternFunctorRules
@@ -320,7 +354,7 @@ makePrimForDI' rules safeVariant tyName vars cons = do
   let r = TH.VarT rName
 
   -- Vars
-  let varsF = vars <> [TH.plainTV rName]
+  let varsF = vars <> [TH.kindedTV rName TH.StarT]
 
   -- ekmett/recursion-schemes#33
   cons' <- traverse (conTypeTraversal TH.Abs.resolveTypeSynonyms) cons
@@ -410,9 +444,11 @@ conTypeMap = over conTypeTraversal
 -- Lenses
 -------------------------------------------------------------------------------
 
-type Lens' s a = forall f. (Functor f) => (a -> f a) -> s -> f s
+type Lens' (s :: Type) (a :: Type) =
+  (forall f. (Functor f) => (a -> f a) -> s -> f s :: Type)
 
-type Traversal' s a = forall f. (Applicative f) => (a -> f a) -> s -> f s
+type Traversal' (s :: Type) (a :: Type) =
+  (forall f. (Applicative f) => (a -> f a) -> s -> f s :: Type)
 
 lens :: (s -> a) -> (s -> a -> s) -> Lens' s a
 lens sa sas afa s = sas s <$> afa (sa s)

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog 1.1](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
@@ -9,7 +9,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 
 ### Added
 
-- support for yaya-1.0.0
+- support for `yaya-1.0.0`
 
 ## [0.4.0.0] - 2026-01-18
 
@@ -77,7 +77,7 @@ Unknown changes.
 
 ### Changed
 
-- updated in sync with polykind changes in yaya-0.3.0.0
+- updated in sync with polykind changes in Yaya 0.3.0.0
 
 ## [0.1.2.2] – 2020–05–14
 
@@ -102,13 +102,15 @@ Unknown changes.
 ### Added
 
 - `law_anaRefl` as dual to `law_cataRefl`
-- lower bounds on internal yaya dependencies
+- lower bounds on internal Yaya dependencies
 
 ## [0.1.0.0] – 2019–01–04
 
 ### Added
 
 - everything (this is the initial release)
+
+<!-- NB: The version on the left is the Haskell package version (PVP), the version on the right is the repo (tag) version (SemVer). Their only relationship is that a change of any severity on the left implies a change of at least that severity on the right. -->
 
 [0.4.0.1]: https://github.com/sellout/yaya/compare/v4.0.0...v5.0.0
 [0.4.0.0]: https://github.com/sellout/yaya/compare/v3.2.3...v4.0.0
