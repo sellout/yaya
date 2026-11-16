@@ -103,11 +103,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1794746988,
-        "narHash": "sha256-rff559m9opUxjNF08bzh1PK+Z2/GlXW42wSht4gCNIY=",
+        "lastModified": 1794766196,
+        "narHash": "sha256-E4jeGHDO6uUhtYTQ94KQIdrk6sceNP39BA8xRutJaGs=",
         "owner": "sellout",
         "repo": "flaky",
-        "rev": "b9af015f01c24124977edb4c448d8bdb0bfdd130",
+        "rev": "061f93cde8232b8527731775326922c3d17eb2d5",
         "type": "github"
       },
       "original": {
@@ -190,11 +190,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1794731784,
-        "narHash": "sha256-UGMa+Ll2cahhmxhcUrQ/JP0vAkqskds7SE2j73PAS88=",
+        "lastModified": 1794746400,
+        "narHash": "sha256-ta+t4ZGVNYFyeH+ai7Z7bbg4JkzXmxKGLp5lk2+TDro=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "412a41999f1e1d667edefc0ab9ac1693a2bba6ce",
+        "rev": "89a438d02526a2d55373ea8fb21eb1800782f657",
         "type": "github"
       },
       "original": {
