@@ -103,11 +103,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1794766196,
-        "narHash": "sha256-E4jeGHDO6uUhtYTQ94KQIdrk6sceNP39BA8xRutJaGs=",
+        "lastModified": 1794872474,
+        "narHash": "sha256-SRiuErvsM8q9IOvWnrkApKixGXCob2CbQ8Cz/cJKgZ8=",
         "owner": "sellout",
         "repo": "flaky",
-        "rev": "061f93cde8232b8527731775326922c3d17eb2d5",
+        "rev": "f79dc49580c9f12764e969853086be70f3f56902",
         "type": "github"
       },
       "original": {
@@ -190,16 +190,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1794746400,
-        "narHash": "sha256-ta+t4ZGVNYFyeH+ai7Z7bbg4JkzXmxKGLp5lk2+TDro=",
+        "lastModified": 1794217284,
+        "narHash": "sha256-Ya0ojDh1BF5zgyZRlehygC0ZvvEg2WaGZWn1xiNozmM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "89a438d02526a2d55373ea8fb21eb1800782f657",
+        "rev": "f4244ef33645badc8157562b5e80748929b396c2",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "release-26.05",
+        "ref": "nixpkgs-26.05-darwin",
         "repo": "nixpkgs",
         "type": "github"
       }
